@@ -1,0 +1,29 @@
+import { prisma } from "@/lib/prisma"
+import OrdersClient from "@/components/admin/OrdersClient"
+
+export default async function OrdersPage() {
+  const orders = await prisma.order.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: {
+        select: { name: true, email: true }
+      }
+    }
+  })
+
+  // Format data for client boundary safely
+  const safeOrders = orders.map(o => ({
+    id: o.id,
+    createdAt: o.createdAt,
+    user: o.user,
+    status: o.status,
+    totalAmount: Number(o.totalAmount),
+    printifyOrderId: o.printifyOrderId
+  }))
+
+  return (
+    <div className="space-y-8 font-mono max-w-[1400px] mx-auto w-full">
+      <OrdersClient initialOrders={safeOrders} />
+    </div>
+  )
+}

@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+  VIP
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  CANCELLED
+}
+
+model StoreConfig {
+  id                String   @id @default("global")
+  flashSaleActive   Boolean  @default(false)
+  flashSaleEndsAt   DateTime?
+  flashSaleMessage  String   @default("LIMITED DROP ENDING SOON")
+  heroVideoUrl      String   @default("/hero-banner-cap.mp4")
+  promoAnnouncement String?
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String?
+  role          Role      @default(CUSTOMER)
+  totalSpent    Float     @default(0)
+  internalNotes String?   @db.Text
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  createdAt     DateTime  @default(now())
+}
+
+
+model Order {
+  id               String      @id @default(cuid())
+  userId           String
+  user             User        @relation(fields: [userId], references: [id])
+  stripeSessionId  String?     @unique
+  printifyOrderId  String?     @unique
+  status           OrderStatus @default(PENDING)
+  totalAmount      Float
+  shippingAddress  String?     @db.Text
+  items            OrderItem[]
+  internalNotes    String?     @db.Text
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+}
+
+// NextAuth Required Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LookbookImage {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String?
+  createdAt DateTime @default(now())
+}
+
+// --- ADD THIS TO YOUR SCHEMA ---
+
+model Collection {
+  id            String    @id @default(cuid())
+  name          String
+  handle        String    @unique // e.g., "spring-2026-drop"
+  description   String?   @db.Text
+  imageUrl      String?
+  products      Product[] // One collection has many products
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// --- UPDATE YOUR PRODUCT MODEL TO THIS ---
+
+model Product {
+  id            String      @id @default(cuid())
+  printifyId    String      @unique
+  name          String
+  description   String?     @db.Text
+  price         Float       // Retail price
+  cost          Float?      // Printify base cost
+  imageUrl      String
+  status        String      @default("DRAFT") // DRAFT, ACTIVE, ARCHIVED
+  isPublished   Boolean     @default(false)
+  isVaulted     Boolean     @default(false)
+  isFeatured    Boolean     @default(false)
+  isPreorder    Boolean     @default(false)
+
+  // New Relation Field
+  collectionId  String?
+  collection    Collection? @relation(fields: [collectionId], references: [id])
+
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
