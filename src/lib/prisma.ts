@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+// @ts-ignore - pg is needed for driver adapter but frequently has resolution issues in Vercel build environments
 import { Pool } from 'pg'
 
 const connectionString = `${process.env.DATABASE_URL}`
