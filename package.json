@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "db:seed": "node --loader ts-node/esm --env-file=.env.local scripts/seed-products.ts"
+    "db:seed": "node --loader ts-node/esm --env-file=.env scripts/seed-products.ts",
+    "db:admin": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
