@@ -22,7 +22,7 @@ export interface NormalizedProduct {
 
 export async function fetchPrintifyProducts(revalidate: number = 60): Promise<NormalizedProduct[]> {
   const shopId = process.env.PRINTIFY_SHOP_ID;
-  const token = process.env.PRINTIFY_API_TOKEN;
+  const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
 
   if (!shopId || !token) {
     console.error("Missing Printify credentials");

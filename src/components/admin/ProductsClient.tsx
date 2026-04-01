@@ -74,8 +74,14 @@ export default function ProductsClient({
 
   const handleManualSync = async () => {
     setBulkLoading(true);
-    await syncPrintifyManual();
+    const result = await syncPrintifyManual();
     setBulkLoading(false);
+    if (result.success) {
+      alert("Printify Sync Complete! Products have been moved into the Holding Pen.");
+      window.location.reload(); // Refresh to show new data
+    } else {
+      alert("Sync Failed: " + (result.message || "Check server logs."));
+    }
   };
 
   return (
