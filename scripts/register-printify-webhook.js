@@ -125,7 +125,9 @@ async function registerWebhook() {
       console.log(`\x1b[42m\x1b[30m SUCCESS \x1b[0m Webhook successfully established!`);
       console.log(`          Payloads will be sent to: ${targetUrl}\n`);
     } else {
-      throw new Error(`Failed to create webhook: ${postRes.data}`);
+      console.error(`\x1b[41m\x1b[37m ERROR \x1b[0m Failed to create webhook. Status: ${postRes.statusCode}`);
+      console.error(`RESPONSE: ${postRes.data}`);
+      process.exit(1);
     }
 
   } catch (err) {

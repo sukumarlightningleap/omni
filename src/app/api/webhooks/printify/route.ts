@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 
 // Used by Printify to validate the webhook endpoint presence
 export async function GET() {
-  return NextResponse.json({ status: "ok" })
+  return new Response("OK", { status: 200 })
 }
 
 export async function HEAD() {
