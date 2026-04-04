@@ -14,13 +14,17 @@ export async function POST(req: Request) {
     
     console.log(`\n\x1b[45m\x1b[37m INCOMING PRINTIFY REQUEST \x1b[0m URL: ${req.url}`);
     
-    // Parse body first to check type for validation
+    // Parse body safely
     let body;
     try {
-      body = JSON.parse(rawBody)
+      body = rawBody ? JSON.parse(rawBody) : null
     } catch (e) {
-      console.error("Failed to parse Printify webhook body:", rawBody)
-      return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 })
+      console.warn("Incoming request is not JSON (might be a validation ping):", rawBody)
+      return new Response("OK", { status: 200 }) // Return 200 to satisfy pings
+    }
+
+    if (!body) {
+      return new Response("OK", { status: 200 })
     }
 
     // In production: verify HMAC SHA256 signature using PRINTIFY_WEBHOOK_SECRET
