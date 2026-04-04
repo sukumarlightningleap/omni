@@ -20,13 +20,13 @@ export interface NormalizedProduct {
   sizes?: string[];
 }
 
-export async function fetchPrintifyProducts(revalidate: number = 60): Promise<NormalizedProduct[]> {
+export async function fetchPrintifyProducts(revalidate: number = 60): Promise<NormalizedProduct[] | null> {
   const shopId = process.env.PRINTIFY_SHOP_ID;
   const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
 
   if (!shopId || !token) {
     console.error("Missing Printify credentials");
-    return [];
+    return null;
   }
 
   try {
@@ -36,6 +36,11 @@ export async function fetchPrintifyProducts(revalidate: number = 60): Promise<No
       },
       next: { revalidate },
     });
+
+    if (response.status === 401) {
+      console.error("Printify Authentication Failed: 401 Unauthorized");
+      return null;
+    }
 
     if (!response.ok) {
       throw new Error(`Printify API error: ${response.statusText}`);

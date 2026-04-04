@@ -65,9 +65,13 @@ export async function syncPrintifyManual() {
   try {
     const liveProducts = await fetchPrintifyProducts(0) // 0 forces a fresh bypass of cache
     
-    if (!liveProducts || liveProducts.length === 0) {
+    if (liveProducts === null) {
+      return { success: false, message: "Authentication failed. Please check your Printify credentials in .env" }
+    }
+
+    if (liveProducts.length === 0) {
       console.warn("No products retrieved from Printify during sync.")
-      return { success: false, message: "No products found on Printify." }
+      return { success: false, message: "No products found on Printify. Ensure they are published." }
     }
 
     for (const p of liveProducts) {

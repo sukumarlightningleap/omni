@@ -2,19 +2,30 @@ import https from 'https';
 import fs from 'fs';
 
 // For node >= 20, --env-file is used, but we'll manually load .env.local just in case they don't pass it
-if (fs.existsSync('.env.local')) {
-  const envContent = fs.readFileSync('.env.local', 'utf-8');
+// Support both .env and .env.local
+const envFiles = ['.env', '.env.local'].filter(f => fs.existsSync(f));
+
+envFiles.forEach(envFile => {
+  console.log(`\x1b[36m[i]\x1b[0m Loading credentials from ${envFile}...`);
+  const envContent = fs.readFileSync(envFile, 'utf-8');
   envContent.split('\n').forEach(line => {
-    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+    const cleanLine = line.split('#')[0].trim();
+    if (!cleanLine) return;
+
+    const match = cleanLine.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
     if (match) {
       let key = match[1];
       let value = match[2] || '';
-      if (value.startsWith('"') && value.endsWith('"')) {
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
         value = value.slice(1, -1);
       }
       process.env[key] = value;
     }
   });
+});
+
+if (envFiles.length === 0) {
+  console.warn("\x1b[33m[!]\x1b[0m No .env or .env.local file found. Relying on existing environment variables.");
 }
 
 function httpsRequest(options, postData = null) {
@@ -38,21 +49,29 @@ function httpsRequest(options, postData = null) {
 
 async function registerWebhook() {
   const shopId = process.env.PRINTIFY_SHOP_ID;
-  const token = process.env.PRINTIFY_API_TOKEN;
+  const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
   
-  const NGROK_URL = process.argv[2] || "[PASTE_YOUR_NGROK_URL_HERE]";
-  const targetUrl = `${NGROK_URL}/api/webhooks/printify`;
+  // Use the provided URL (live or ngrok) or fallback to a placeholder
+  const BASE_URL = process.argv[2];
+  if (!BASE_URL || BASE_URL.includes("your-vercel-domain")) {
+    console.error("\x1b[41m\x1b[37m ERROR \x1b[0m Please provide your actual Public URL (e.g., ngrok or Vercel).");
+    console.log("Usage: node scripts/register-printify-webhook.js https://your-public-url.com");
+    process.exit(1);
+  }
+
+  const targetUrl = `${BASE_URL.replace(/\/$/, '')}/api/webhooks/printify`;
 
   if (!shopId || !token) {
-    console.error("\x1b[41m\x1b[37m ERROR \x1b[0m Missing Printify credentials in .env.local");
+    console.error("\x1b[41m\x1b[37m ERROR \x1b[0m Missing Printify credentials.");
+    console.log(`Checked: PRINTIFY_SHOP_ID: ${shopId ? 'FOUND' : 'MISSING'}`);
+    console.log(`Checked: PRINTIFY_API_TOKEN: ${token ? 'FOUND' : 'MISSING'}`);
+    console.log("\nMake sure your .env file contains:");
+    console.log("PRINTIFY_SHOP_ID=your_id");
+    console.log("PRINTIFY_API_TOKEN=your_token");
     process.exit(1);
   }
 
-  if (NGROK_URL.includes("PASTE_YOUR_NGROK_URL")) {
-    console.error("\x1b[43m\x1b[30m WARNING \x1b[0m Please provide your Ngrok URL as an argument:");
-    console.log("          node scripts/register-printify-webhook.js https://your-ngrok-url.ngrok-free.app\n");
-    process.exit(1);
-  }
+  console.log(`\x1b[34m[v]\x1b[0m Target Endpoint: ${targetUrl}`);
 
   try {
     const getOptions = {
@@ -76,7 +95,7 @@ async function registerWebhook() {
     const existingWebhooks = JSON.parse(existingRes.data);
 
     const duplicate = existingWebhooks.find(
-      (w) => w.url === targetUrl && w.topic === "product:published"
+      (w) => w.url === targetUrl && (w.topic === "product:publish:finished" || w.topic === "product:published")
     );
 
     if (duplicate) {
@@ -87,7 +106,7 @@ async function registerWebhook() {
 
     console.log(`\x1b[36m[i]\x1b[0m Registering new webhook...`);
     const payload = JSON.stringify({
-      topic: "product:published",
+      topic: "product:publish:finished",
       url: targetUrl
     });
 

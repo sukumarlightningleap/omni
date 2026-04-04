@@ -71,12 +71,34 @@ export async function POST(req: Request) {
     })
 
     // 3. The Hand-off: Push directly to Printify API
-    if (process.env.PRINTIFY_SHOP_ID && process.env.PRINTIFY_TOKEN) {
+    const shopId = process.env.PRINTIFY_SHOP_ID
+    const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN
+
+    if (shopId && token) {
       try {
-        const printifyLineItems = order.items.map(item => ({
-          product_id: item.product.printifyId,
-          variant_id: 1, // In a full implementation, you'd map the specific variant based on size/color
-          quantity: item.quantity
+        const printifyLineItems = await Promise.all(order.items.map(async item => {
+          try {
+            // Dynamically fetch the product to get the first valid variant ID 
+            // (Avoids hardcoded '1' which causes sync failures)
+            const pRes = await fetch(`https://api.printify.com/v1/shops/${shopId}/products/${item.product.printifyId}.json`, {
+              headers: { "Authorization": `Bearer ${token}` }
+            })
+            if (pRes.ok) {
+              const pData = await pRes.json()
+              return {
+                product_id: item.product.printifyId,
+                variant_id: pData.variants?.[0]?.id || 1,
+                quantity: item.quantity
+              }
+            }
+          } catch (err) {
+            console.error(`Failed to fetch variant for product ${item.product.printifyId}:`, err)
+          }
+          return {
+            product_id: item.product.printifyId,
+            variant_id: 1, // Fallback
+            quantity: item.quantity
+          }
         }))
 
         const printifyPayload = {
@@ -100,10 +122,10 @@ export async function POST(req: Request) {
           }
         }
 
-        const printifyRes = await fetch(`https://api.printify.com/v1/shops/${process.env.PRINTIFY_SHOP_ID}/orders.json`, {
+        const printifyRes = await fetch(`https://api.printify.com/v1/shops/${shopId}/orders.json`, {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${process.env.PRINTIFY_TOKEN}`,
+            "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify(printifyPayload)

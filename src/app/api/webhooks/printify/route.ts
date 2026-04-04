@@ -10,15 +10,24 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text()
-    const signature = req.headers.get("x-printify-signature")
+    const signature = req.headers.get("x-pfy-signature") || req.headers.get("x-printify-signature")
     
+    console.log(`\n\x1b[45m\x1b[37m INCOMING PRINTIFY REQUEST \x1b[0m URL: ${req.url}`);
+    
+    // Parse body first to check type for validation
+    let body;
+    try {
+      body = JSON.parse(rawBody)
+    } catch (e) {
+      console.error("Failed to parse Printify webhook body:", rawBody)
+      return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 })
+    }
+
     // In production: verify HMAC SHA256 signature using PRINTIFY_WEBHOOK_SECRET
     // if (!verifySignature(rawBody, signature, process.env.PRINTIFY_WEBHOOK_SECRET)) ...
 
-    const body = JSON.parse(rawBody)
-    
     // Gatekeeper: Only parse product publishes.
-    if (body.type === "product:published" || body.type === "product:updated") {
+    if (body.type === "product:publish:finished" || body.type === "product:published" || body.type === "product:updated") {
       console.log(`\n\x1b[44m\x1b[37m INCOMING WEBHOOK \x1b[0m \x1b[36mEVENT: ${body.type}\x1b[0m`);
       const product = body.resource
       
