@@ -13,6 +13,8 @@ export async function POST(req: Request) {
     const signature = req.headers.get("x-pfy-signature") || req.headers.get("x-printify-signature")
     
     console.log(`\n\x1b[45m\x1b[37m INCOMING PRINTIFY REQUEST \x1b[0m URL: ${req.url}`);
+    console.log(`HEADERS: ${JSON.stringify(Object.fromEntries(req.headers.entries()))}`);
+    console.log(`BODY: ${rawBody}`);
     
     // Parse body safely
     let body;
