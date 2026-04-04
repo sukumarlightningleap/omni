@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, ChevronDown, CheckSquare, Square, Image as ImageIcon, Loader2 } from "lucide-react";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { updateProductGatekeeper, bulkPublishToCollection, syncPrintifyManual } from "@/app/actions/admin/products";
 
 type ProductData = {
@@ -33,6 +34,15 @@ export default function ProductsClient({
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkCollectionSync, setBulkCollectionSync] = useState("none");
+  const router = useRouter();
+
+  // "Live" Refresh: Auto-updates the list every 10 seconds without a full page reload
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [router]);
 
   const filteredProducts = initialProducts.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
