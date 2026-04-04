@@ -34,10 +34,26 @@ export async function POST(req: Request) {
 
     // Gatekeeper: Only parse product publishes.
     if (body.type === "product:publish:finished" || body.type === "product:published" || body.type === "product:updated") {
-      console.log(`\n\x1b[44m\x1b[37m INCOMING WEBHOOK \x1b[0m \x1b[36mEVENT: ${body.type}\x1b[0m`);
-      const product = body.resource
+      const printifyId = body.resource?.id || body.id;
+      if (!printifyId) {
+        console.error("No product ID found in webhook body:", body);
+        return NextResponse.json({ error: "MISSING_ID" }, { status: 400 });
+      }
+
+      // Fetch full product details from Printify API to ensure we have images, variants, etc.
+      const shopId = process.env.PRINTIFY_SHOP_ID;
+      const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
       
-      const printifyId = product.id
+      const response = await fetch(`https://api.printify.com/v1/shops/${shopId}/products/${printifyId}.json`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to fetch full product data for ${printifyId}: ${response.statusText}`);
+        return NextResponse.json({ error: "FETCH_FAILED" }, { status: 500 });
+      }
+
+      const product = await response.json();
       const name = product.title || "UNKNOWN PRODUCT"
       const description = product.description || ""
       
@@ -73,8 +89,7 @@ export async function POST(req: Request) {
         }
       })
 
-      console.log(`\x1b[42m\x1b[30m SUCCESS \x1b[0m \x1b[32mPRODUCT UPSERTED TO DATABASE:\x1b[0m ${name}`);
-      console.log(`         ID: ${printifyId} | SET TO: DRAFT\n`);
+      console.log(`\x1b[42m\x1b[30m SUCCESS \x1b[0m \x1b[32mPRODUCT SYNCED:\x1b[0m ${name}`);
 
       return NextResponse.json({ acknowledged: true })
     }
