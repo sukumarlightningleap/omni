@@ -6,6 +6,10 @@ export async function GET() {
   return NextResponse.json({ status: "ok" })
 }
 
+export async function HEAD() {
+  return new Response(null, { status: 200 })
+}
+
 
 export async function POST(req: Request) {
   try {
