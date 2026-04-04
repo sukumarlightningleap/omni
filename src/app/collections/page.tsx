@@ -7,7 +7,7 @@ import { fetchPrintifyProducts } from '@/lib/printify';
  * Fetches real Printify products and renders them via the filtering client.
  */
 export default async function CollectionsPage() {
-  const products = await fetchPrintifyProducts(60);
+  const products = await fetchPrintifyProducts(60) || [];
   
   // Extract unique categories from actual products
   const categories = Array.from(new Set(products.map(p => p.category)));

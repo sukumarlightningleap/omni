@@ -14,7 +14,7 @@ interface ProductPageProps {
  */
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const products = await fetchPrintifyProducts(60);
+  const products = await fetchPrintifyProducts(60) || [];
   const product = products.find(p => p.slug === slug);
 
   if (!product) {
@@ -50,7 +50,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
   
   // Fetch all products (cached by ISR) and find the matching one
-  const products = await fetchPrintifyProducts(60);
+  const products = await fetchPrintifyProducts(60) || [];
   const product = products.find(p => p.slug === slug);
 
   if (!product) {

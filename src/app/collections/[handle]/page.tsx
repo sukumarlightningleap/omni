@@ -13,7 +13,7 @@ interface CollectionPageProps {
  */
 export default async function IndividualCollectionPage({ params }: CollectionPageProps) {
   const { handle } = await params;
-  const allProducts = await fetchPrintifyProducts(60);
+  const allProducts = await fetchPrintifyProducts(60) || [];
   
   // Filter products by category handle (tags in Printify)
   const filteredProducts = allProducts.filter(
