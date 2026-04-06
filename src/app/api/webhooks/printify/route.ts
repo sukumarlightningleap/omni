@@ -83,9 +83,6 @@ export async function POST(req: Request) {
           price: baseCost * 2, // Arbitrary markup fallback
           cost: baseCost,
           imageUrl,
-          status: "DRAFT",
-          isPublished: false,
-          isVaulted: false
         }
       })
 

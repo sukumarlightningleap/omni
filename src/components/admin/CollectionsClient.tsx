@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useTransition, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Trash2, Plus, Loader2, FolderTree } from "lucide-react"
 import { createCollection, deleteCollection } from "@/app/actions/admin/products"
 
@@ -13,108 +14,147 @@ type CollectionData = {
 }
 
 export default function CollectionsClient({ initialCollections }: { initialCollections: CollectionData[] }) {
+  const router = useRouter()
   const [collections, setCollections] = useState(initialCollections)
+  const [isPending, startTransition] = useTransition()
   const [isCreating, setIsCreating] = useState(false)
   const [newColName, setNewColName] = useState("")
   const [newColDesc, setNewColDesc] = useState("")
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
+
+  // Sync state when props change (revalidation)
+  useEffect(() => {
+    setCollections(initialCollections)
+  }, [initialCollections])
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newColName.trim()) return
 
     setIsCreating(true)
-    await createCollection(newColName, newColDesc)
-    // In a real app we'd rely on Server Actions revalidating or we'd just reload/refresh router here
-    // But since server actions revalidatePath, it should automatically update the props on navigation.
-    window.location.reload()
+    const result = await createCollection(newColName, newColDesc)
+    
+    if (result.success) {
+      setNewColName("")
+      setNewColDesc("")
+      startTransition(() => {
+        router.refresh()
+      })
+    }
+    setIsCreating(false)
   }
 
   const handleDelete = async (id: string) => {
     setLoadingIds(prev => new Set(prev).add(id))
-    await deleteCollection(id)
-    window.location.reload()
+    const result = await deleteCollection(id)
+    
+    if (result.success) {
+      startTransition(() => {
+        router.refresh()
+      })
+    }
+    setLoadingIds(prev => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
   }
 
   return (
-    <div className="space-y-6 font-mono text-white max-w-5xl">
+    <div className="space-y-8 font-sans text-neutral-900 max-w-6xl pb-24">
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#1A1A1A] pb-4">
-        <h2 className="text-sm font-black tracking-[0.2em] uppercase flex items-center gap-3">
-          <FolderTree size={16} className="text-[#00FF00]" />
-          Collection Manager
-        </h2>
+      <div className="flex justify-between items-end">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Collections</h2>
+          <p className="text-sm text-neutral-500 mt-1">Organize and curate your product catalog into thematic groups.</p>
+        </div>
       </div>
 
-      {/* Creation Modal / Inline Form */}
-      <div className="bg-[#050505] border border-[#1A1A1A] p-6 space-y-4">
-        <h3 className="text-[10px] uppercase tracking-widest text-[#00FF00] font-bold">Instantiate Collection</h3>
-        <form onSubmit={handleCreate} className="flex flex-col gap-4 max-w-lg">
-          <input 
-            type="text" 
-            placeholder="COLLECTION NAME (e.g. SUMMER ARCHIVE)" 
-            value={newColName}
-            onChange={e => setNewColName(e.target.value)}
-            disabled={isCreating}
-            className="bg-black border border-[#1A1A1A] text-[10px] uppercase tracking-widest text-white px-4 py-3 focus:outline-none focus:border-[#00FF00] transition-colors"
-          />
-          <textarea 
-            placeholder="OPTIONAL DESCRIPTION FOR SEO / MARKETING..." 
-            value={newColDesc}
-            onChange={e => setNewColDesc(e.target.value)}
-            disabled={isCreating}
-            rows={2}
-            className="bg-black border border-[#1A1A1A] text-[10px] uppercase tracking-widest text-white px-4 py-3 focus:outline-none focus:border-[#00FF00] transition-colors resize-none custom-scrollbar"
-          />
-          <button 
-            type="submit"
-            disabled={isCreating || !newColName.trim()}
-            className="bg-[#00FF00] text-black font-black text-[10px] tracking-widest uppercase px-6 py-3 flex items-center justify-center gap-2 hover:bg-[#00CC00] transition-colors disabled:opacity-50"
-          >
-            {isCreating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-            Initialize
-          </button>
+      {/* Creation Sleek Card */}
+      <div className="bg-white border border-neutral-200/60 rounded-3xl p-8 space-y-6 shadow-sm transition-all hover:shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+            <FolderTree size={20} />
+          </div>
+          <h3 className="text-sm font-bold text-neutral-900 tracking-tight">Create New Collection</h3>
+        </div>
+        <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Collection Name</label>
+              <input 
+                type="text" 
+                placeholder="e.g. Summer Essentials" 
+                value={newColName}
+                onChange={e => setNewColName(e.target.value)}
+                disabled={isCreating}
+                className="w-full bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-bold text-neutral-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all placeholder:text-neutral-300"
+              />
+            </div>
+            <button 
+              type="submit"
+              disabled={isCreating || !newColName.trim()}
+              className="w-full bg-indigo-600 text-white font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50"
+            >
+              {isCreating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+              Initialize Collection
+            </button>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">SEO Description</label>
+            <textarea 
+              placeholder="Provide context for search engines and customers..." 
+              value={newColDesc}
+              onChange={e => setNewColDesc(e.target.value)}
+              disabled={isCreating}
+              rows={4}
+              className="w-full bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-medium text-neutral-600 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all resize-none placeholder:text-neutral-300"
+            />
+          </div>
         </form>
       </div>
 
       {/* Active Collections Data Table */}
-      <div className="bg-black border border-[#1A1A1A] overflow-hidden">
+      <div className="bg-white rounded-3xl border border-neutral-200/60 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[600px]">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#1A1A1A] bg-[#0A0A0A]">
-                <th className="p-4 text-[9px] uppercase tracking-[0.2em] text-neutral-500 font-bold">Collection Title</th>
-                <th className="p-4 text-[9px] uppercase tracking-[0.2em] text-neutral-500 font-bold">Inventory</th>
-                <th className="p-4 text-[9px] uppercase tracking-[0.2em] text-neutral-500 font-bold">Description</th>
-                <th className="p-4 text-[9px] text-right uppercase tracking-[0.2em] text-neutral-500 font-bold">Action</th>
+              <tr className="bg-neutral-50/50 border-b border-neutral-100">
+                <th className="p-5 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Collection</th>
+                <th className="p-5 text-xs font-semibold text-neutral-500 uppercase tracking-wider text-center">Products</th>
+                <th className="p-5 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Description</th>
+                <th className="p-5 text-xs font-semibold text-neutral-500 uppercase tracking-wider text-right">Delete</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-neutral-100">
               {collections.map((col) => {
                 const isDeleting = loadingIds.has(col.id);
 
                 return (
-                  <tr key={col.id} className="border-b border-[#1A1A1A] hover:bg-[#050505] transition-colors">
-                    <td className="p-4">
-                      <span className="text-[10px] font-bold text-white uppercase tracking-widest">{col.name}</span>
+                  <tr key={col.id} className="group hover:bg-neutral-50/50 transition-all duration-200">
+                    <td className="p-5">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-neutral-900 group-hover:text-indigo-600 transition-colors tracking-tight">{col.name}</span>
+                        <span className="text-[10px] text-neutral-400 font-medium mt-0.5 uppercase tracking-widest">/{col.handle}</span>
+                      </div>
                     </td>
-                    <td className="p-4">
-                      <span className="inline-block px-2 py-1 bg-white/10 text-[#00FF00] border border-[#00FF00]/20 text-[10px] font-bold uppercase tracking-widest shadow-[0_0_10px_rgba(0,255,0,0.1)]">
-                        {col.productCount} Assets
+                    <td className="p-5 text-center">
+                      <span className="inline-flex items-center px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-full border border-indigo-100">
+                        {col.productCount} Items
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className="text-[10px] text-neutral-400 capitalize truncate max-w-[200px] block">
+                    <td className="p-5">
+                      <span className="text-xs text-neutral-500 font-medium line-clamp-1 max-w-[300px]">
                         {col.description || "—"}
                       </span>
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-5 text-right">
                       <button 
                         disabled={isDeleting}
                         onClick={() => handleDelete(col.id)}
-                        className="text-neutral-500 hover:text-[#FF4444] transition-colors p-2"
+                        className="p-2.5 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-all disabled:opacity-50"
                       >
-                        {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                        {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={16} />}
                       </button>
                     </td>
                   </tr>
@@ -122,8 +162,13 @@ export default function CollectionsClient({ initialCollections }: { initialColle
               })}
               {collections.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="p-12 text-center text-[10px] uppercase tracking-widest text-neutral-600 bg-[#050505]">
-                    NO COLLECTIONS REGISTERED
+                  <td colSpan={4} className="p-20 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center border border-neutral-100">
+                        <FolderTree size={24} className="text-neutral-300" />
+                      </div>
+                      <p className="text-sm font-semibold text-neutral-400">No active collections found.</p>
+                    </div>
                   </td>
                 </tr>
               )}

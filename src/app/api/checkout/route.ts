@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 
 // Initialize the Stripe SDK with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -30,22 +32,40 @@ export async function POST(req: Request) {
       quantity: item.quantity,
     }));
 
-    // 2. Create the Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    const session = await auth();
+    const userId = (session?.user as any)?.id;
+
+    // 2. Create a PENDING order in your database FIRST
+    const order = await prisma.order.create({
+      data: {
+        userId, // Optional field now
+        status: 'PENDING',
+        totalAmount: items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0),
+        items: {
+          create: items.map((item: any) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+        },
+      },
+    });
+
+    // 3. Create the Stripe Checkout Session
+    const stripeSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      // Force Stripe to collect the shipping address
-      shipping_address_collection: {
-        allowed_countries: ['US', 'CA', 'GB', 'IN'], // Add or remove country codes as needed
+      metadata: {
+        orderId: order.id,
       },
-      // Where Stripe sends the user after they pay (or if they click back)
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA', 'GB', 'IN'],
+      },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/?success=1`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/?canceled=1`,
     });
 
-    // 3. Send the secure payment URL back to the frontend
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: stripeSession.url });
 
   } catch (error) {
     console.error("STRIPE ERROR:", error);

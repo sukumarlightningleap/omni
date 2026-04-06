@@ -2,42 +2,46 @@ import React from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import ProductClient from '@/components/ProductClient';
-import { fetchPrintifyProducts } from '@/lib/printify';
+import { fetchPrintifyProductById, fetchPrintifyProducts } from '@/lib/printify';
+import { prisma } from '@/lib/prisma';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
 /**
- * DYNAMIC SEO GENARATION
+ * DYNAMIC SEO GENERATION
  * Pulls real product data to populate Meta Tags, OpenGraph, and Twitter Cards.
  */
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const products = await fetchPrintifyProducts(60) || [];
-  const product = products.find(p => p.slug === slug);
+  
+  // The 'slug' in the URL is actually the printifyId
+  const dbProduct = await prisma.product.findUnique({
+    where: { printifyId: slug }
+  });
 
-  if (!product) {
+  if (!dbProduct) {
     return {
       title: 'Product Not Found',
     };
   }
 
-  const description = product.description.slice(0, 160);
+  const description = dbProduct.description?.slice(0, 160) || '';
 
   return {
-    title: product.name,
+    title: dbProduct.name,
     description: description,
     openGraph: {
-      title: `${product.name} | Omnidrop`,
+      title: `${dbProduct.name} | Omnidrop`,
       description: description,
-      images: [product.image],
+      images: [dbProduct.imageUrl],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${product.name} | Omnidrop`,
+      title: `${dbProduct.name} | Omnidrop`,
       description: description,
-      images: [product.image],
+      images: [dbProduct.imageUrl],
     },
   };
 }
@@ -45,26 +49,48 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 /**
  * PRODUCT DETAIL PAGE (SERVER COMPONENT)
  * Fetches real time data from Printify based on the product ID (slug).
+ * Now uses Local Database as source of truth for visibility.
  */
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
   
-  // Fetch all products (cached by ISR) and find the matching one
-  const products = await fetchPrintifyProducts(60) || [];
-  const product = products.find(p => p.slug === slug);
+  // 1. Verify existence and visibility in Database
+  const dbProduct = await prisma.product.findUnique({
+    where: { printifyId: slug },
+    include: { collection: true }
+  });
 
-  if (!product) {
+  if (!dbProduct) {
     return notFound();
   }
 
-  // Get recommendations (excluding current product)
-  const recommendations = products
+  // 2. Fetch Deep Details from Printify (Variants, all images, etc.)
+  const printifyProduct = await fetchPrintifyProductById(slug);
+
+  if (!printifyProduct) {
+    // If database says it exists but Printify doesn't return it, 
+    // we fallback to basic DB info or return 404
+    return notFound();
+  }
+
+  // 3. Merge data (Database prices/names override Printify if needed)
+  const normalizedProduct = {
+    ...printifyProduct,
+    name: dbProduct.name, // Local overrides
+    price: `$${dbProduct.price.toFixed(2)}`,
+    rawPrice: dbProduct.price,
+    category: dbProduct.collection?.name || printifyProduct.category
+  };
+
+  // 4. Get recommendations (can use cached Printify list or DB)
+  const allProducts = await fetchPrintifyProducts(60) || [];
+  const recommendations = allProducts
     .filter(p => p.slug !== slug)
     .slice(0, 4);
 
   return (
     <ProductClient 
-      product={product} 
+      product={normalizedProduct} 
       recommendations={recommendations} 
     />
   );

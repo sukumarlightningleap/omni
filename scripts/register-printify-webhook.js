@@ -51,88 +51,54 @@ async function registerWebhook() {
   const shopId = process.env.PRINTIFY_SHOP_ID;
   const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
   
-  // Use the provided URL (live or ngrok) or fallback to a placeholder
   const BASE_URL = process.argv[2];
+  const requestedTopic = process.argv[3]; // Optional 3rd argument
+  
   if (!BASE_URL || BASE_URL.includes("your-vercel-domain")) {
-    console.error("\x1b[41m\x1b[37m ERROR \x1b[0m Please provide your actual Public URL (e.g., ngrok or Vercel).");
-    console.log("Usage: node scripts/register-printify-webhook.js https://your-public-url.com");
+    console.error("\x1b[41m\x1b[37m ERROR \x1b[0m Please provide your actual Public URL.");
     process.exit(1);
   }
 
   const targetUrl = `${BASE_URL.replace(/\/$/, '')}/api/webhooks/printify`;
+  const topicsToTry = requestedTopic ? [requestedTopic] : ["product:published", "product:publish:finished", "product:updated", "order:created"];
 
   if (!shopId || !token) {
-    console.error("\x1b[41m\x1b[37m ERROR \x1b[0m Missing Printify credentials.");
-    console.log(`Checked: PRINTIFY_SHOP_ID: ${shopId ? 'FOUND' : 'MISSING'}`);
-    console.log(`Checked: PRINTIFY_API_TOKEN: ${token ? 'FOUND' : 'MISSING'}`);
-    console.log("\nMake sure your .env file contains:");
-    console.log("PRINTIFY_SHOP_ID=your_id");
-    console.log("PRINTIFY_API_TOKEN=your_token");
+    console.error("\x1b[41m\x1b[37m ERROR \x1b[0m Missing credentials.");
     process.exit(1);
   }
 
-  console.log(`\x1b[34m[v]\x1b[0m Target Endpoint: ${targetUrl}`);
-
-  try {
-    const getOptions = {
-      hostname: 'api.printify.com',
-      port: 443,
-      path: `/v1/shops/${shopId}/webhooks.json`,
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    };
-
-    console.log(`\x1b[36m[i]\x1b[0m Checking existing Printify webhooks for Shop: ${shopId}...`);
-    const existingRes = await httpsRequest(getOptions);
+  for (const topic of topicsToTry) {
+    console.log(`\x1b[36m[i]\x1b[0m Attempting to register topic: \x1b[35m${topic}\x1b[0m...`);
     
-    if (existingRes.statusCode !== 200) {
-      throw new Error(`Failed to fetch existing webhooks. status: ${existingRes.statusCode}, msg: ${existingRes.data}`);
-    }
+    try {
+      const payload = JSON.stringify({
+        topic: topic,
+        url: targetUrl
+      });
 
-    const existingWebhooks = JSON.parse(existingRes.data);
+      const options = {
+        hostname: 'api.printify.com',
+        port: 443,
+        path: `/v1/shops/${shopId}/webhooks.json`,
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      };
 
-    const duplicate = existingWebhooks.find(
-      (w) => w.url === targetUrl && (w.topic === "product:publish:finished" || w.topic === "product:published")
-    );
-
-    if (duplicate) {
-      console.log(`\x1b[42m\x1b[30m SUCCESS \x1b[0m Webhook is already registered and active!`);
-      console.log(`          URL: ${targetUrl}\n`);
-      return;
-    }
-
-    console.log(`\x1b[36m[i]\x1b[0m Registering new webhook...`);
-    const payload = JSON.stringify({
-      topic: "product:publish:finished",
-      url: targetUrl
-    });
-
-    const postOptions = {
-      ...getOptions,
-      method: 'POST',
-      headers: {
-        ...getOptions.headers,
-        'Content-Length': Buffer.byteLength(payload)
+      const res = await httpsRequest(options, payload);
+      
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        console.log(`\x1b[42m\x1b[30m SUCCESS \x1b[0m Registered: ${topic}`);
+      } else {
+        console.error(`\x1b[41m\x1b[31m FAIL \x1b[0m Topic: ${topic} | Status: ${res.statusCode}`);
+        console.error(`         Response: ${res.data}`);
       }
-    };
-
-    const postRes = await httpsRequest(postOptions, payload);
-
-    if (postRes.statusCode >= 200 && postRes.statusCode < 300) {
-      console.log(`\x1b[42m\x1b[30m SUCCESS \x1b[0m Webhook successfully established!`);
-      console.log(`          Payloads will be sent to: ${targetUrl}\n`);
-    } else {
-      console.error(`\x1b[41m\x1b[37m ERROR \x1b[0m Failed to create webhook. Status: ${postRes.statusCode}`);
-      console.error(`RESPONSE: ${postRes.data}`);
-      process.exit(1);
+    } catch (err) {
+      console.error(`\x1b[41m\x1b[37m ERROR \x1b[0m ${err.message}`);
     }
-
-  } catch (err) {
-    console.error(`\x1b[41m\x1b[37m FATAL \x1b[0m Failed to register webhook.`);
-    console.error(err);
   }
 }
 

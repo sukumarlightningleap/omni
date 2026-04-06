@@ -1,18 +1,25 @@
 import { NextResponse } from 'next/server';
-import { fetchPrintifyProducts } from '@/lib/printify';
+import { prisma } from '@/lib/prisma';
 
 // 1. Tell Next.js to NEVER cache this API route
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const products = await fetchPrintifyProducts(0); // 0 ensures fresh fetch
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
 
-    if (products === null) {
-      return NextResponse.json({ error: 'Unauthorized. Check Printify credentials.' }, { status: 401 });
-    }
+    const formattedProducts = products.map(p => ({
+      _id: p.id,
+      name: p.name,
+      slug: p.printifyId,
+      image: p.imageUrl,
+      price: `$${p.price.toFixed(2)}`,
+      rawPrice: p.price
+    }));
 
-    return NextResponse.json({ products });
+    return NextResponse.json({ products: formattedProducts });
 
   } catch (error) {
     console.error('Fetch error:', error);

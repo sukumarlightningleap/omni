@@ -14,7 +14,6 @@ type ProductData = {
   price: number
   cost: number
   imageUrl: string
-  status: string
   collectionId: string | null
   printifyId: string | null
 }
@@ -33,7 +32,6 @@ export default function ProductEditorClient({
 }) {
   const [price, setPrice] = useState(product.price)
   const [collectionId, setCollectionId] = useState(product.collectionId || "none")
-  const [status, setStatus] = useState<"DRAFT" | "ACTIVE" | "ARCHIVED">(product.status as any)
   const [isSaving, setIsSaving] = useState(false)
 
   const margin = price - product.cost
@@ -41,142 +39,139 @@ export default function ProductEditorClient({
 
   const handleSave = async () => {
     setIsSaving(true)
-    await updateProductGatekeeper(product.id, price, collectionId, status)
+    await updateProductGatekeeper(product.id, price, collectionId)
     setIsSaving(false)
   }
 
   return (
-    <div className="space-y-6 font-mono text-white max-w-5xl pb-24">
+    <div className="space-y-8 font-sans text-neutral-900 max-w-6xl pb-24">
       
       {/* Structural Header */}
-      <div className="flex justify-between items-center border-b border-[#1A1A1A] pb-4">
-        <Link href="/admin/products" className="flex items-center gap-2 text-[10px] font-bold text-neutral-500 hover:text-white uppercase tracking-widest transition-colors">
-          <ArrowLeft size={14} /> Return to Holding Pen
-        </Link>
+      <div className="flex justify-between items-center">
+        <div className="space-y-1">
+          <Link href="/admin/products" className="inline-flex items-center gap-2 text-xs font-semibold text-neutral-500 hover:text-indigo-600 transition-colors mb-2">
+            <ArrowLeft size={14} /> Back to Products
+          </Link>
+          <h2 className="text-2xl font-bold tracking-tight">Edit Product</h2>
+        </div>
         <button 
           onClick={handleSave}
           disabled={isSaving}
-          className="bg-[#00FF00] text-black font-black text-[10px] uppercase tracking-widest px-8 py-3 flex items-center gap-2 hover:bg-[#00CC00] transition-colors shadow-lg disabled:opacity-50"
+          className="bg-indigo-600 text-white font-bold text-xs px-8 py-3 rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50"
         >
-          {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-          Save Asset Matrix
+          {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          Save Changes
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT COMPONENT: Visual & Meta (Locked to Printify) */}
+        {/* LEFT COMPONENT: Visual & Meta */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="border border-[#1A1A1A] bg-black overflow-hidden relative group">
-            <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-              <StatusBadge status={status} />
+          <div className="bg-white border border-neutral-200/60 rounded-3xl overflow-hidden relative group shadow-sm">
+            <div className="absolute top-6 left-6 z-10 flex flex-col gap-3">
               {product.printifyId && (
-                <span className="bg-black/80 backdrop-blur border border-white/10 text-[8px] uppercase tracking-[0.2em] px-2 py-1 flex items-center gap-1.5 w-fit">
-                  <LinkIcon size={10} /> {product.printifyId}
-                </span>
+                <div className="bg-white/90 backdrop-blur border border-neutral-200/60 text-[10px] font-bold text-neutral-500 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
+                  <LinkIcon size={12} className="text-neutral-400" />
+                  <span className="uppercase tracking-wider">{product.printifyId}</span>
+                </div>
               )}
             </div>
-            <div className="aspect-[4/3] w-full relative bg-[#050505]">
-              {product.imageUrl && product.imageUrl.includes('http') ? (
-                <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+            <div className="aspect-[16/10] w-full relative bg-neutral-50">
+              {product.imageUrl ? (
+                <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-8" />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-neutral-700">
-                  <Box size={40} />
+                <div className="absolute inset-0 flex items-center justify-center text-neutral-300">
+                  <Box size={60} />
                 </div>
               )}
             </div>
           </div>
 
-          <div className="bg-[#050505] border border-[#1A1A1A] p-6 space-y-4">
-            <h3 className="text-[10px] text-[#00FF00] uppercase tracking-widest font-bold">Encrypted Description Payload</h3>
-            <div className="text-[12px] text-neutral-400 leading-relaxed font-sans prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: product.description || "NO METADATA DETECTED." }} />
+          <div className="bg-white border border-neutral-200/60 rounded-3xl p-8 space-y-6 shadow-sm">
+            <h3 className="text-sm font-bold text-neutral-900 tracking-tight flex items-center gap-2">
+              <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+              Product Description
+            </h3>
+            <div className="text-sm text-neutral-600 leading-relaxed max-w-none prose prose-indigo" dangerouslySetInnerHTML={{ __html: product.description || "No description provided." }} />
           </div>
         </div>
 
-        {/* RIGHT COMPONENT: Editable Logic Controls */}
+        {/* RIGHT COMPONENT: Logic Controls */}
         <div className="space-y-6">
-          <div className="bg-[#050505] border border-[#1A1A1A] p-6 space-y-6 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]">
+          <div className="bg-white border border-neutral-200/60 rounded-3xl p-8 space-y-8 shadow-sm transition-all hover:shadow-md">
             
-            {/* Title Lock */}
+            {/* Title Section */}
             <div className="space-y-2">
-              <label className="text-[8px] uppercase tracking-widest text-neutral-500 font-bold block">Asset Designation</label>
-              <h1 className="text-xl font-black uppercase tracking-tighter leading-none">{product.name}</h1>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Marketing Name</label>
+              <h1 className="text-xl font-bold tracking-tight text-neutral-900 leading-snug">{product.name}</h1>
             </div>
 
-            <hr className="border-[#1A1A1A]" />
+            <div className="h-px bg-neutral-100" />
 
-            {/* Pricing Engine */}
-            <div className="space-y-4">
-              <label className="text-[8px] uppercase tracking-widest text-[#00FF00] font-bold flex items-center gap-2">
-                <DollarSign size={10} /> Retail Configuration
-              </label>
+            {/* Pricing Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 flex items-center gap-2">
+                  Pricing Configuration
+                </label>
+                <div className="p-1 px-2 bg-indigo-50 text-indigo-600 rounded text-[10px] font-bold">USD</div>
+              </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <span className="text-[8px] uppercase tracking-widest text-neutral-500 block">Base Cost</span>
-                  <div className="bg-black border border-[#1A1A1A] px-3 py-2 text-[10px] text-[#FF4444] font-bold cursor-not-allowed">
+                  <span className="text-[10px] font-bold text-neutral-400">Base Cost</span>
+                  <div className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-xs font-bold text-rose-500 cursor-not-allowed">
                     ${product.cost.toFixed(2)}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-[8px] uppercase tracking-widest text-white block">Retail Price</span>
+                  <span className="text-[10px] font-bold text-neutral-900">Retail Price</span>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-[10px] font-bold">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">$</span>
                     <input 
                       type="number" 
                       value={price}
                       onChange={e => setPrice(parseFloat(e.target.value) || 0)}
-                      className="w-full bg-black border border-white/20 text-[10px] text-white font-bold pl-7 pr-3 py-2 focus:outline-none focus:border-[#00FF00] transition-colors"
+                      className="w-full bg-white border border-neutral-200 rounded-xl text-xs font-bold text-neutral-900 pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Real-time Profit Output */}
-              <div className="pt-2 flex justify-between items-center text-[10px] tracking-widest font-bold uppercase">
-                <span className="text-neutral-500">Projected Margin:</span>
-                <span className={margin > 0 ? "text-[#00FF00]" : "text-[#FF4444]"}>
-                  ${margin.toFixed(2)} ({marginPercent.toFixed(1)}%)
+              {/* Profit Analysis */}
+              <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex justify-between items-center text-xs">
+                <span className="font-semibold text-emerald-800">Projected Profit</span>
+                <span className={`font-bold ${margin > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                  +${margin.toFixed(2)} ({marginPercent.toFixed(1)}%)
                 </span>
               </div>
             </div>
 
-            <hr className="border-[#1A1A1A]" />
+            <div className="h-px bg-neutral-100" />
 
-            {/* Routing / Collection Assignment */}
-            <div className="space-y-2">
-              <label className="text-[8px] uppercase tracking-widest text-neutral-500 font-bold block">Collection Routing</label>
+            {/* Collection Assignment */}
+            <div className="space-y-4">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Categorization</label>
               <select 
                 value={collectionId}
                 onChange={e => setCollectionId(e.target.value)}
-                className="w-full bg-black border border-white/20 text-[10px] text-white uppercase tracking-widest p-3 focus:outline-none focus:border-[#00FF00] transition-colors"
+                className="w-full bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-600 p-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all appearance-none"
               >
-                <option value="none">Unassigned (Floating)</option>
+                <option value="none">Unassigned</option>
                 {collections.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </div>
 
-            <hr className="border-[#1A1A1A]" />
-
-            {/* Status Switcher */}
-            <div className="space-y-2">
-              <label className="text-[8px] uppercase tracking-widest text-neutral-500 font-bold block">Visibility Protocol</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(["DRAFT", "ACTIVE", "ARCHIVED"] as const).map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setStatus(s)}
-                    className={`text-[9px] font-bold tracking-widest uppercase py-3 border transition-colors ${
-                      status === s 
-                        ? (s === "ACTIVE" ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]" : "bg-neutral-800 text-white border-neutral-600") 
-                        : "bg-black text-neutral-600 border-[#1A1A1A] hover:bg-[#050505]"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
+            <div className="h-px bg-neutral-100" />
+            
+            <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
+              <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-2 px-1">Assignment status</p>
+              <div className={`p-3 rounded-lg flex items-center justify-between text-[10px] font-black tracking-widest ${product.collectionId ? "bg-white text-emerald-600 shadow-sm" : "bg-white text-rose-500 shadow-sm"}`}>
+                {product.collectionId ? "PUBLISHED TO STOREFRONT" : "DRAFT (UNASSIGNED)"}
+                <div className={`w-1.5 h-1.5 rounded-full ${product.collectionId ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`} />
               </div>
             </div>
 

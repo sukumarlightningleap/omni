@@ -16,8 +16,7 @@ export default async function ProductEditorPage({ params }: { params: Promise<{ 
     orderBy: { createdAt: "desc" }
   })
 
-  // Normalize status mapped from boolean toggles due to schema migration
-  const normalizedStatus = product.isVaulted ? "ARCHIVED" : product.isPublished ? "ACTIVE" : "DRAFT"
+  // Legacy status normalization removed due to schema purge
 
   const productData = {
     id: product.id,
@@ -26,7 +25,6 @@ export default async function ProductEditorPage({ params }: { params: Promise<{ 
     price: product.price || 0,
     cost: product.cost || 0,
     imageUrl: product.imageUrl || "",
-    status: normalizedStatus,
     collectionId: product.collectionId,
     printifyId: product.printifyId,
   }

@@ -16,11 +16,11 @@ export default async function AdminRootLayout({
   // }
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
+    <div className="min-h-screen bg-zinc-50 text-black selection:bg-indigo-100 selection:text-indigo-900">
       <AdminSidebar />
       {/* Structural enforcement: Sidebar isolation to prevent overlapping */}
-      <main className="ml-64 min-h-screen bg-black">
-        <div className="max-w-[1600px] mx-auto p-10 pt-16 border-l border-white/5 min-h-screen">
+      <main className="ml-64 min-h-screen">
+        <div className="max-w-[1600px] mx-auto p-10 pt-16 min-h-screen">
           {children}
         </div>
       </main>

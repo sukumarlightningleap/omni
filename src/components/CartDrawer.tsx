@@ -7,14 +7,21 @@ import Image from 'next/image';
 import { useCartStore } from '@/store/useCartStore';
 
 const CartDrawer: React.FC = () => {
+  const [mounted, setMounted] = React.useState(false);
   const items = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const isDrawerOpen = useCartStore((state) => state.isDrawerOpen);
   const setDrawerOpen = useCartStore((state) => state.setDrawerOpen);
 
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Added a loading state so the button updates while Stripe is connecting
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  if (!mounted) return null;
 
   const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
@@ -57,31 +64,43 @@ const CartDrawer: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setDrawerOpen(false)}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[100]"
           />
 
-          {/* Drawer Panel - Deep dark background for high contrast */}
+          {/* Drawer Panel - Light background */}
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-zinc-950 border-l border-zinc-800 z-[101] shadow-2xl flex flex-col"
+            initial={{ x: '100%', scale: 0.95 }}
+            animate={{ x: 0, scale: 1 }}
+            exit={{ x: '100%', scale: 0.95 }}
+            transition={{ 
+              type: 'spring', 
+              damping: 20, 
+              stiffness: 250,
+              scale: { duration: 0.4, ease: "easeOut" }
+            }}
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[101] shadow-2xl flex flex-col"
+            style={{ borderLeft: '1px solid #eaeaec' }}
           >
             {/* Header */}
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-950">
+            <div className="p-6 border-b flex items-center justify-between bg-white" style={{ borderColor: '#eaeaec' }}>
               <div className="flex items-center gap-3">
-                <ShoppingBag size={20} className="text-zinc-400" />
-                <h2 className="text-xl font-bold tracking-tighter uppercase text-white">Your Cart</h2>
+                <ShoppingBag size={20} className="text-[#94969f]" />
+                <h2 className="text-lg font-black uppercase text-[#282C3F] tracking-tight">Shopping Bag</h2>
                 {itemCount > 0 && (
-                  <span className="text-[10px] bg-white text-black px-2 py-0.5 rounded-full font-bold">
+                  <motion.span 
+                    key={itemCount}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1.2, opacity: 1 }}
+                    transition={{ type: 'spring', damping: 10, stiffness: 300 }}
+                    className="text-[10px] bg-neutral-900 text-white px-2 py-0.5 rounded-full font-bold"
+                  >
                     {itemCount}
-                  </span>
+                  </motion.span>
                 )}
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full transition-colors"
+                className="p-2 text-neutral-400 hover:text-black hover:bg-neutral-50 rounded-full transition-colors"
               >
                 <X size={20} />
               </button>
@@ -95,14 +114,14 @@ const CartDrawer: React.FC = () => {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mb-8 border border-zinc-800"
+                    className="w-20 h-20 bg-neutral-50 rounded-full flex items-center justify-center mb-8 border border-neutral-100"
                   >
-                    <ShoppingBag size={32} className="text-zinc-500" />
+                    <ShoppingBag size={32} className="text-neutral-300" />
                   </motion.div>
-                  <h3 className="text-lg font-medium mb-2 text-white">Your cart is currently empty.</h3>
+                  <h3 className="text-lg font-medium mb-2 text-black italic font-display">Your cart is currently empty.</h3>
                   <button
                     onClick={() => setDrawerOpen(false)}
-                    className="mt-6 flex items-center gap-2 text-white text-xs uppercase tracking-[0.2em] hover:text-blue-400 transition-colors"
+                    className="mt-6 flex items-center gap-2 text-black text-xs uppercase tracking-[0.2em] hover:text-blue-600 transition-colors font-bold"
                   >
                     Continue Browsing <ArrowRight size={14} />
                   </button>
@@ -110,9 +129,9 @@ const CartDrawer: React.FC = () => {
               ) : (
                 <div className="p-6 space-y-6">
                   {items.map((item) => (
-                    <div key={item.id} className="flex gap-4 group bg-zinc-900/50 p-3 rounded-md border border-zinc-800/50">
+                    <div key={item.id} className="flex gap-4 group bg-white p-4 items-start border" style={{ borderColor: '#eaeaec' }}>
                       {/* Image */}
-                      <div className="relative w-20 aspect-[4/5] bg-zinc-800 rounded-sm overflow-hidden flex-shrink-0">
+                      <div className="relative w-20 aspect-[3/4] bg-[#f5f5f6] overflow-hidden flex-shrink-0" style={{ border: '1px solid #eaeaec' }}>
                         <Image
                           src={item.image}
                           alt={item.name}
@@ -125,30 +144,30 @@ const CartDrawer: React.FC = () => {
                       <div className="flex-1 flex flex-col justify-between">
                         <div>
                           <div className="flex justify-between items-start gap-2">
-                            <h4 className="text-sm font-bold text-white leading-tight line-clamp-2">{item.name}</h4>
+                            <h4 className="text-sm font-bold text-black leading-tight line-clamp-2 uppercase tracking-tight">{item.name}</h4>
                             <button
                               onClick={() => removeItem(item.id)}
-                              className="text-zinc-500 hover:text-red-400 transition-colors p-1"
+                              className="text-neutral-300 hover:text-red-500 transition-colors p-1"
                             >
                               <Trash2 size={16} />
                             </button>
                           </div>
-                          <p className="text-sm font-mono text-zinc-400 mt-1">${item.price.toFixed(2)}</p>
+                          <p className="text-sm font-light text-neutral-500 mt-1">${item.price.toFixed(2)}</p>
                         </div>
 
                         {/* Quantity Controls */}
                         <div className="flex items-center mt-3">
-                          <div className="flex items-center bg-zinc-950 border border-zinc-800 rounded-sm overflow-hidden">
+                          <div className="flex items-center bg-white border border-neutral-200 rounded-none overflow-hidden">
                             <button
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                              className="p-2 text-neutral-400 hover:text-black hover:bg-neutral-50 transition-colors"
                             >
                               <Minus size={12} />
                             </button>
-                            <span className="w-8 text-center text-xs font-bold text-white">{item.quantity}</span>
+                            <span className="w-8 text-center text-xs font-bold text-black">{item.quantity}</span>
                             <button
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                              className="p-2 text-neutral-400 hover:text-black hover:bg-neutral-50 transition-colors"
                             >
                               <Plus size={12} />
                             </button>
@@ -162,24 +181,24 @@ const CartDrawer: React.FC = () => {
             </div>
 
             {/* Footer / Checkout Section */}
-            <div className="p-6 bg-zinc-950 border-t border-zinc-800 mt-auto">
+            <div className="p-6 bg-white border-t border-neutral-100 mt-auto">
               <div className="flex justify-between items-end mb-6">
                 <div className="flex flex-col">
-                  <span className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-1">Subtotal</span>
-                  <span className="text-zinc-500 text-[10px] uppercase tracking-wider">Taxes & shipping calculated at checkout</span>
+                  <span className="text-xs uppercase tracking-[0.2em] text-neutral-400 font-black mb-1">Subtotal</span>
+                  <span className="text-neutral-300 text-[9px] uppercase tracking-wider">Taxes & shipping calculated at checkout</span>
                 </div>
-                <span className="text-2xl font-bold text-white">${subtotal.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-black">${subtotal.toFixed(2)}</span>
               </div>
 
               {/* HIGH CONTRAST CHECKOUT BUTTON */}
               <button
                 onClick={handleCheckout}
                 disabled={items.length === 0 || isCheckingOut}
-                className="w-full py-4 bg-white text-black text-sm font-extrabold uppercase tracking-[0.2em] hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center rounded-sm"
+                className="w-full py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center rounded-none shadow-xl"
               >
                 {isCheckingOut ? (
                   <span className="flex items-center gap-2">
-                    <Loader2 size={18} className="animate-spin" /> Processing...
+                    <Loader2 size={14} className="animate-spin text-neutral-400" /> INITIATING...
                   </span>
                 ) : (
                   "Secure Checkout"

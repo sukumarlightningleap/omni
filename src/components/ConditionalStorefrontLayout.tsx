@@ -1,24 +1,24 @@
 "use client"
 
-import React, { Suspense } from "react"
+import React from "react"
 import { usePathname } from "next/navigation"
-import Navbar from "@/components/Navbar"
-import Footer from "@/components/Footer"
-import NewsletterModal from "@/components/NewsletterModal"
 import GlobalCountdown from "@/components/GlobalCountdown"
+import NewsletterModal from "@/components/NewsletterModal"
 
 type LayoutProps = {
   children: React.ReactNode
   config: any
+  navbar?: React.ReactNode
+  footer?: React.ReactNode
 }
 
-export default function ConditionalStorefrontLayout({ children, config }: LayoutProps) {
+export default function ConditionalStorefrontLayout({ children, config, navbar, footer }: LayoutProps) {
   const pathname = usePathname()
   const isAdminRoute = pathname?.startsWith("/admin")
 
   // If we are deep inside the secure Admin network, aggressively detach the storefront visual tree.
   if (isAdminRoute) {
-    return <main className="flex-grow bg-black min-h-screen">{children}</main>
+    return <main className="flex-grow bg-white min-h-screen">{children}</main>
   }
 
   return (
@@ -30,15 +30,13 @@ export default function ConditionalStorefrontLayout({ children, config }: Layout
         message={config?.flashSaleMessage ?? "LIMITED DROP"}
       />
 
-      <Suspense fallback={<div className="h-20 bg-black" />}>
-        <Navbar />
-      </Suspense>
+      {navbar}
 
       <main className="flex-grow">
         {children}
       </main>
 
-      <Footer />
+      {footer}
       <NewsletterModal />
     </>
   )

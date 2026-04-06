@@ -14,8 +14,7 @@ const requireAdmin = async () => {
 export async function updateProductGatekeeper(
   productId: string,
   price: number,
-  collectionId: string | null,
-  status: "DRAFT" | "ACTIVE" | "ARCHIVED"
+  collectionId: string, // Changed to single ID for 1-to-many
 ) {
   await requireAdmin()
 
@@ -23,15 +22,13 @@ export async function updateProductGatekeeper(
     where: { id: productId },
     data: {
       price,
-      collectionId: collectionId && collectionId !== "none" ? collectionId : null,
-      status,
-      isPublished: status === "ACTIVE",
-      isVaulted: status === "ARCHIVED"
+      collectionId: collectionId === "none" ? null : collectionId,
     }
   })
 
   revalidatePath("/admin/products")
   revalidatePath("/collections")
+  revalidatePath("/") // Clear home cache for featured products
   return { success: true }
 }
 
@@ -45,15 +42,16 @@ export async function bulkPublishToCollection(
     await prisma.product.update({
       where: { id },
       data: {
-        status: "ACTIVE",
-        isPublished: true,
-        collectionId: collectionId && collectionId !== "none" ? collectionId : null
+        collectionId: collectionId && collectionId !== "none" 
+          ? collectionId 
+          : null
       }
     })
   }
 
   revalidatePath("/admin/products")
   revalidatePath("/collections")
+  revalidatePath("/")
   return { success: true }
 }
 
@@ -63,19 +61,13 @@ export async function syncPrintifyManual() {
   await requireAdmin()
 
   try {
-    const liveProducts = await fetchPrintifyProducts(0) // 0 forces a fresh bypass of cache
+    const liveProducts = await fetchPrintifyProducts(0) 
     
     if (liveProducts === null) {
-      return { success: false, message: "Authentication failed. Please check your Printify credentials in .env" }
-    }
-
-    if (liveProducts.length === 0) {
-      console.warn("No products retrieved from Printify during sync.")
-      return { success: false, message: "No products found on Printify. Ensure they are published." }
+      return { success: false, message: "Authentication failed." }
     }
 
     for (const p of liveProducts) {
-      // Upsert physical products dynamically into Prisma
       await prisma.product.upsert({
         where: { printifyId: p._id },
         update: {
@@ -88,17 +80,16 @@ export async function syncPrintifyManual() {
           printifyId: p._id,
           name: p.name,
           description: p.descriptionHtml || p.description,
-          price: p.rawPrice * 2, // Automatic 2x baseline markup logic
+          price: p.rawPrice * 2,
           cost: p.rawPrice,
           imageUrl: p.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
-          status: "DRAFT",
-          isPublished: false,
-          isVaulted: false
         }
       })
     }
 
     revalidatePath("/admin/products")
+    revalidatePath("/")
+    revalidatePath("/", "layout")
     return { success: true }
   } catch (err) {
     console.error("Printify Sync Failed:", err)
@@ -120,6 +111,9 @@ export async function createCollection(name: string, description: string) {
   })
 
   revalidatePath("/admin/products/collections")
+  revalidatePath("/collections")
+  revalidatePath("/")
+  revalidatePath("/", "layout")
   return { success: true }
 }
 
@@ -131,5 +125,8 @@ export async function deleteCollection(id: string) {
   })
 
   revalidatePath("/admin/products/collections")
+  revalidatePath("/collections")
+  revalidatePath("/")
+  revalidatePath("/", "layout")
   return { success: true }
 }

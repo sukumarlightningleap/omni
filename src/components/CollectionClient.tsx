@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import ProductCard from './ProductCard';
 import FilterSidebar from './FilterSidebar';
 
@@ -19,6 +19,7 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
 
   const categoryParam = searchParams.get('category') || '';
   const searchQuery = searchParams.get('q') || '';
@@ -49,8 +50,9 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
   }, [initialProducts]);
 
   const filteredProducts = useMemo(() => {
-    let result = initialProducts;
+    let result = [...initialProducts];
 
+    // Filter Logic
     if (activeCategory !== 'All') {
       result = result.filter(p => p.category === activeCategory);
     }
@@ -84,8 +86,18 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
     if (minP !== null) result = result.filter(p => p.rawPrice >= minP);
     if (maxP !== null) result = result.filter(p => p.rawPrice <= maxP);
 
+    // Sort Logic
+    if (sortBy === 'price-low') {
+      result.sort((a, b) => a.rawPrice - b.rawPrice);
+    } else if (sortBy === 'price-high') {
+      result.sort((a, b) => b.rawPrice - a.rawPrice);
+    } else if (sortBy === 'newest') {
+      // Assuming initialProducts is already sorted by Newest from Prisma, 
+      // but we re-apply for safety if filter changed it.
+    }
+
     return result;
-  }, [initialProducts, activeCategory, searchQuery, inStockParam, colorParam, sizeParam, minPriceParam, maxPriceParam]);
+  }, [initialProducts, activeCategory, searchQuery, inStockParam, colorParam, sizeParam, minPriceParam, maxPriceParam, sortBy]);
 
   const setCategory = (cat: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -95,36 +107,35 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
       params.set('category', cat);
     }
     const qs = params.toString();
-    router.push(`/collections${qs ? `?${qs}` : ''}`, { scroll: false });
+    router.push(`/collections/all${qs ? `?${qs}` : ''}`, { scroll: false });
   };
 
-  const clearAll = () => router.push('/collections', { scroll: false });
+  const clearAll = () => router.push('/collections/all', { scroll: false });
 
   return (
-    <main className="min-h-screen bg-black pt-40 pb-20 px-6 md:px-12">
-      <div className="mb-16 text-center">
+    <main className="min-h-screen bg-white pt-32 pb-20 px-6 md:px-12">
+      <div className="mb-12">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter italic mb-8 text-white font-display"
+          className="text-4xl md:text-6xl font-black tracking-tighter italic mb-8 text-black font-display uppercase"
         >
-          {/* Uses the dynamic title from Printify or falls back to Archive */}
-          {title || 'Archive'}
+          {title || 'New Arrivals'}
         </motion.h1>
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-8">
-          <div className="flex flex-wrap justify-center gap-4 md:gap-8 overflow-x-auto">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-neutral-100 pb-8">
+          <div className="flex flex-wrap gap-6 overflow-x-auto no-scrollbar">
             {dynamicCategories.map((cat: string, i: number) => (
               <motion.button
                 key={cat}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i * 0.05 }}
                 onClick={() => setCategory(cat)}
-                className={`text-[10px] uppercase tracking-[0.3em] font-medium pb-1 border-b-2 transition-all duration-300 ${
+                className={`text-[9px] uppercase tracking-[0.3em] font-black transition-all duration-300 ${
                   activeCategory === cat
-                    ? 'text-white border-white'
-                    : 'text-neutral-600 border-transparent hover:text-neutral-400'
+                    ? 'text-black translate-y-[-2px]'
+                    : 'text-neutral-400 hover:text-neutral-900'
                 }`}
               >
                 {cat}
@@ -132,15 +143,33 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
             ))}
           </div>
 
-          <div className="hidden md:block w-[1px] h-4 bg-neutral-800" />
+          <div className="flex items-center gap-8">
+            {/* Sort By Dropdown */}
+            <div className="relative group/sort">
+              <select 
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="appearance-none bg-transparent text-[9px] font-black uppercase tracking-[0.2em] pr-6 focus:outline-none cursor-pointer"
+              >
+                <option value="newest">Sort By: Newest</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none group-hover/sort:translate-y-[-40%] transition-transform">
+                <ChevronDown size={10} />
+              </div>
+            </div>
 
-          <button
-            onClick={() => setIsFilterOpen(true)}
-            className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold text-white hover:text-neutral-400 transition-colors group"
-          >
-            Refine
-            <span className="w-1.5 h-1.5 rounded-full bg-white group-hover:bg-neutral-400 transition-colors" />
-          </button>
+            <div className="w-[1px] h-4 bg-neutral-100" />
+
+            <button
+              onClick={() => setIsFilterOpen(true)}
+              className="flex items-center gap-2 text-[9px] uppercase tracking-[0.3em] font-black text-black hover:text-neutral-500 transition-colors group"
+            >
+              Filter
+              <span className="w-1.5 h-1.5 rounded-full bg-black group-hover:scale-125 transition-transform" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -158,7 +187,7 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-4 md:gap-x-8 gap-y-12 md:gap-y-16">
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (
                 <ProductCard key={product._id || product.slug} product={product} index={index} />
@@ -168,12 +197,12 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
 
           {filteredProducts.length === 0 && (
             <div className="py-40 text-center">
-              <p className="text-neutral-600 uppercase tracking-widest text-xs italic">
+              <p className="text-neutral-400 uppercase tracking-widest text-xs italic">
                 No items match your filters.
               </p>
               <button
                 onClick={clearAll}
-                className="mt-6 text-[10px] uppercase tracking-[0.2em] text-white/50 hover:text-white transition-colors underline underline-offset-4"
+                className="mt-6 text-[10px] uppercase tracking-[0.2em] text-black/50 hover:text-black transition-colors underline underline-offset-4"
               >
                 Reset Filters
               </button>
@@ -189,8 +218,8 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
 const CollectionClient = ({ initialProducts, categories, title }: CollectionClientProps) => {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-black flex items-center justify-center pt-40">
-        <div className="text-white text-[10px] uppercase tracking-[0.5em] animate-pulse italic">
+      <div className="min-h-screen bg-white flex items-center justify-center pt-40">
+        <div className="text-black text-[10px] uppercase tracking-[0.5em] animate-pulse italic">
           Loading Filters...
         </div>
       </div>

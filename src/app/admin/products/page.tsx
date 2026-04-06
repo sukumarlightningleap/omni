@@ -9,7 +9,6 @@ export default async function ProductsPage() {
       name: true,
       price: true,
       imageUrl: true,
-      status: true,
       collectionId: true,
     }
   })

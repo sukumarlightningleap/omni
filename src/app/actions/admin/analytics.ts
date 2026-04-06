@@ -107,7 +107,7 @@ export async function getUnitEconomics() {
       marginPercent,
       unitsSold,
       totalProfitGenerated,
-      status: product.isVaulted ? "ARCHIVED" : product.isPublished ? "ACTIVE" : "DRAFT"
+      isAssigned: !!product.collectionId
     }
   }).sort((a, b) => b.totalProfitGenerated - a.totalProfitGenerated) // Sort Best-sellers globally
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star, StarHalf, CheckCircle2, X } from "lucide-react";
+import { Star, CheckCircle2, X, RotateCcw, Truck, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const MOCK_REVIEWS = [
@@ -16,32 +16,31 @@ const ProductReviews = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   return (
-    <section id="reviews" className="bg-black py-24 px-6 md:px-12 lg:px-24 border-t border-white/5">
+    <section id="reviews" className="bg-white py-16" style={{ borderTop: '1px solid #eaeaec' }}>
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-24">
           
           {/* Left Column: Summary */}
           <div className="lg:w-1/3 space-y-12">
             <div>
-              <span className="text-[10px] uppercase tracking-[0.4em] text-neutral-500 font-bold mb-4 block">The Proof</span>
-              <h2 className="text-4xl md:text-6xl font-syne font-black text-white italic tracking-tighter uppercase leading-none">
+              <h2 className="text-2xl font-black text-[#282C3F] uppercase tracking-tight">
                 Customer Reviews
               </h2>
             </div>
 
-            <div className="space-y-8">
-              <div className="flex items-end gap-4">
-                <span className="text-7xl font-syne font-black text-white leading-none">4.8</span>
-                <div className="pb-2">
-                  <div className="flex text-white mb-1">
-                    {[1, 2, 3, 4, 5].map((s) => <Star key={s} size={18} fill="currentColor" />)}
+            <div className="space-y-10">
+              <div className="flex items-end gap-5">
+                <span className="text-8xl font-black text-black leading-none tracking-tighter">4.8</span>
+                <div className="pb-3 text-amber-500">
+                  <div className="flex mb-2">
+                    {[1, 2, 3, 4, 5].map((s) => <Star key={s} size={20} fill="currentColor" />)}
                   </div>
-                  <span className="text-[10px] font-inter uppercase tracking-widest text-neutral-500">Based on 124 reviews</span>
+                  <span className="text-[10px] uppercase font-black tracking-widest text-neutral-500">Based on 124 global entries</span>
                 </div>
               </div>
 
               {/* Progress Bars */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {[
                   { star: 5, percent: 85 },
                   { star: 4, percent: 10 },
@@ -49,70 +48,71 @@ const ProductReviews = () => {
                   { star: 2, percent: 1 },
                   { star: 1, percent: 1 },
                 ].map((item) => (
-                  <div key={item.star} className="flex items-center gap-4 group">
-                    <span className="text-[10px] font-syne font-bold text-white w-2">{item.star}</span>
-                    <div className="flex-grow h-1.5 bg-white/5 relative overflow-hidden">
+                  <div key={item.star} className="flex items-center gap-6">
+                    <span className="text-[10px] font-black text-black w-2">{item.star}</span>
+                    <div className="flex-grow h-1 bg-neutral-100 relative overflow-hidden rounded-full">
                       <motion.div 
                         initial={{ width: 0 }}
                         whileInView={{ width: `${item.percent}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="absolute inset-0 bg-white" 
+                        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                        className="absolute inset-0 bg-black" 
                       />
                     </div>
-                    <span className="text-[10px] font-inter text-neutral-600 w-8 text-right">{item.percent}%</span>
+                    <span className="text-[10px] font-black text-neutral-500 w-8 text-right">{item.percent}%</span>
                   </div>
                 ))}
               </div>
 
               <button 
                 onClick={() => setIsFormOpen(true)}
-                className="w-full py-4 border border-white/10 text-[10px] font-syne font-black text-white uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500"
+                className="w-full py-4 text-white text-[12px] font-bold uppercase tracking-widest transition-all rounded-sm"
+                style={{ backgroundColor: '#ff3f6c' }}
               >
-                Write a Review
+                Draft a Review
               </button>
             </div>
           </div>
 
           {/* Right Column: List */}
           <div className="lg:w-2/3 space-y-16">
-            <div className="divide-y divide-white/5">
+            <div className="divide-y" style={{ borderColor: '#eaeaec' }}>
               {MOCK_REVIEWS.map((review) => (
-                <div key={review.id} className="py-12 first:pt-0 group">
-                  <div className="flex flex-col md:flex-row justify-between gap-6 mb-6">
-                    <div className="space-y-1">
-                      <div className="flex text-white gap-0.5 mb-2">
+                <div key={review.id} className="py-14 first:pt-0 group">
+                  <div className="flex flex-col md:flex-row justify-between gap-6 mb-8">
+                    <div className="space-y-2">
+                      <div className="flex text-amber-500 gap-1 mb-4">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star 
                             key={i} 
                             size={12} 
                             fill={i < review.rating ? "currentColor" : "none"} 
-                            className={i < review.rating ? "text-white" : "text-white/20"} 
+                            className={i < review.rating ? "text-amber-500" : "text-neutral-200"} 
                           />
                         ))}
                       </div>
-                      <h3 className="text-sm font-syne font-bold text-white uppercase tracking-widest">{review.title}</h3>
+                      <h3 className="text-base font-black text-black uppercase tracking-widest leading-none">{review.title}</h3>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center md:justify-end gap-2 text-[10px] font-syne font-bold text-white uppercase tracking-widest mb-1">
+                    <div className="text-left md:text-right">
+                      <div className="flex items-center md:justify-end gap-3 text-[10px] font-black text-black uppercase tracking-widest mb-2">
                         {review.user}
                         {review.verified && (
-                          <span className="flex items-center gap-1 text-[8px] text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1.5 text-[8px] text-emerald-600 font-black border border-emerald-100 px-2.5 py-1 rounded-full bg-emerald-50">
                             <CheckCircle2 size={8} /> VERIFIED
                           </span>
                         )}
                       </div>
-                      <span className="text-[9px] font-inter text-neutral-600 uppercase tracking-widest">{review.date}</span>
+                      <span className="text-[9px] font-black text-neutral-500 uppercase tracking-widest">{review.date}</span>
                     </div>
                   </div>
-                  <p className="text-neutral-400 font-inter text-sm leading-relaxed max-w-2xl">
-                    {review.body}
+                  <p className="text-neutral-500 font-medium italic text-base leading-relaxed max-w-2xl font-inter">
+                    "{review.body}"
                   </p>
                 </div>
               ))}
             </div>
             
-            <button className="text-[10px] font-syne font-black text-white uppercase tracking-[0.4em] hover:text-neutral-400 transition-colors border-b border-white/10 pb-1">
-              View All 124 Reviews
+            <button className="text-[10px] font-black text-black uppercase tracking-[0.5em] hover:text-neutral-400 transition-colors border-b-2 border-black pb-1 italic">
+              View All Global Reviews
             </button>
           </div>
         </div>
@@ -127,42 +127,42 @@ const ProductReviews = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsFormOpen(false)}
-              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+              className="absolute inset-0 bg-white/90 backdrop-blur-xl"
             />
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-xl bg-neutral-950 border border-white/10 p-8 md:p-12"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              className="relative w-full max-w-2xl bg-white border border-neutral-100 shadow-2xl p-10 md:p-16 rounded-sm"
             >
               <button 
                 onClick={() => setIsFormOpen(false)}
-                className="absolute top-8 right-8 text-neutral-500 hover:text-white transition-colors"
+                className="absolute top-10 right-10 text-neutral-300 hover:text-black transition-colors"
               >
-                <X size={20} />
+                <X size={24} />
               </button>
 
               {isSubmitted ? (
-                <div className="text-center py-12 space-y-6">
-                  <div className="bg-white/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
-                    <CheckCircle2 size={32} className="text-white" />
+                <div className="text-center py-16 space-y-8">
+                  <div className="bg-neutral-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                    <CheckCircle2 size={40} className="text-emerald-500" />
                   </div>
-                  <h3 className="text-2xl font-syne font-bold text-white uppercase tracking-widest">Review Received</h3>
-                  <p className="text-xs text-neutral-500 font-inter uppercase tracking-widest leading-relaxed">
-                    Thank you for sharing your experience. We're processing your review.
+                  <h3 className="text-3xl font-black text-black uppercase tracking-tighter italic font-display">Review Received</h3>
+                  <p className="text-sm text-neutral-500 font-medium italic uppercase tracking-widest leading-relaxed max-w-xs mx-auto">
+                    Your contribution to the archive is being processed.
                   </p>
                   <button 
                     onClick={() => setIsFormOpen(false)}
-                    className="px-8 py-3 bg-white text-black font-syne font-bold text-[10px] uppercase tracking-widest"
+                    className="px-12 py-4 bg-black text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-xl"
                   >
                     Close
                   </button>
                 </div>
               ) : (
-                <div className="space-y-10">
-                  <div className="space-y-4">
-                    <span className="text-[10px] uppercase tracking-[0.4em] text-neutral-500 font-bold block">Contribute</span>
-                    <h2 className="text-3xl font-syne font-black text-white italic tracking-tighter uppercase leading-none">
+                <div className="space-y-12">
+                  <div className="space-y-6">
+                    <span className="text-[10px] uppercase tracking-[0.5em] text-neutral-500 font-black block">Manifesto</span>
+                    <h2 className="text-4xl font-black text-black italic tracking-tighter uppercase leading-none font-display">
                       Write a Review
                     </h2>
                   </div>
@@ -172,45 +172,45 @@ const ProductReviews = () => {
                       e.preventDefault();
                       setIsSubmitted(true);
                     }} 
-                    className="space-y-6"
+                    className="space-y-8"
                   >
                     <div className="space-y-4">
-                      <label className="text-[10px] font-syne font-bold text-neutral-500 uppercase tracking-widest block">Rating</label>
-                      <div className="flex gap-2 text-white">
+                      <label className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.4em] block">Rating</label>
+                      <div className="flex gap-3 text-amber-500">
                         {[1, 2, 3, 4, 5].map((num) => (
                           <button 
                             key={num} 
                             type="button"
                             onClick={() => setUserRating(num)}
-                            className="hover:scale-110 transition-transform"
+                            className="hover:scale-125 transition-transform"
                           >
-                            <Star size={24} fill={num <= userRating ? "currentColor" : "none"} className={num <= userRating ? "text-white" : "text-white/20"} />
+                            <Star size={32} fill={num <= userRating ? "currentColor" : "none"} className={num <= userRating ? "text-amber-500" : "text-neutral-100"} />
                           </button>
                         ))}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-syne font-bold text-neutral-500 uppercase tracking-widest block">Name</label>
-                        <input className="w-full bg-white/5 border border-white/10 p-4 text-xs text-white focus:outline-none focus:border-white/30 transition-colors uppercase tracking-widest" placeholder="YOUR NAME" required />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3 border-b border-neutral-100 pb-2">
+                        <label className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.4em] block">Identifier</label>
+                        <input className="w-full bg-transparent p-0 text-xs text-black focus:outline-none transition-colors uppercase tracking-[0.2em] font-black italic" placeholder="YOUR NAME" required />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-syne font-bold text-neutral-500 uppercase tracking-widest block">Review Title</label>
-                        <input className="w-full bg-white/5 border border-white/10 p-4 text-xs text-white focus:outline-none focus:border-white/30 transition-colors uppercase tracking-widest" placeholder="SUMMARY" required />
+                      <div className="space-y-3 border-b border-neutral-100 pb-2">
+                        <label className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.4em] block">Headline</label>
+                        <input className="w-full bg-transparent p-0 text-xs text-black focus:outline-none transition-colors uppercase tracking-[0.2em] font-black italic" placeholder="SUMMARY" required />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-syne font-bold text-neutral-500 uppercase tracking-widest block">Body</label>
-                      <textarea rows={4} className="w-full bg-white/5 border border-white/10 p-4 text-xs text-white focus:outline-none focus:border-white/30 transition-colors uppercase tracking-widest resize-none" placeholder="YOUR THOUGHTS..." required />
+                    <div className="space-y-3 border-b border-neutral-100 pb-2">
+                      <label className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.4em] block">Narration</label>
+                      <textarea rows={4} className="w-full bg-transparent p-0 text-xs text-black focus:outline-none transition-colors uppercase tracking-[0.2em] font-medium italic resize-none" placeholder="YOUR THOUGHTS..." required />
                     </div>
 
                     <button 
                       type="submit"
-                      className="w-full py-5 bg-white text-black font-syne font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neutral-200 transition-all duration-500 mt-4"
+                      className="w-full py-6 bg-black text-white font-black text-[10px] uppercase tracking-[0.4em] hover:bg-neutral-800 transition-all duration-500 mt-6 shadow-2xl"
                     >
-                      Submit Review
+                      Publish to Archive
                     </button>
                   </form>
                 </div>
