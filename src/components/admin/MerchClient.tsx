@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { updateMerchSettings, addLookbookImage, deleteLookbookImage, updateCollectionImage, upsertDiscoveryItem, removeDiscoveryItem } from "@/app/actions/merch";
-import { uploadFile } from "@/app/actions/upload";
+import { upload } from "@vercel/blob/client";
 import { Video, Megaphone, Image as ImageIcon, Trash2, Plus, Loader2, Star, Zap, Edit3, Check, Search, LayoutGrid, Flame, Upload, X } from "lucide-react";
 
 type Config = {
@@ -117,15 +117,18 @@ export default function MerchClient({
     if (!file) return;
 
     setIsAddingImage(true);
-    const formData = new FormData();
-    formData.append("file", file);
 
     try {
-      const uploadResult = await uploadFile(formData);
-      await addLookbookImage(uploadResult.url, "Lookbook item");
+      const blob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      });
+      
+      await addLookbookImage(blob.url, "Lookbook item");
       window.location.reload();
-    } catch {
-      alert("FAILED TO UPLOAD LOOKBOOK ASSET.");
+    } catch (error: any) {
+      console.error("Lookbook upload failed:", error);
+      alert(error.message || "FAILED TO UPLOAD LOOKBOOK ASSET. Check if file is too large or network is unstable.");
     } finally {
       setIsAddingImage(false);
     }
@@ -166,14 +169,17 @@ export default function MerchClient({
     if (!file) return;
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
 
     try {
-      const result = await uploadFile(formData);
-      setEditForm((prev: any) => ({ ...prev, imageUrl: result.url }));
+      const blob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      });
+      
+      setEditForm((prev: any) => ({ ...prev, imageUrl: blob.url }));
     } catch (error: any) {
-      alert(error.message || "UPLOAD FAILED.");
+      console.error("Discovery upload failed:", error);
+      alert(error.message || "UPLOAD FAILED. Check file size and permissions.");
     } finally {
       setIsUploading(false);
     }
