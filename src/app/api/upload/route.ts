@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 
 export async function POST(request: Request): Promise<NextResponse> {
+  console.log('Incoming Vercel Blob Token Request...');
   const body = (await request.json()) as HandleUploadBody;
 
   try {
@@ -15,9 +16,14 @@ export async function POST(request: Request): Promise<NextResponse> {
       ) => {
         // Authenticate user
         const session = await auth();
-        if (session?.user?.role !== 'ADMIN') {
+        console.log('Session check in upload API:', !!session, session?.user?.role);
+        
+        if (!session || session.user?.role !== 'ADMIN') {
+          console.error('Upload blocked: User is not an ADMIN or session missing', session?.user?.email);
           throw new Error('Unauthenticated or missing administrative clearance.');
         }
+
+        console.log('Generating token for:', pathname);
 
         return {
           allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'],

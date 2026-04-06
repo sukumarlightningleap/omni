@@ -92,6 +92,9 @@ export default function MerchClient({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [editForm, setEditForm] = useState({ imageUrl: "", description: "" });
+  const [lookbookMode, setLookbookMode] = useState<"upload" | "link">("upload");
+  const [manualLookbookUrl, setManualLookbookUrl] = useState("");
+  const [discoveryUploadMode, setDiscoveryUploadMode] = useState<"upload" | "link">("upload");
 
   const activeItems = discoveryItems.filter(item => item.section === activeSection);
   const filteredCollections = collections.filter(c => 
@@ -129,6 +132,19 @@ export default function MerchClient({
     } catch (error: any) {
       console.error("Lookbook upload failed:", error);
       alert(error.message || "FAILED TO UPLOAD LOOKBOOK ASSET. Check if file is too large or network is unstable.");
+    } finally {
+      setIsAddingImage(false);
+    }
+  };
+
+  const handleAddLookbookManual = async () => {
+    if (!manualLookbookUrl) return;
+    setIsAddingImage(true);
+    try {
+      await addLookbookImage(manualLookbookUrl, "Lookbook item");
+      window.location.reload();
+    } catch {
+      alert("FAILED TO ADD LOOKBOOK LINK.");
     } finally {
       setIsAddingImage(false);
     }
@@ -353,29 +369,59 @@ export default function MerchClient({
                       <div className="space-y-8 pt-6 border-t border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="grid grid-cols-1 gap-6">
                           <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Storefront Asset Media (1080x1350px Optimized)</label>
-                            <label className="cursor-pointer group flex items-center justify-center gap-4 w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl py-12 hover:border-indigo-500 hover:bg-indigo-50/30 transition-all duration-300">
-                              {isUploading ? (
-                                <div className="flex flex-col items-center gap-2">
-                                  <Loader2 className="animate-spin text-indigo-600" size={32} />
-                                  <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Uploading Media...</span>
-                                </div>
-                              ) : (
-                                <div className="flex flex-col items-center gap-2">
-                                  <div className="p-4 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                                    <Upload className="text-slate-400 group-hover:text-indigo-600" size={24} />
+                            <div className="flex justify-between items-end">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Storefront Asset Media (1080x1350px Optimized)</label>
+                              <div className="flex bg-slate-100 p-1 rounded-lg">
+                                <button 
+                                  onClick={(e) => { e.preventDefault(); setDiscoveryUploadMode("upload"); }}
+                                  className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all ${discoveryUploadMode === "upload" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400"}`}
+                                >
+                                  Upload
+                                </button>
+                                <button 
+                                  onClick={(e) => { e.preventDefault(); setDiscoveryUploadMode("link"); }}
+                                  className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all ${discoveryUploadMode === "link" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400"}`}
+                                >
+                                  Link
+                                </button>
+                              </div>
+                            </div>
+
+                            {discoveryUploadMode === "upload" ? (
+                              <label className="cursor-pointer group flex items-center justify-center gap-4 w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl py-12 hover:border-indigo-500 hover:bg-indigo-50/30 transition-all duration-300">
+                                {isUploading ? (
+                                  <div className="flex flex-col items-center gap-2">
+                                    <Loader2 className="animate-spin text-indigo-600" size={32} />
+                                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Uploading Media...</span>
                                   </div>
-                                  <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] group-hover:text-indigo-600">Select File from Device</span>
-                                </div>
-                              )}
-                              <input 
-                                type="file" 
-                                className="hidden" 
-                                accept="image/*,video/*"
-                                onChange={handleFileUpload}
-                                disabled={isUploading}
-                              />
-                            </label>
+                                ) : (
+                                  <div className="flex flex-col items-center gap-2">
+                                    <div className="p-4 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                                      <Upload className="text-slate-400 group-hover:text-indigo-600" size={24} />
+                                    </div>
+                                    <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] group-hover:text-indigo-600">Select File from Device</span>
+                                  </div>
+                                )}
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  accept="image/*,video/*"
+                                  onChange={handleFileUpload}
+                                  disabled={isUploading}
+                                />
+                              </label>
+                            ) : (
+                              <div className="relative">
+                                <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <input 
+                                  type="text"
+                                  value={editForm.imageUrl}
+                                  onChange={(e) => setEditForm({...editForm, imageUrl: e.target.value})}
+                                  placeholder="HTTPS://IMAGE-URL.COM/ASSET.JPG"
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-12 py-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                />
+                              </div>
+                            )}
                           </div>
                           
                           <div className="space-y-1.5">
@@ -480,31 +526,73 @@ export default function MerchClient({
             </div>
             
             <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-10">
-              <label className="group relative flex flex-col items-center justify-center gap-4 w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl py-12 hover:border-indigo-500 hover:bg-indigo-50/30 transition-all duration-300 cursor-pointer">
-                {isAddingImage ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="animate-spin text-indigo-600" size={40} />
-                    <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">Ingesting Asset...</span>
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Ingestion Protocol</label>
+                  <div className="flex bg-slate-100 p-1 rounded-lg">
+                    <button 
+                      onClick={() => setLookbookMode("upload")}
+                      className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all ${lookbookMode === "upload" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400"}`}
+                    >
+                      Device Upload
+                    </button>
+                    <button 
+                      onClick={() => setLookbookMode("link")}
+                      className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all ${lookbookMode === "link" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400"}`}
+                    >
+                      Manual Link
+                    </button>
                   </div>
+                </div>
+
+                {lookbookMode === "upload" ? (
+                  <label className="group relative flex flex-col items-center justify-center gap-4 w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl py-12 hover:border-indigo-500 hover:bg-indigo-50/30 transition-all duration-300 cursor-pointer">
+                    {isAddingImage ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="animate-spin text-indigo-600" size={40} />
+                        <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">Ingesting Asset...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
+                          <Upload className="text-slate-400 group-hover:text-indigo-600" size={32} />
+                        </div>
+                        <div className="text-center space-y-1">
+                          <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Upload Content From Device</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supports PNG, JPG, WEBP • Cloud Hosted</p>
+                        </div>
+                      </>
+                    )}
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleLookbookUpload}
+                      disabled={isAddingImage}
+                    />
+                  </label>
                 ) : (
-                  <>
-                    <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                      <Upload className="text-slate-400 group-hover:text-indigo-600" size={32} />
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input 
+                        type="text"
+                        value={manualLookbookUrl}
+                        onChange={(e) => setManualLookbookUrl(e.target.value)}
+                        placeholder="HTTPS://IMAGE-URL.COM/ASSET.JPG"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-12 py-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                      />
                     </div>
-                    <div className="text-center space-y-1">
-                      <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Upload Content From Device</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supports PNG, JPG, WEBP • Max 10MB</p>
-                    </div>
-                  </>
+                    <button 
+                      onClick={handleAddLookbookManual}
+                      disabled={isAddingImage || !manualLookbookUrl}
+                      className="w-full bg-indigo-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-700 transition-all disabled:opacity-50"
+                    >
+                      {isAddingImage ? "Ingesting..." : "Add External Asset"}
+                    </button>
+                  </div>
                 )}
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*"
-                  onChange={handleLookbookUpload}
-                  disabled={isAddingImage}
-                />
-              </label>
+              </div>
 
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
                 {images.map((img) => (
