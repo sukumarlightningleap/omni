@@ -102,6 +102,18 @@ export default function MerchClient({
     !activeItems.find(item => item.collectionId === c.id)
   ); // SHOWN ALL COLLECTIONS
 
+  const formatImageUrl = (url: string) => {
+    if (!url) return url;
+    // Google Drive conversion (view -> uc)
+    if (url.includes('drive.google.com/file/d/')) {
+      const match = url.match(/\/file\/d\/([^\/]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+      }
+    }
+    return url;
+  };
+
   const handleSaveConfig = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsSavingConfig(true);
@@ -130,8 +142,20 @@ export default function MerchClient({
       await addLookbookImage(blob.url, "Lookbook item");
       window.location.reload();
     } catch (error: any) {
-      console.error("Lookbook upload failed:", error);
-      alert(error.message || "FAILED TO UPLOAD LOOKBOOK ASSET. Check if file is too large or network is unstable.");
+      console.group("Lookbook Upload Diagnostic");
+      console.error("Error Object:", error);
+      if (error instanceof Response) {
+        try {
+          const body = await error.json();
+          console.error("Server Response Body:", body);
+          alert(`UPLOAD FAILED [${body.code || 'UNKNOWN'}]: ${body.error || error.statusText}`);
+        } catch {
+          console.error("Raw status:", error.status, error.statusText);
+        }
+      } else {
+        alert(error.message || "FAILED TO UPLOAD. Check console for diagnostics.");
+      }
+      console.groupEnd();
     } finally {
       setIsAddingImage(false);
     }
@@ -141,7 +165,8 @@ export default function MerchClient({
     if (!manualLookbookUrl) return;
     setIsAddingImage(true);
     try {
-      await addLookbookImage(manualLookbookUrl, "Lookbook item");
+      const formattedUrl = formatImageUrl(manualLookbookUrl);
+      await addLookbookImage(formattedUrl, "Lookbook item");
       window.location.reload();
     } catch {
       alert("FAILED TO ADD LOOKBOOK LINK.");
@@ -194,8 +219,20 @@ export default function MerchClient({
       
       setEditForm((prev: any) => ({ ...prev, imageUrl: blob.url }));
     } catch (error: any) {
-      console.error("Discovery upload failed:", error);
-      alert(error.message || "UPLOAD FAILED. Check file size and permissions.");
+      console.group("Discovery Upload Diagnostic");
+      console.error("Error Object:", error);
+      if (error instanceof Response) {
+        try {
+          const body = await error.json();
+          console.error("Server Response Body:", body);
+          alert(`UPLOAD FAILED [${body.code || 'UNKNOWN'}]: ${body.error || error.statusText}`);
+        } catch {
+          console.error("Raw status:", error.status, error.statusText);
+        }
+      } else {
+        alert(error.message || "UPLOAD FAILED. Check console.");
+      }
+      console.groupEnd();
     } finally {
       setIsUploading(false);
     }
@@ -213,10 +250,11 @@ export default function MerchClient({
 
   const handleSaveItemEdit = async (itemId: string, collectionId: string) => {
     try {
+      const formattedUrl = formatImageUrl(editForm.imageUrl);
       await upsertDiscoveryItem({
         section: activeSection,
         collectionId,
-        customImageUrl: editForm.imageUrl,
+        customImageUrl: formattedUrl,
         customDescription: editForm.description
       });
       setEditingItemId(null);

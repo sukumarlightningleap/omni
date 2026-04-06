@@ -49,9 +49,26 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return NextResponse.json(jsonResponse);
   } catch (error) {
+    console.error('Vercel Blob API Error:', error);
+    
+    const message = (error as Error).message;
+    let status = 400;
+    let code = 'UNKNOWN_ERROR';
+
+    if (message.includes('administrative clearance') || message.includes('not an ADMIN')) {
+      status = 403;
+      code = 'UNAUTHORIZED_ADMIN';
+    } else if (message.includes('Session check failed') || message.includes('session missing')) {
+      status = 401;
+      code = 'SESSION_MISSING';
+    } else if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      status = 500;
+      code = 'MISSING_ENV_TOKEN';
+    }
+
     return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 },
+      { error: message, code },
+      { status },
     );
   }
 }
