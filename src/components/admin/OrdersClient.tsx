@@ -8,7 +8,7 @@ import { forcePushToPrintify } from "@/app/actions/admin/orders";
 type OrderData = {
   id: string;
   createdAt: Date;
-  user: { name: string | null; email: string };
+  user: { name: string | null; email: string } | null;
   status: string;
   totalAmount: number;
   printifyOrderId: string | null;
@@ -21,7 +21,7 @@ export default function OrdersClient({ initialOrders }: { initialOrders: OrderDa
 
   const filteredOrders = initialOrders.filter((o) =>
     o.id.toLowerCase().includes(search.toLowerCase()) ||
-    (o.user.email && o.user.email.toLowerCase().includes(search.toLowerCase()))
+    (o.user?.email && o.user.email.toLowerCase().includes(search.toLowerCase()))
   );
 
   const toggleAll = () => {
@@ -144,8 +144,8 @@ export default function OrdersClient({ initialOrders }: { initialOrders: OrderDa
                     </td>
                     <td className="p-4">
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-neutral-900 tracking-tight">{order.user.name || "Guest"}</span>
-                        <span className="text-[10px] text-neutral-400 font-medium truncate max-w-[150px] mt-0.5">{order.user.email}</span>
+                        <span className="text-xs font-bold text-neutral-900 tracking-tight">{order.user?.name || "Guest"}</span>
+                        <span className="text-[10px] text-neutral-400 font-medium truncate max-w-[150px] mt-0.5">{order.user?.email || "No email"}</span>
                       </div>
                     </td>
                     <td className="p-4">

@@ -6,7 +6,7 @@ import OrderDetailDrawer from "./OrderDetailDrawer";
 
 type OrderData = {
   id: string;
-  user: { name: string | null; email: string };
+  user: { name: string | null; email: string } | null;
   status: any;
   totalAmount: number;
   printifyOrderId: string | null;
@@ -22,7 +22,7 @@ export default function OrderControlClient({ initialOrders }: { initialOrders: O
 
   const filteredOrders = initialOrders.filter((o) => 
     o.id.toLowerCase().includes(search.toLowerCase()) || 
-    (o.user.email && o.user.email.toLowerCase().includes(search.toLowerCase()))
+    (o.user?.email && o.user.email.toLowerCase().includes(search.toLowerCase()))
   );
 
   const getStatusColor = (status: string) => {
@@ -37,56 +37,72 @@ export default function OrderControlClient({ initialOrders }: { initialOrders: O
   };
 
   return (
-    <div className="space-y-8 font-mono">
+    <div className="space-y-12 font-sans text-neutral-900">
+      {/* Header - Integrated */}
+      <div className="flex justify-between items-end mb-8">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 italic">Logistics Control</h2>
+          <p className="text-sm text-neutral-500 font-medium">Monitor network order flow, status transitions and fulfillment.</p>
+        </div>
+        <div className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+          Sync Protocol Active
+        </div>
+      </div>
+
       {/* Search Protocol */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" size={16} />
+      <div className="relative group">
+        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
         <input
           type="text"
-          placeholder="SEARCH LOGISTICS FOR ORDER ID OR EMAIL..."
+          placeholder="Search logistics for order ID or customer email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-black border border-white/20 text-[10px] px-12 py-4 text-white focus:outline-none focus:border-white transition-colors rounded-none placeholder:text-neutral-600 uppercase tracking-widest"
+          className="w-full bg-white border border-neutral-200/60 rounded-3xl text-sm font-semibold px-14 py-5 text-neutral-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all shadow-sm"
         />
       </div>
 
       {/* Analytics Matrix */}
-      <div className="bg-black border border-white/10 overflow-hidden text-white shadow-2xl">
+      <div className="bg-white border border-neutral-200/60 rounded-[32px] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
-              <tr className="border-b border-white/10 bg-white/5">
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-normal">Order Cipher</th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-normal">Customer</th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-normal">Ledger Date (UTC)</th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-normal">Gross Value</th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-normal">Network Status</th>
+              <tr className="border-b border-neutral-100 bg-neutral-50/50">
+                <th className="p-6 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black">Order Cipher</th>
+                <th className="p-6 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black">Customer</th>
+                <th className="p-6 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black">Ledger Date (UTC)</th>
+                <th className="p-6 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black">Gross value</th>
+                <th className="p-6 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black">Network status</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-neutral-100">
               {filteredOrders.map((order) => (
                 <tr 
                   key={order.id} 
                   onClick={() => setSelectedOrder(order)}
-                  className="border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer group"
+                  className="hover:bg-neutral-50/50 transition-colors cursor-pointer group"
                 >
-                  <td className="p-4">
-                    <span className="text-[10px] uppercase tracking-[0.2em] font-normal group-hover:text-blue-400 transition-colors">
-                      {order.id.split('-')[0]}
+                  <td className="p-6">
+                    <span className="text-[10px] uppercase tracking-[0.2em] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">
+                      #{order.id.split('-')[0]}
                     </span>
                   </td>
-                  <td className="p-4">
-                    <p className="text-xs uppercase tracking-widest">{order.user.name || "UNIDENTIFIED"}</p>
-                    <p className="text-[9px] text-neutral-500 tracking-widest mt-1 opacity-80">{order.user.email}</p>
+                  <td className="p-6">
+                    <p className="text-sm font-black uppercase text-neutral-900 italic tracking-tight">{order.user?.name || "UNIDENTIFIED"}</p>
+                    <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">{order.user?.email || "NO EMAIL"}</p>
                   </td>
-                  <td className="p-4 text-[10px] uppercase tracking-widest text-neutral-400">
-                    {new Date(order.createdAt).toISOString().split('T')[0]} <span className="opacity-50">/</span> {new Date(order.createdAt).toISOString().split('T')[1].substring(0, 5)}
+                  <td className="p-6 text-[11px] font-bold text-neutral-500 uppercase tracking-widest">
+                    {new Date(order.createdAt).toISOString().split('T')[0]} <span className="text-neutral-200">/</span> {new Date(order.createdAt).toISOString().split('T')[1].substring(0, 5)}
                   </td>
-                  <td className="p-4 text-[10px] tracking-[0.2em] uppercase text-white font-black">
+                  <td className="p-6 text-sm font-black text-neutral-900 tracking-tight">
                     ${order.totalAmount.toFixed(2)}
                   </td>
-                  <td className="p-4">
-                    <span className={`text-[8px] uppercase tracking-[0.2em] px-3 py-1.5 border font-bold ${getStatusColor(order.status)}`}>
+                  <td className="p-6">
+                    <span className={`text-[9px] uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg border font-black ${
+                      order.status === 'PAID' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
+                      order.status === 'PROCESSING' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                      order.status === 'SHIPPED' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                      'bg-slate-50 text-slate-500 border-slate-100'
+                    }`}>
                       {order.status}
                     </span>
                   </td>
