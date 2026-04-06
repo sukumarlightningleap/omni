@@ -15,6 +15,7 @@ type UnitData = {
   unitsSold: number;
   totalProfitGenerated: number;
   status: string;
+  isAssigned: boolean;
 }
 
 export default function FinanceClient({ items }: { items: UnitData[] }) {
