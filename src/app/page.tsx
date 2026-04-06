@@ -13,19 +13,39 @@ export const revalidate = 60;
 
 async function getHomepageData() {
   try {
-    // Fetch REAL collections from database
-    const dbCollections = await prisma.collection.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 60,
-    });
+    const [budgetItems, omgItems, trendingItems, categoryItems, dbCollections, dbProducts, config] = await Promise.all([
+      prisma.discoveryItem.findMany({
+        where: { section: "BUDGET" },
+        include: { collection: true },
+        orderBy: { order: "asc" }
+      }),
+      prisma.discoveryItem.findMany({
+        where: { section: "OMG" },
+        include: { collection: true },
+        orderBy: { order: "asc" }
+      }),
+      prisma.discoveryItem.findMany({
+        where: { section: "TRENDING" },
+        include: { collection: true },
+        orderBy: { order: "asc" }
+      }),
+      prisma.discoveryItem.findMany({
+        where: { section: "CATEGORY" },
+        include: { collection: true },
+        orderBy: { order: "asc" }
+      }),
+      prisma.collection.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+      prisma.product.findMany({
+        take: 20,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.storeConfig.findUnique({ where: { id: "global" } })
+    ]);
 
-    // Fetch REAL products from database
-    const dbProducts = await prisma.product.findMany({
-      take: 10,
-      orderBy: { createdAt: 'desc' },
-    });
-
-    const mappedProducts = dbProducts.map(p => ({
+    const mappedProducts = dbProducts.map((p: any) => ({
       _id: p.id,
       name: p.name,
       slug: String(p.printifyId),
@@ -36,49 +56,77 @@ async function getHomepageData() {
       category: "UNRWLY",
     }));
 
+    // Map curated category items, fallback to recent collections if none curated
+    const categoryCollections = categoryItems.length > 0 
+      ? categoryItems.map((item: any) => ({
+          ...item.collection,
+          name: item.collection.name, // Can be overridden by customDescription if needed, but per-request name is usually standard
+          imageUrl: item.customImageUrl || item.collection.imageUrl
+        }))
+      : dbCollections.slice(0, 18);
+
     return {
-      collections: dbCollections,
+      budgetItems,
+      omgItems,
+      trendingItems,
+      categoryCollections,
       bestSellers: mappedProducts,
+      config,
+      allCollections: dbCollections
     };
   } catch (error) {
     console.error("Failed to load homepage data:", error);
-    return { collections: [], bestSellers: [] };
+    return { 
+      budgetItems: [], 
+      omgItems: [], 
+      trendingItems: [],
+      categoryCollections: [], 
+      bestSellers: [], 
+      config: null,
+      allCollections: []
+    };
   }
 }
 
-
 export default async function Home() {
-  const { collections, bestSellers } = await getHomepageData();
-
-  // Partition collections for dual grids
-  let budgetCollections = collections.slice(0, 15);
-  let omgCollections = collections.slice(15, 33);
-  let categoryCollections = collections.slice(33, 51);
-
-  // Fallback for OMG (18 items)
-  if (omgCollections.length < 18 && collections.length > 0) {
-    const needed = 18 - omgCollections.length;
-    omgCollections = [...omgCollections, ...collections.slice(0, Math.min(needed, collections.length))];
-  }
-
-  // Fallback for Category (18 items)
-  if (categoryCollections.length < 18 && collections.length > 0) {
-    const needed = 18 - categoryCollections.length;
-    categoryCollections = [...categoryCollections, ...collections.slice(0, Math.min(needed, collections.length))];
-  }
+  const { 
+    budgetItems, 
+    omgItems, 
+    trendingItems,
+    categoryCollections, 
+    bestSellers, 
+    config,
+    allCollections
+  } = await getHomepageData();
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      {config?.promoAnnouncement && (
+        <div className="bg-indigo-600 text-white py-2 text-center text-[10px] font-black uppercase tracking-[0.3em] sticky top-0 z-[60]">
+          {config.promoAnnouncement}
+        </div>
+      )}
 
       {/* ── HERO BANNER ────────────────────────────────── */}
       <section className="relative h-[92vh] w-full overflow-hidden bg-gray-900">
-        <Image
-          src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=2070&auto=format&fit=crop"
-          alt="UNRWLY Drop 2026"
-          fill
-          priority
-          className="object-cover object-center opacity-80"
-        />
+        {config?.heroVideoUrl && config.heroVideoUrl.endsWith('.mp4') ? (
+          <video
+            src={config.heroVideoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover opacity-80"
+          />
+        ) : (
+          <Image
+            src={config?.heroVideoUrl || "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=2070&auto=format&fit=crop"}
+            alt="UNRWLY Drop 2026"
+            fill
+            priority
+            className="object-cover object-center opacity-80"
+          />
+        )}
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
 
@@ -101,12 +149,12 @@ export default async function Home() {
               >
                 Shop All <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </Link>
-              {collections.length > 0 && (
+              {allCollections.length > 0 && (
                 <Link
-                  href={`/collections/${collections[0].handle}`}
+                  href={`/collections/${allCollections[0].handle}`}
                   className="border border-white/40 text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all duration-300"
                 >
-                  {collections[0].name}
+                  {allCollections[0].name}
                 </Link>
               )}
             </div>
@@ -152,7 +200,7 @@ export default async function Home() {
           {/* Sleek White Space */}
           <div className="h-10 bg-white" />
 
-          <CategoryBudgetCarousel collections={budgetCollections} />
+          <CategoryBudgetCarousel items={budgetItems} />
 
           {/* Sleek White Space */}
           <div className="h-10 bg-white" />
@@ -171,7 +219,7 @@ export default async function Home() {
           <div className="h-8 bg-white" />
 
           {/* OMG! Square Grid (3x6) */}
-          <CollectionSquareCarousel collections={omgCollections} />
+          <CollectionSquareCarousel items={omgItems} />
 
           {/* Sleek White Space */}
           <div className="h-10 bg-white" />
@@ -180,7 +228,7 @@ export default async function Home() {
       </section>
 
       {/* ── SHOP BY CATEGORY (FINAL SECTION) ── */}
-      {collections.length > 0 && (
+      {allCollections.length > 0 && (
         <section className="bg-white overflow-hidden pb-16">
           <div className="max-w-7xl mx-auto px-6">
             {/* Tri-color Vertical Header */}
@@ -219,13 +267,21 @@ export default async function Home() {
             {/* Sleek White Space */}
             <div className="h-10 bg-white" />
 
+            {/* Curated Trending Collections */}
+            {trendingItems.length > 0 && (
+              <>
+                <CollectionSquareCarousel items={trendingItems} />
+                <div className="h-16 bg-white" />
+              </>
+            )}
+
             <TrendingCarousel products={bestSellers} />
           </div>
         </section>
       )}
 
       {/* ── EMPTY STATE (no collections, no products) ─────── */}
-      {collections.length === 0 && bestSellers.length === 0 && (
+      {allCollections.length === 0 && bestSellers.length === 0 && (
         <section className="py-40 bg-white flex flex-col items-center justify-center text-center px-6">
           <div className="max-w-md space-y-4">
             <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-6">

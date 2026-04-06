@@ -6,7 +6,12 @@ import { Pool } from 'pg'
 const connectionString = `${process.env.DATABASE_URL}`
 
 // Prisma 7 requires a connection pool and adapter
-const pool = new Pool({ connectionString })
+const pool = new Pool({ 
+  connectionString,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000, // 10s timeout to avoid getting stuck for 40s
+})
 const adapter = new PrismaPg(pool)
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }

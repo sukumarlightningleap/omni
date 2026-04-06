@@ -12,15 +12,21 @@ interface Collection {
   imageUrl?: string | null;
 }
 
-export default function CollectionSquareCarousel({ collections }: { collections: Collection[] }) {
+interface DiscoveryItem {
+  id: string;
+  customImageUrl?: string | null;
+  customDescription?: string | null;
+  collection: Collection;
+}
+
+export default function CollectionSquareCarousel({ items }: { items: DiscoveryItem[] }) {
   const [page, setPage] = useState(0);
   const itemsPerPage = 6;
 
-  // Use collections starting from index 6 (or wherever the previous grid left off)
-  // But for now, we'll just take the whole array and chunk it
-  const chunks: Collection[][] = [];
-  for (let i = 0; i < collections.length; i += itemsPerPage) {
-    const chunk = collections.slice(i, i + itemsPerPage);
+  // Chunk the items
+  const chunks: DiscoveryItem[][] = [];
+  for (let i = 0; i < items.length; i += itemsPerPage) {
+    const chunk = items.slice(i, i + itemsPerPage);
     if (chunk.length > 0) {
       chunks.push(chunk);
     }
@@ -50,15 +56,15 @@ export default function CollectionSquareCarousel({ collections }: { collections:
             transition={{ duration: 0.8, ease: "easeInOut" }}
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"
           >
-            {chunks[page]?.map((col, idx) => (
+            {chunks[page]?.map((item, idx) => (
               <Link
-                key={`${col.id}-${page}-${idx}`}
-                href={`/collections/${col.handle}`}
+                key={`${item.id}-${page}-${idx}`}
+                href={`/collections/${item.collection.handle}`}
                 className="group relative aspect-square overflow-hidden bg-neutral-100 rounded-sm hover:shadow-xl transition-shadow duration-500"
               >
                 <Image
-                  src={col.imageUrl || `https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800&q=80&sig=${idx+20}`}
-                  alt={col.name}
+                  src={item.customImageUrl || item.collection.imageUrl || `https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800&q=80&sig=${idx+20}`}
+                  alt={item.collection.name}
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                 />
@@ -66,8 +72,13 @@ export default function CollectionSquareCarousel({ collections }: { collections:
                 {/* Overlay with Centered Name - NEW FONT Style */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-black/10 transition-colors group-hover:bg-black/30">
                   <span className="text-white text-center text-lg lg:text-xl font-serif italic tracking-wider drop-shadow-lg transform transition-transform group-hover:scale-110">
-                    {col.name}
+                    {item.collection.name}
                   </span>
+                  {item.customDescription && (
+                    <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {item.customDescription}
+                    </span>
+                  )}
                   <div className="mt-2 h-0.5 w-0 bg-white group-hover:w-12 transition-all duration-500" />
                 </div>
               </Link>

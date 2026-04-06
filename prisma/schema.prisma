@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model StoreConfig {
@@ -14,6 +13,21 @@ model StoreConfig {
   flashSaleMessage  String    @default("LIMITED DROP ENDING SOON")
   heroVideoUrl      String    @default("/hero-banner-cap.mp4")
   promoAnnouncement String?
+}
+
+model DiscoveryItem {
+  id                String      @id @default(cuid())
+  section           String      // "BUDGET", "OMG", "CATEGORY", "TRENDING"
+  collectionId      String
+  collection        Collection  @relation(fields: [collectionId], references: [id])
+  customImageUrl    String?     @db.Text
+  customDescription String?     @db.Text
+  order             Int         @default(0)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@index([section])
+  @@unique([section, collectionId])
 }
 
 model User {
@@ -32,7 +46,7 @@ model User {
 
 model Order {
   id              String      @id @default(cuid())
-  userId          String
+  userId          String?
   stripeSessionId String?     @unique
   printifyOrderId String?     @unique
   status          OrderStatus @default(PENDING)
@@ -41,7 +55,7 @@ model Order {
   updatedAt       DateTime    @updatedAt
   internalNotes   String?
   shippingAddress String?
-  user            User        @relation(fields: [userId], references: [id])
+  user            User?        @relation(fields: [userId], references: [id])
   items           OrderItem[]
 }
 
@@ -87,6 +101,7 @@ model Collection {
   description   String?   @db.Text
   imageUrl      String?
   products      Product[] // 1-to-many relation
+  discoveryItems DiscoveryItem[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }

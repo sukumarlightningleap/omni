@@ -25,6 +25,13 @@ const nextConfig: NextConfig = {
         hostname: 'via.placeholder.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        // 3. ADDED SQUARESPACE CDN FOR CURATED ASSETS
+        protocol: 'https',
+        hostname: 'images.squarespace-cdn.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

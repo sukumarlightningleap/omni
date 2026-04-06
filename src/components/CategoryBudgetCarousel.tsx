@@ -12,20 +12,27 @@ interface Collection {
   imageUrl?: string | null;
 }
 
-export default function CategoryBudgetCarousel({ collections }: { collections: Collection[] }) {
+interface DiscoveryItem {
+  id: string;
+  customImageUrl?: string | null;
+  customDescription?: string | null;
+  collection: Collection;
+}
+
+export default function CategoryBudgetCarousel({ items }: { items: DiscoveryItem[] }) {
   const [page, setPage] = useState(0);
   const itemsPerPage = 5;
 
-  // Use all collections from DB, chunked into 5s
-  const chunks: Collection[][] = [];
-  for (let i = 0; i < collections.length; i += itemsPerPage) {
-    const chunk = collections.slice(i, i + itemsPerPage);
+  // Use all items, chunked into 5s
+  const chunks: DiscoveryItem[][] = [];
+  for (let i = 0; i < items.length; i += itemsPerPage) {
+    const chunk = items.slice(i, i + itemsPerPage);
     if (chunk.length > 0) {
       chunks.push(chunk);
     }
   }
 
-  // Handle case where total collections < 5 or empty
+  // Handle case where total items < 5 or empty
   const totalPages = chunks.length;
 
   useEffect(() => {
@@ -50,17 +57,17 @@ export default function CategoryBudgetCarousel({ collections }: { collections: C
             transition={{ duration: 0.8, ease: "easeInOut" }}
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-0 border-t border-l border-neutral-100"
           >
-            {chunks[page]?.map((col, idx) => (
+            {chunks[page]?.map((item, idx) => (
               <Link
-                key={`${col.id}-${page}-${idx}`}
-                href={`/collections/${col.handle}`}
+                key={`${item.id}-${page}-${idx}`}
+                href={`/collections/${item.collection.handle}`}
                 className="group flex flex-col items-center hover:-translate-y-1 transition-transform duration-300"
               >
                 {/* Image Container: 4:5 Aspect Ratio, Rounded from top */}
                 <div className="relative w-full aspect-[4/5] rounded-t-2xl overflow-hidden bg-neutral-100 mb-0">
                   <Image
-                    src={col.imageUrl || `https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800&q=80&sig=${idx}`}
-                    alt={col.name}
+                    src={item.customImageUrl || item.collection.imageUrl || `https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800&q=80&sig=${idx}`}
+                    alt={item.collection.name}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
@@ -69,10 +76,14 @@ export default function CategoryBudgetCarousel({ collections }: { collections: C
                 {/* Info Block: Light Blue Flow Gradient */}
                 <div className="w-full bg-gradient-to-b from-[#E0F2FE] to-white px-3 py-6 text-center border-x border-b border-neutral-100 shadow-sm">
                   <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-[12px] font-bold text-black uppercase tracking-tighter">UNDER</span>
-                    <span className="text-2xl font-black text-black leading-none mb-2">₹599</span>
+                    <span className="text-[12px] font-bold text-black uppercase tracking-tighter">
+                      {item.customDescription?.toUpperCase().split(' ')[0] || "UNDER"}
+                    </span>
+                    <span className="text-2xl font-black text-black leading-none mb-2">
+                      {item.customDescription?.toUpperCase().split(' ').slice(1).join(' ') || "₹599"}
+                    </span>
                     <span className="text-[12px] text-neutral-500 lowercase font-medium">
-                      {col.name}
+                      {item.collection.name}
                     </span>
                   </div>
                 </div>
