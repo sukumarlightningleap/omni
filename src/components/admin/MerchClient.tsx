@@ -105,10 +105,13 @@ export default function MerchClient({
   const formatImageUrl = (url: string) => {
     if (!url) return url;
     // Google Drive conversion (view -> uc)
-    if (url.includes('drive.google.com/file/d/')) {
-      const match = url.match(/\/file\/d\/([^\/]+)/);
-      if (match && match[1]) {
-        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    if (url.includes('drive.google.com')) {
+      if (url.includes('/file/d/')) {
+        const match = url.match(/\/file\/d\/([^\/&\?]+)/);
+        if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+      } else if (url.includes('id=')) {
+        const match = url.match(/id=([^\/&\?]+)/);
+        if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
       }
     }
     return url;
