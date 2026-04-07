@@ -77,11 +77,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const normalizedProduct = {
     ...printifyProduct,
     name: dbProduct.name, // Local overrides
+    description: dbProduct.description || printifyProduct.description,
     price: `$${dbProduct.price.toFixed(2)}`,
     rawPrice: dbProduct.price,
     category: dbProduct.collection?.name || printifyProduct.category
   };
-
   // 4. Get recommendations (can use cached Printify list or DB)
   const allProducts = await fetchPrintifyProducts(60) || [];
   const recommendations = allProducts

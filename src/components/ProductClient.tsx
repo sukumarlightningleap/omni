@@ -87,6 +87,51 @@ export default function ProductClient({ product, recommendations = [] }: Product
     else setPincodeStatus('invalid');
   };
 
+  const { parsedFeatures, parsedCare, parsedDetails } = useMemo(() => {
+    const html = product.description || '';
+    let f = '';
+    let c = '';
+    let d = html;
+
+    const fMarkers = ['Product features', 'Key features', 'Features:'];
+    const cMarkers = ['Care instructions', 'Care:'];
+
+    let fIdx = -1;
+    let fMarker = '';
+    for (const m of fMarkers) {
+      const idx = html.toLowerCase().indexOf(m.toLowerCase());
+      if (idx !== -1 && (fIdx === -1 || idx < fIdx)) { fIdx = idx; fMarker = m; }
+    }
+
+    let cIdx = -1;
+    let cMarker = '';
+    for (const m of cMarkers) {
+      const idx = html.toLowerCase().indexOf(m.toLowerCase());
+      if (idx !== -1 && (cIdx === -1 || idx < cIdx)) { cIdx = idx; cMarker = m; }
+    }
+
+    if (fIdx !== -1 && cIdx !== -1) {
+      if (fIdx < cIdx) {
+        d = html.substring(0, fIdx);
+        f = html.substring(fIdx + fMarker.length, cIdx);
+        c = html.substring(cIdx + cMarker.length);
+      } else {
+        d = html.substring(0, cIdx);
+        c = html.substring(cIdx + cMarker.length, fIdx);
+        f = html.substring(fIdx + fMarker.length);
+      }
+    } else if (fIdx !== -1) {
+      d = html.substring(0, fIdx);
+      f = html.substring(fIdx + fMarker.length);
+    } else if (cIdx !== -1) {
+      d = html.substring(0, cIdx);
+      c = html.substring(cIdx + cMarker.length);
+    }
+
+    const clean = (s: string) => s.replace(/^[:\s-]+|[:\s-]+$/g, '').trim();
+    return { parsedFeatures: clean(f), parsedCare: clean(c), parsedDetails: clean(d) };
+  }, [product.description]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -279,6 +324,49 @@ export default function ProductClient({ product, recommendations = [] }: Product
           <ShoppingBag size={18} /> Add to Bag
         </button>
       </div>
+
+      {/* ── EXPANDED PRODUCT SPECIFICATIONS ────────────────────────────── */}
+      <section className="bg-white px-6 md:px-12 py-24 border-t border-neutral-100">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+            {/* 1. Product Features */}
+            <div className="space-y-6">
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-black flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-black" />
+                Product Features
+              </h3>
+              <div 
+                className="text-sm text-neutral-500 leading-relaxed font-medium space-y-4 prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: parsedFeatures || '<ul className="list-disc pl-4 space-y-2"><li>Premium Build Quality</li><li>Ethically Sourced Materials</li><li>High-Definition Print Technology</li><li>Limited Edition "Unrwly" Original</li></ul>' }}
+              />
+            </div>
+
+            {/* 2. Care Instructions */}
+            <div className="space-y-6">
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-black flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-black" />
+                Care Instructions
+              </h3>
+              <div 
+                className="text-sm text-neutral-500 leading-relaxed font-medium prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: parsedCare || '<ul className="list-disc pl-4 space-y-2"><li>Machine wash cold, inside out</li><li>Tumble dry on low or hang dry</li><li>Do not iron directly on graphics</li><li>Avoid bleach and harsh detergents</li></ul>' }}
+              />
+            </div>
+
+            {/* 3. The Details */}
+            <div className="space-y-6">
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-black flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-black" />
+                The Details
+              </h3>
+              <div 
+                className="text-sm text-neutral-500 leading-relaxed font-medium prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: parsedDetails || 'No additional details provided.' }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
 
       <CrossSellCarousel products={recommendations} />
       
