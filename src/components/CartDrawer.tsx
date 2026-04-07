@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, ArrowRight, Minus, Plus, Trash2, Loader2 } from 'lucide-react';
+import { X, ShoppingBag, ArrowRight, Minus, Plus, Trash2, Loader2, Lock } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
 
 const CartDrawer: React.FC = () => {
@@ -18,41 +19,10 @@ const CartDrawer: React.FC = () => {
     setMounted(true);
   }, []);
 
-  // Added a loading state so the button updates while Stripe is connecting
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-
   if (!mounted) return null;
 
   const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-
-  // The actual Stripe Checkout trigger
-  const handleCheckout = async () => {
-    setIsCheckingOut(true);
-    try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ items }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.json();
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error("Checkout Error:", error);
-      alert("Something went wrong loading the checkout.");
-      setIsCheckingOut(false);
-    }
-  };
 
   return (
     <AnimatePresence>
@@ -190,20 +160,15 @@ const CartDrawer: React.FC = () => {
                 <span className="text-2xl font-bold text-black">${subtotal.toFixed(2)}</span>
               </div>
 
-              {/* HIGH CONTRAST CHECKOUT BUTTON */}
-              <button
-                onClick={handleCheckout}
-                disabled={items.length === 0 || isCheckingOut}
-                className="w-full py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center rounded-none shadow-xl"
+              {/* HIGH CONTRAST CHECKOUT LINK */}
+              <Link
+                href="/checkout"
+                onClick={() => setDrawerOpen(false)}
+                className={`w-full py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-neutral-800 transition-colors flex justify-center items-center gap-3 rounded-none shadow-xl ${items.length === 0 ? 'pointer-events-none opacity-50' : ''}`}
               >
-                {isCheckingOut ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 size={14} className="animate-spin text-neutral-400" /> INITIATING...
-                  </span>
-                ) : (
-                  "Secure Checkout"
-                )}
-              </button>
+                <Lock size={14} />
+                Secure Checkout
+              </Link>
             </div>
           </motion.div>
         </>

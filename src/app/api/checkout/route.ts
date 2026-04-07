@@ -70,22 +70,28 @@ export async function POST(req: Request) {
       },
     });
 
-    // 3. Create the Stripe Checkout Session
-    const stripeSession = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      mode: 'payment',
+    // 3. Create the Stripe Payment Intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0) * 100),
+      currency: 'usd',
       metadata: {
         orderId: order.id,
       },
-      shipping_address_collection: {
-        allowed_countries: ['US', 'CA', 'GB', 'IN'],
+      automatic_payment_methods: {
+        enabled: true,
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/?success=1`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/?canceled=1`,
     });
 
-    return NextResponse.json({ url: stripeSession.url });
+    // 4. Update order with payment intent ID
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { stripeSessionId: paymentIntent.id } // Re-using this field for PI id
+    });
+
+    return NextResponse.json({ 
+      clientSecret: paymentIntent.client_secret,
+      orderId: order.id 
+    });
 
   } catch (error) {
     console.error("STRIPE ERROR:", error);
