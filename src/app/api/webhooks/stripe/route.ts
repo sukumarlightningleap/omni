@@ -103,7 +103,7 @@ export async function POST(req: Request) {
 
         const printifyPayload = {
           external_id: order.id,
-          label: `OMNIDROP-${order.id.substring(0,6)}`,
+          label: `UNRWLY-${order.id.substring(0,6)}`,
           line_items: printifyLineItems,
           shipping_method: 1, // Standard Delivery
           is_printify_express: false,

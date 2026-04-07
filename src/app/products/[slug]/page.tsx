@@ -33,13 +33,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     title: dbProduct.name,
     description: description,
     openGraph: {
-      title: `${dbProduct.name} | Omnidrop`,
+      title: `${dbProduct.name} | Unrwly`,
       description: description,
       images: [dbProduct.imageUrl],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${dbProduct.name} | Omnidrop`,
+      title: `${dbProduct.name} | Unrwly`,
       description: description,
       images: [dbProduct.imageUrl],
     },

@@ -41,7 +41,7 @@ export default function AnalyticsClient({ data }: { data: AnalyticsData }) {
         </div>
 
         <div className="p-8 bg-white border border-neutral-200/60 rounded-3xl group hover:shadow-xl hover:shadow-rose-500/5 transition-all relative overflow-hidden shadow-sm">
-          <h3 className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black mb-4">Omnidrop baseline costs</h3>
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black mb-4">Unrwly baseline costs</h3>
           <p className="text-3xl font-black tracking-tight text-rose-500">-{formatUSD(data.productionCost + data.stripeFeeEstimate)}</p>
           <div className="mt-4 flex gap-4 text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
             <span>PROD: {formatUSD(data.productionCost)}</span>

@@ -48,7 +48,7 @@ export default function JournalPage() {
             The Journal
           </h1>
           <p className="text-gray-500 text-lg uppercase tracking-widest font-medium pt-2">
-            STORIES, TRENDS, AND INSIGHTS FROM THE OMNIDROP COLLECTIVE.
+            STORIES, TRENDS, AND INSIGHTS FROM THE UNRWLY COLLECTIVE.
           </p>
         </div>
 

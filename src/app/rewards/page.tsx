@@ -65,10 +65,10 @@ const RewardsPage = () => {
                     <div className="relative z-10 space-y-8 max-w-2xl mx-auto">
                         <span className="text-[10px] font-bold text-blue-100 uppercase tracking-[0.4em]">The Club</span>
                         <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-tight">
-                            Omnidrop <br /> Rewards
+                            Unrwly <br /> Rewards
                         </h1>
                         <p className="text-blue-100 text-lg uppercase tracking-widest font-medium">
-                            EARN WHILE YOU SHOP. JOIN THE ELITE CIRCLE OF OMNIDROP CURATORS.
+                            EARN WHILE YOU SHOP. JOIN THE ELITE CIRCLE OF UNRWLY CURATORS.
                         </p>
                         <div className="flex justify-center pt-2">
                             <Link 

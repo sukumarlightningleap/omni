@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { fetchPrintifyProducts } from '@/lib/printify'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://omnidrop.shop'
+  const baseUrl = 'https://unrwly.com'
 
   // Fetch Products via shared Printify utility
   const products = await fetchPrintifyProducts(60) || [];

@@ -16,7 +16,7 @@ export default function AboutPage() {
           </div>
           <h1 className="text-6xl md:text-8xl font-bold tracking-tighter leading-[0.9] italic mb-12 font-display">
             Existence is <br />
-            <span className="text-neutral-500">Omnidrop.</span>
+            <span className="text-neutral-500">Unrwly.</span>
           </h1>
           <p className="text-2xl md:text-3xl font-light text-neutral-400 leading-tight tracking-tight max-w-2xl italic">
             Founded on the pillars of self-love, bold artistic rebellion, and a fierce feminist aesthetic. We don&apos;t just create apparel; we curate armor for the unapologetic.
@@ -30,7 +30,7 @@ export default function AboutPage() {
           <div>
             <h2 className="text-[12px] uppercase tracking-[0.3em] font-bold text-neutral-500 mb-8 italic font-display">The Story</h2>
             <p className="text-lg text-neutral-300 leading-relaxed font-light">
-              Omnidrop emerged from the shadows of conformity. We saw a world that demanded silence and we chose to scream in aesthetics. Our journey began with a single vision: to merge high-fashion silhouettes with the raw, unfiltered energy of street art.
+              Unrwly emerged from the shadows of conformity. We saw a world that demanded silence and we chose to scream in aesthetics. Our journey began with a single vision: to merge high-fashion silhouettes with the raw, unfiltered energy of street art.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-8 pt-8">
@@ -42,7 +42,7 @@ export default function AboutPage() {
             <div className="space-y-4">
               <Zap size={20} className="text-neutral-500" />
               <h3 className="text-xs uppercase tracking-widest font-bold font-display">Bold Art</h3>
-              <p className="text-[10px] text-neutral-600 leading-relaxed uppercase tracking-widest">No boundaries. Every piece is a canvas for the omnidrop mind.</p>
+              <p className="text-[10px] text-neutral-600 leading-relaxed uppercase tracking-widest">No boundaries. Every piece is a canvas for the unrwly mind.</p>
             </div>
           </div>
         </AnimatedSection>
@@ -50,7 +50,7 @@ export default function AboutPage() {
         <AnimatedSection direction="scale" className="relative aspect-[4/5] bg-neutral-900 overflow-hidden border border-neutral-800 text-center">
           <Image 
             src="/omnidrop_lifestyle_1.png" 
-            alt="Omnidrop Lifestyle" 
+            alt="Unrwly Lifestyle" 
             fill 
             className="object-cover grayscale hover:grayscale-0 transition-all duration-1000 ease-in-out"
           />

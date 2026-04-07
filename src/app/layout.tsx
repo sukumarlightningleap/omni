@@ -15,8 +15,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Omnidrop | Crafted with quality",
-    template: "%s | Omnidrop",
+    default: "Unrwly",
+    template: "%s | Unrwly",
   },
   description: "Crafted with quality, designed for you.",
 };

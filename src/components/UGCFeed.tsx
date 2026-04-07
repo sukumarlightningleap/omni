@@ -14,7 +14,7 @@ const UGC_IMAGES = [
 ];
 
 const UGCFeed = () => {
-  const storeName = process.env.NEXT_PUBLIC_STORE_NAME || 'Omnidrop';
+  const storeName = process.env.NEXT_PUBLIC_STORE_NAME || 'Unrwly';
 
   return (
     <section className="py-24 bg-white overflow-hidden select-none border-t border-gray-50">

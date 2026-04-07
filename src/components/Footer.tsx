@@ -5,7 +5,7 @@ import { Twitter, Instagram, Facebook, Youtube, Send, ArrowRight } from "lucide-
 import { useEffect, useState } from "react";
 
 const Footer = () => {
-  const storeName = process.env.NEXT_PUBLIC_STORE_NAME || 'Omnidrop';
+  const storeName = process.env.NEXT_PUBLIC_STORE_NAME || 'Unrwly';
   const [collections, setCollections] = useState<any[]>([]);
 
   useEffect(() => {

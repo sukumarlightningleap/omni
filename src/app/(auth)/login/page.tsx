@@ -59,7 +59,7 @@ export default function AuthPage() {
     <div className="min-h-screen bg-black flex items-center justify-center px-6 pt-20">
       <motion.div layout className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
-          <Link href="/" className="text-4xl font-bold tracking-tighter uppercase text-white italic">Omnidrop</Link>
+          <Link href="/" className="text-4xl font-bold tracking-tighter uppercase text-white italic">Unrwly</Link>
           <p className="text-[10px] uppercase tracking-[0.4em] text-neutral-500">
             {isLogin ? 'Authentication Required' : 'Create New Identity'}
           </p>

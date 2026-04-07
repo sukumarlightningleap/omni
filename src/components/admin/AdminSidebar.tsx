@@ -52,7 +52,7 @@ export default function AdminSidebar() {
             <ShieldCheck size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xs font-bold tracking-tight text-neutral-900 uppercase">Omnidrop</h1>
+            <h1 className="text-xs font-bold tracking-tight text-neutral-900 uppercase">Unrwly</h1>
             <p className="text-[9px] text-neutral-400 font-medium uppercase tracking-[0.1em]">Internal Dashboard</p>
           </div>
         </div>

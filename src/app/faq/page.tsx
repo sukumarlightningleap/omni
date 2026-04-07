@@ -5,7 +5,7 @@ import FAQAccordion from '@/components/FAQAccordion';
 const faqs = [
   {
     question: "What is the expected shipping timeframe?",
-    answer: "Every Omnidrop piece is hand-finished. Expect delivery between 7-14 business days for domestic orders. International logistics may vary, typically requiring 14-21 days for global arrival.",
+    answer: "Every Unrwly piece is hand-finished. Expect delivery between 7-14 business days for domestic orders. International logistics may vary, typically requiring 14-21 days for global arrival.",
     icon: <Clock size={24} />
   },
   {
@@ -15,7 +15,7 @@ const faqs = [
   },
   {
     question: "Is there a specific sizing guide?",
-    answer: "Our pieces are designed for a bold, oversized aesthetic. We typically recommend ordering your standard size for the intended 'Omnidrop' fit, or sizing down for a more structured silhouette.",
+    answer: "Our pieces are designed for a bold, oversized aesthetic. We typically recommend ordering your standard size for the intended 'Unrwly' fit, or sizing down for a more structured silhouette.",
     icon: <Ruler size={24} />
   },
   {
@@ -36,7 +36,7 @@ export default function FAQPage() {
             <span className="text-neutral-500">Protocol.</span>
           </h1>
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-600 font-bold">
-            Everything you need to know about the Omnidrop ecosystem.
+            Everything you need to know about the Unrwly ecosystem.
           </p>
         </div>
       </section>

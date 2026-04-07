@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/'],
     },
-    sitemap: 'https://omnidrop.shop/sitemap.xml',
+    sitemap: 'https://unrwly.com/sitemap.xml',
   }
 }
