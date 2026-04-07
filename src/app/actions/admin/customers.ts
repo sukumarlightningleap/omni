@@ -35,3 +35,23 @@ export async function saveInternalNotes(userId: string, notes: string) {
   revalidatePath("/admin/customers")
   return { success: true }
 }
+
+export async function getCustomerProfile(userId: string) {
+  await requireAdmin()
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      orders: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          items: {
+            include: { product: true }
+          }
+        }
+      }
+    }
+  })
+
+  return user
+}
