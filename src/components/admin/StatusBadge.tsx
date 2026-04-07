@@ -2,38 +2,28 @@ import React from "react";
 
 export function StatusBadge({ status }: { status: string }) {
   const norm = status.toUpperCase();
-  let baseColor = "text-neutral-400 border-neutral-800 bg-neutral-900/50"; 
-  let glowColor = "rgba(163, 163, 163, 0.2)";
+  let colors = "bg-neutral-100 text-neutral-600 border-neutral-200";
 
   switch (norm) {
     case "PAID":
-    case "PLACED":
-      baseColor = "text-blue-400 border-blue-500/30 bg-blue-500/10 font-bold shadow-[0_0_10px_rgba(59,130,246,0.1)]";
-      glowColor = "rgba(59, 130, 246, 0.5)";
-      break;
     case "DELIVERED":
-      baseColor = "text-emerald-400 border-emerald-500/30 bg-emerald-500/10 font-bold shadow-[0_0_10px_rgba(52,211,153,0.1)]";
-      glowColor = "rgba(52, 211, 153, 0.5)";
+      colors = "bg-emerald-50 text-emerald-700 border-emerald-100 font-bold";
+      break;
+    case "PROCESSING":
+      colors = "bg-sky-50 text-sky-700 border-sky-100 font-bold";
       break;
     case "SHIPPED":
-      baseColor = "text-purple-400 border-purple-500/30 bg-purple-500/10 font-bold shadow-[0_0_10px_rgba(168,85,247,0.1)]";
-      glowColor = "rgba(168, 85, 247, 0.5)";
+      colors = "bg-indigo-50 text-indigo-700 border-indigo-100 font-bold";
       break;
     case "CANCELLED":
     case "FAILED":
     case "MANUAL_INTERVENTION_REQUIRED":
-      baseColor = "text-rose-400 border-rose-500/30 bg-rose-500/10 font-bold shadow-[0_0_10px_rgba(244,63,94,0.1)] animate-pulse";
-      glowColor = "rgba(244, 63, 94, 0.5)";
-      break;
-    case "PROCESSING":
-      baseColor = "text-amber-400 border-amber-500/30 bg-amber-500/10 font-bold shadow-[0_0_10px_rgba(251,191,36,0.1)]";
-      glowColor = "rgba(251, 191, 36, 0.5)";
+      colors = "bg-rose-50 text-rose-700 border-rose-100 font-bold";
       break;
   }
 
   return (
-    <span className={`inline-flex items-center text-[9px] font-mono uppercase tracking-[0.1em] px-2.5 py-1 border rounded-sm whitespace-nowrap transition-all duration-300 ${baseColor}`}>
-      <div className={`w-1 h-1 rounded-full mr-2 shadow-[0_0_4px_currentColor]`} style={{ backgroundColor: glowColor }} />
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wide border ${colors}`}>
       {norm === 'MANUAL_INTERVENTION_REQUIRED' ? 'INTERVENTION REQ' : norm}
     </span>
   );

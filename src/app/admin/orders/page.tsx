@@ -7,6 +7,9 @@ export default async function OrdersPage() {
     include: {
       user: {
         select: { name: true, email: true }
+      },
+      items: {
+        include: { product: true }
       }
     }
   })
@@ -20,7 +23,15 @@ export default async function OrdersPage() {
     totalAmount: Number(o.totalAmount),
     totalPaid: o.totalPaid ? Number(o.totalPaid) : null,
     printifyOrderId: o.printifyOrderId,
-    trackingNumber: o.trackingNumber
+    trackingNumber: o.trackingNumber,
+    shippingAddress: o.shippingAddress,
+    items: o.items.map(item => ({
+      id: item.id,
+      name: item.product.name,
+      price: Number(item.price),
+      quantity: item.quantity,
+      variantId: item.variantId
+    }))
   }))
 
   return (
