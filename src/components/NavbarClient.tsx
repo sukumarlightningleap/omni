@@ -137,7 +137,7 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
           <div className="flex items-center gap-2 md:gap-10 ml-auto shrink-0">
             {/* Profile */}
             <button
-              onClick={() => session ? router.push(isAdmin ? '/admin/products' : '/account') : router.push('/login')}
+              onClick={() => session ? router.push(isAdmin ? '/admin/products' : '/account') : router.push('/auth')}
               className="hidden sm:flex flex-col items-center gap-1 group"
             >
               <User size={20} className="text-[#282C3F] group-hover:text-[#ff3f6c] transition-colors" />
@@ -243,7 +243,7 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
                 {session ? (
                    <button onClick={() => signOut()} className="text-[10px] font-black tracking-[0.3em] text-red-500 uppercase text-left underline underline-offset-4">Logout</button>
                 ) : (
-                   <Link href="/login" className="text-[10px] font-black tracking-[0.3em] text-black uppercase">Login</Link>
+                   <Link href="/auth" className="text-[10px] font-black tracking-[0.3em] text-black uppercase">Login</Link>
                 )}
               </div>
             </motion.div>

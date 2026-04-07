@@ -9,6 +9,8 @@ import VTOModal from '@/components/VTOModal';
 import ProductCard from '@/components/ProductCard';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 const COLOR_MAP: Record<string, string> = {
   Black: '#000000', White: '#FFFFFF', Red: '#DC2626', Blue: '#2563EB',
@@ -46,8 +48,19 @@ export default function ProductClient({ product, recommendations = [] }: Product
 
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
   const isInWishlist = useWishlistStore((state) => state.items.some(i => i.id === product._id));
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleGatekeep = () => {
+    if (!session) {
+      router.push('/auth?message=Unrwly Membership Required. Please sign in to shop.');
+      return true;
+    }
+    return false;
+  };
 
   const handleToggleWishlist = () => {
+    if (handleGatekeep()) return;
     toggleWishlist({
       id: `${product._id}`,
       name: product.name,
@@ -85,6 +98,7 @@ export default function ProductClient({ product, recommendations = [] }: Product
   const discountPercent = 33;
 
   const handleAddToCart = () => {
+    if (handleGatekeep()) return;
     addItem({
       id: `${product._id}`,
       productId: product._id,

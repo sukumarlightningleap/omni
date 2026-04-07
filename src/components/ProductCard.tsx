@@ -7,6 +7,8 @@ import { Heart, ShoppingBag, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface Product {
   _id: string;
@@ -43,6 +45,16 @@ const ProductCard = ({
   // Find if item is already in cart
   const cartItem = cartItems.find(i => i.productId === product._id);
   const inCartCount = cartItem?.quantity || 0;
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleGatekeep = () => {
+    if (!session) {
+      router.push('/auth?message=Unrwly Membership Required. Please sign in to shop.');
+      return true;
+    }
+    return false;
+  };
 
   const activeRawPrice = useMemo(() => {
     if (product.rawPrice) return product.rawPrice;
@@ -54,6 +66,7 @@ const ProductCard = ({
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (handleGatekeep()) return;
     addItem({
       id: `${product._id}-default`,
       productId: product._id,
@@ -123,6 +136,7 @@ const ProductCard = ({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                if (handleGatekeep()) return;
                 toggleWishlist({
                   id: product._id,
                   name: product.name,
