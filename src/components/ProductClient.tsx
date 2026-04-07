@@ -7,7 +7,6 @@ import { Sparkles, ArrowLeft, Star, ShoppingBag, ShieldCheck, Truck, RotateCcw, 
 import Link from 'next/link';
 import VTOModal from '@/components/VTOModal';
 import ProductCard from '@/components/ProductCard';
-import ProductReviews from '@/components/ProductReviews';
 import { useCartStore } from '@/store/useCartStore';
 
 const COLOR_MAP: Record<string, string> = {
@@ -162,17 +161,6 @@ export default function ProductClient({ product, recommendations = [] }: Product
               <h1 className="text-xl md:text-2xl text-[#94969f] tracking-tight leading-tight uppercase font-medium">{product.name}</h1>
             </div>
 
-            {/* Social Proof Strip */}
-            <div className="flex items-center gap-4 py-2 px-3 border border-neutral-100 rounded-md bg-neutral-50 w-fit">
-              <div className="flex items-center gap-1 font-bold text-sm">
-                4.2 <Star size={14} className="fill-emerald-500 text-emerald-500" />
-              </div>
-              <div className="h-4 w-[1px] bg-neutral-200" />
-              <button onClick={() => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })} className="text-xs font-bold text-neutral-500 hover:text-emerald-600">
-                124 Ratings
-              </button>
-            </div>
-
             <hr className="border-neutral-100" />
 
             {/* Pricing Engine */}
@@ -240,32 +228,6 @@ export default function ProductClient({ product, recommendations = [] }: Product
               )}
             </div>
 
-            {/* Utility: Pincode Check */}
-            <div className="space-y-4 pt-4">
-              <span className="text-sm font-black uppercase tracking-widest block">Delivery Check</span>
-              <div className="flex items-center border rounded-sm overflow-hidden group focus-within:border-[#282C3F] transition-colors" style={{ borderColor: '#eaeaec' }}>
-                <div className="flex items-center gap-2 pl-3 text-[#94969f]">
-                  <MapPin size={16} />
-                </div>
-                <input 
-                  type="text" 
-                  maxLength={6}
-                  placeholder="Enter Pincode"
-                  value={pincode}
-                  onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                  className="flex-grow bg-transparent text-sm font-bold border-none focus:ring-0 placeholder:text-[#d4d5d9] outline-none h-11 px-3"
-                />
-                <button 
-                  onClick={handlePincodeCheck}
-                  className="h-11 px-6 text-[12px] font-extrabold uppercase tracking-widest transition-colors border-l"
-                  style={{ color: '#ff3f6c', borderColor: '#eaeaec' }}
-                >
-                  Check
-                </button>
-              </div>
-              {pincodeStatus === 'valid' && <p className="text-[10px] font-bold text-emerald-600 uppercase">Express delivery by tomorrow</p>}
-              {pincodeStatus === 'invalid' && <p className="text-[10px] font-bold text-rose-500 uppercase">Please enter a valid pincode</p>}
-            </div>
 
             {/* Desktop Action Stack */}
             <div className="hidden md:grid grid-cols-2 gap-3 mt-8">
@@ -320,11 +282,6 @@ export default function ProductClient({ product, recommendations = [] }: Product
 
       <CrossSellCarousel products={recommendations} />
       
-      <div id="reviews" className="bg-white py-16 scroll-mt-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <ProductReviews />
-        </div>
-      </div>
 
       <VTOModal isOpen={isVTOOpen} onClose={() => setIsVTOOpen(false)} productImage={images[0]} productName={product.name} />
     </div>
