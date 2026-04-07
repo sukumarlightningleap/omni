@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 
 // Used by Printify to validate the webhook endpoint presence
 export async function GET() {
@@ -90,6 +91,11 @@ export async function POST(req: Request) {
           imageUrl,
         }
       })
+
+      // INSTANT CACHE REVALIDATION
+      revalidatePath("/admin/products")
+      revalidatePath("/collections")
+      revalidatePath("/")
 
       console.log(`\x1b[42m\x1b[30m SUCCESS \x1b[0m \x1b[32mPRODUCT SYNCED (VIA WEBHOOK):\x1b[0m ${name}`);
       return NextResponse.json({ acknowledged: true })

@@ -34,10 +34,12 @@ export default function ProductsClient({
   const [bulkCollectionSync, setBulkCollectionSync] = useState("none");
   const router = useRouter();
 
-  // UI Stabilization: We rely on manual sync and webhooks to keep data fresh 
-  // without the "blinking" effect of auto-refresh intervals.
+  // UI Reactive Safety Net: Brute-force refresh as a fallback for the webhook
   useEffect(() => {
-    // router.refresh() interval removed for stability.
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 10000);
+    return () => clearInterval(interval);
   }, [router]);
 
   const filteredProducts = initialProducts.filter((p) =>
@@ -81,10 +83,19 @@ export default function ProductsClient({
   };
 
   return (
-    <div className="space-y-8 font-sans bg-[#F6F6F7] min-h-screen">
+    <div className="space-y-8 font-sans bg-[#F6F6F7] min-h-screen p-8">
       {/* PAGE HEADER */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">Products</h1>
+        <div className="flex items-center gap-4">
+           <h1 className="text-2xl font-bold text-slate-900 border-r border-slate-200 pr-4">Products</h1>
+           <div className="flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Cloud Sync Active</span>
+           </div>
+        </div>
         <div className="flex gap-3">
           <button 
             disabled={bulkLoading}
