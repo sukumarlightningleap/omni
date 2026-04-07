@@ -114,26 +114,22 @@ const ProductCard = ({ product }: { product: Product; index?: number }) => {
 
         {/* ── PRODUCT METADATA ─────────────────────────── */}
         <div className="px-3 pt-4 pb-5">
-          <div className="flex justify-between items-start mb-1">
-            <h3 className="text-[14px] font-black text-[#282C3F] uppercase tracking-tighter truncate max-w-[80%]">
-              {product.category || 'UNRWLY'}
+          <div className="space-y-0.5 mb-2">
+            <h3 className="text-[14px] font-black text-[#282C3F] uppercase tracking-tighter italic">
+              UNRWLY
             </h3>
-            <span className="text-[10px] font-bold bg-[#ff3f6c]/10 text-[#ff3f6c] px-1.5 py-0.5 rounded-full uppercase">
-              Trending
-            </span>
+            <p className="text-[12px] text-[#535766] truncate opacity-70 font-medium">
+              {product.name}
+            </p>
           </div>
-
-          <p className="text-[12px] text-[#535766] truncate mt-0.5 opacity-80">
-            {product.name}
-          </p>
 
           <div className="flex items-baseline gap-2 mt-3 flex-wrap">
             <span className="text-[14px] font-black text-[#282C3F]">{product.price}</span>
             {mrp && (
               <>
                 <span className="text-[11px] text-[#94969f] line-through">₹{mrp}</span>
-                <span className="text-[11px] font-black text-[#ff3f6c]">
-                   {discountPct}% OFF
+                <span className="text-[11px] font-bold text-[#ff3f6c]">
+                   ({discountPct}% OFF)
                 </span>
               </>
             )}

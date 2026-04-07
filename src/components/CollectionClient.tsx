@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { X, ChevronDown } from 'lucide-react';
 import ProductCard from './ProductCard';
 import FilterSidebar from './FilterSidebar';
@@ -99,81 +100,91 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
     return result;
   }, [initialProducts, activeCategory, searchQuery, inStockParam, colorParam, sizeParam, minPriceParam, maxPriceParam, sortBy]);
 
-  const setCategory = (cat: string) => {
+
+  const clearFilter = (key: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (cat === 'All') {
-      params.delete('category');
-    } else {
-      params.set('category', cat);
-    }
-    const qs = params.toString();
-    router.push(`/collections/all${qs ? `?${qs}` : ''}`, { scroll: false });
+    params.delete(key);
+    router.push(`${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`, { scroll: false });
   };
 
-  const clearAll = () => router.push('/collections/all', { scroll: false });
+  const activeFilters = [
+    { key: 'category', value: categoryParam, label: categoryParam },
+    { key: 'size', value: sizeParam, label: `Size: ${sizeParam}` },
+    { key: 'minPrice', value: minPriceParam, label: `min ₹${minPriceParam}` },
+    { key: 'maxPrice', value: maxPriceParam, label: `max ₹${maxPriceParam}` },
+    { key: 'q', value: searchQuery, label: `"${searchQuery}"` },
+  ].filter(f => f.value);
 
   return (
-    <main className="min-h-screen bg-white pt-32 pb-20 px-6 md:px-12">
-      <div className="mb-12">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-6xl font-black tracking-tighter italic mb-8 text-black font-display uppercase"
-        >
-          {title || 'New Arrivals'}
-        </motion.h1>
+    <main className="min-h-screen bg-white pt-24 pb-20 px-4 md:px-12 max-w-[1600px] mx-auto overflow-hidden">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-8 overflow-x-auto no-scrollbar whitespace-nowrap">
+        <Link href="/" className="hover:text-black transition-colors">Home</Link>
+        <span>/</span>
+        <span className="text-black italic">{title || 'Collections'}</span>
+      </nav>
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-neutral-100 pb-8">
-          <div className="flex flex-wrap gap-6 overflow-x-auto no-scrollbar">
-            {dynamicCategories.map((cat: string, i: number) => (
-              <motion.button
-                key={cat}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                onClick={() => setCategory(cat)}
-                className={`text-[9px] uppercase tracking-[0.3em] font-black transition-all duration-300 ${
-                  activeCategory === cat
-                    ? 'text-black translate-y-[-2px]'
-                    : 'text-neutral-400 hover:text-neutral-900'
-                }`}
-              >
-                {cat}
-              </motion.button>
-            ))}
-          </div>
+      {/* Hero Header */}
+      <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-4 mb-4">
+        <div className="flex items-baseline gap-4">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tighter italic text-black font-display uppercase">
+            {title || 'The Archive'}
+          </h1>
+          <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest translate-y-[-2px]">
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
+          </span>
+        </div>
 
-          <div className="flex items-center gap-8">
-            {/* Sort By Dropdown */}
-            <div className="relative group/sort">
-              <select 
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-transparent text-[9px] font-black uppercase tracking-[0.2em] pr-6 focus:outline-none cursor-pointer"
-              >
-                <option value="newest">Sort By: Newest</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-              </select>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none group-hover/sort:translate-y-[-40%] transition-transform">
-                <ChevronDown size={10} />
-              </div>
-            </div>
+        {/* Desktop Top Controls */}
+        <div className="flex items-center gap-8 justify-between md:justify-end border-b border-neutral-100 pb-2 md:border-none">
+          {/* Mobile Filter Trigger */}
+          <button
+            onClick={() => setIsFilterOpen(true)}
+            className="lg:hidden flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-black text-black"
+          >
+            Filter <span className="w-1.5 h-1.5 rounded-full bg-[#ff3f6c]" />
+          </button>
 
-            <div className="w-[1px] h-4 bg-neutral-100" />
-
-            <button
-              onClick={() => setIsFilterOpen(true)}
-              className="flex items-center gap-2 text-[9px] uppercase tracking-[0.3em] font-black text-black hover:text-neutral-500 transition-colors group"
+          <div className="relative group/sort">
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="appearance-none bg-transparent text-[10px] font-black uppercase tracking-[0.2em] pr-6 focus:outline-none cursor-pointer text-black"
             >
-              Filter
-              <span className="w-1.5 h-1.5 rounded-full bg-black group-hover:scale-125 transition-transform" />
-            </button>
+              <option value="newest">Sort By: Newest</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+            </select>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none group-hover/sort:translate-y-[-40%] transition-transform">
+              <ChevronDown size={10} className="text-neutral-400" />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex gap-0 lg:gap-4">
+      {/* Active Filter Pills */}
+      {activeFilters.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-8">
+          {activeFilters.map(filter => (
+            <button
+              key={`${filter.key}-${filter.value}`}
+              onClick={() => clearFilter(filter.key)}
+              className="group flex items-center gap-2 px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-full text-[9px] font-black uppercase tracking-widest text-neutral-600 hover:border-[#ff3f6c] hover:text-[#ff3f6c] transition-all"
+            >
+              {filter.label}
+              <X size={10} className="text-neutral-400 group-hover:text-[#ff3f6c]" />
+            </button>
+          ))}
+          <button
+            onClick={() => router.push(window.location.pathname, { scroll: false })}
+            className="text-[9px] font-black uppercase tracking-widest text-[#ff3f6c] px-3 py-1.5 hover:underline"
+          >
+            Clear All
+          </button>
+        </div>
+      )}
+
+      <div className="flex gap-4 lg:gap-0 mt-8 border-t border-neutral-100 pt-12">
         <FilterSidebar
           availableSizes={availableSizes}
           isOpen={isFilterOpen}
@@ -181,13 +192,7 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
         />
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-8">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-neutral-600">
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-4 md:gap-x-8 gap-y-12 md:gap-y-16">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 xxl:grid-cols-5 gap-x-4 md:gap-x-8 gap-y-12 md:gap-y-16">
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (
                 <ProductCard key={product._id || product.slug} product={product} index={index} />
@@ -197,14 +202,14 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
 
           {filteredProducts.length === 0 && (
             <div className="py-40 text-center">
-              <p className="text-neutral-400 uppercase tracking-widest text-xs italic">
-                No items match your filters.
+              <p className="text-neutral-400 uppercase tracking-widest text-[10px] font-bold italic">
+                No items match your criteria.
               </p>
               <button
-                onClick={clearAll}
-                className="mt-6 text-[10px] uppercase tracking-[0.2em] text-black/50 hover:text-black transition-colors underline underline-offset-4"
+                onClick={() => router.push(window.location.pathname, { scroll: false })}
+                className="mt-6 text-[10px] uppercase tracking-[0.2em] font-black text-[#ff3f6c] hover:underline"
               >
-                Reset Filters
+                Reset Search
               </button>
             </div>
           )}
