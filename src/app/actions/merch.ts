@@ -57,7 +57,7 @@ export async function getDiscoveryItems(section: string) {
 export async function upsertDiscoveryItem(data: { 
   section: string, 
   collectionId: string, 
-  customImageUrl?: string, 
+  customImageUrl?: string | null, 
   customDescription?: string 
 }) {
   await requireAdmin()

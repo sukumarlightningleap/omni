@@ -226,7 +226,7 @@ export default function MerchClient({
       await upsertDiscoveryItem({
         section: activeSection,
         collectionId,
-        customImageUrl: editForm.imageUrl,
+        customImageUrl: editForm.imageUrl || null, 
         customDescription: editForm.description
       });
       setEditingItemId(null);
@@ -389,9 +389,19 @@ export default function MerchClient({
                                 </div>
                               ) : editForm.imageUrl ? (
                                 <div className="flex flex-col items-center gap-2">
-                                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 shadow-sm mb-2">
+                                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 shadow-sm mb-2 group-preview">
                                     <Image src={editForm.imageUrl} alt="Preview" fill className="object-cover" />
-                                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                    <button 
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setEditForm({ ...editForm, imageUrl: "" });
+                                      }}
+                                      className="absolute -top-1 -right-1 bg-red-500 text-white p-1 rounded-full shadow-lg hover:bg-red-600 transition-colors z-20"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-preview-hover:opacity-100 transition-opacity">
                                       <ImageIcon size={20} className="text-white" />
                                     </div>
                                   </div>
