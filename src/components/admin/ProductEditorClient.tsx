@@ -1,11 +1,10 @@
 "use client"
 
 import React, { useState } from "react"
-import { ArrowLeft, Save, Loader2, Link as LinkIcon, DollarSign, Box } from "lucide-react"
+import { ArrowLeft, Save, Loader2, DollarSign, Box, Tag, Globe, Settings, AlertCircle } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { updateProductGatekeeper } from "@/app/actions/admin/products"
-import { StatusBadge } from "@/components/admin/StatusBadge"
 
 type ProductData = {
   id: string
@@ -33,149 +32,202 @@ export default function ProductEditorClient({
   const [price, setPrice] = useState(product.price)
   const [collectionId, setCollectionId] = useState(product.collectionId || "none")
   const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const margin = price - product.cost
-  const marginPercent = price > 0 ? (margin / price) * 100 : 0
+  // Financial Algorithm: Retail - (Cost + (Retail * 2.9% + 0.30)) = Net Profit
+  const stripeFees = (price * 0.029) + 0.30
+  const netProfit = price - (product.cost + stripeFees)
+  const marginPercent = price > 0 ? (netProfit / price) * 100 : 0
 
   const handleSave = async () => {
     setIsSaving(true)
-    await updateProductGatekeeper(product.id, price, collectionId)
-    setIsSaving(false)
+    setError(null)
+    try {
+       await updateProductGatekeeper(product.id, price, collectionId)
+       // Optional: router.refresh() if needed, but updateProductGatekeeper does revalidatePath
+    } catch (err: any) {
+       setError(err.message || "An unexpected error occurred.")
+    } finally {
+       setIsSaving(false)
+    }
   }
 
+  const formatUSD = (val: number) => `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
   return (
-    <div className="space-y-8 font-sans text-neutral-900 max-w-6xl pb-24">
+    <div className="space-y-8 font-sans bg-[#F6F6F7] min-h-screen p-8">
       
-      {/* Structural Header */}
-      <div className="flex justify-between items-center">
+      {/* BREADCRUMB & HEADER */}
+      <div className="flex justify-between items-center max-w-6xl mx-auto">
         <div className="space-y-1">
-          <Link href="/admin/products" className="inline-flex items-center gap-2 text-xs font-semibold text-neutral-500 hover:text-indigo-600 transition-colors mb-2">
-            <ArrowLeft size={14} /> Back to Products
+          <Link href="/admin/products" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors mb-2">
+            <ArrowLeft size={16} /> Products
           </Link>
-          <h2 className="text-2xl font-bold tracking-tight">Edit Product</h2>
+          <h1 className="text-2xl font-bold text-slate-900">{product.name}</h1>
         </div>
-        <button 
-          onClick={handleSave}
-          disabled={isSaving}
-          className="bg-indigo-600 text-white font-bold text-xs px-8 py-3 rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50"
-        >
-          {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-          Save Changes
-        </button>
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
+            Discard
+          </button>
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="px-6 py-2 bg-slate-900 border border-slate-900 rounded-md text-sm font-semibold text-white hover:bg-slate-800 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            Save product
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT COMPONENT: Visual & Meta */}
+      {error && (
+         <div className="max-w-6xl mx-auto bg-rose-50 border border-rose-200 rounded-lg p-4 flex items-center gap-3 text-rose-800 text-sm animate-in fade-in slide-in-from-top-2">
+            <AlertCircle size={18} />
+            <span className="font-bold">{error}</span>
+         </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        
+        {/* LEFT COLUMN: Media & Description */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border border-neutral-200/60 rounded-3xl overflow-hidden relative group shadow-sm">
-            <div className="absolute top-6 left-6 z-10 flex flex-col gap-3">
-              {product.printifyId && (
-                <div className="bg-white/90 backdrop-blur border border-neutral-200/60 text-[10px] font-bold text-neutral-500 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
-                  <LinkIcon size={12} className="text-neutral-400" />
-                  <span className="uppercase tracking-wider">{product.printifyId}</span>
-                </div>
-              )}
-            </div>
-            <div className="aspect-[16/10] w-full relative bg-neutral-50">
-              {product.imageUrl ? (
-                <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-8" />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-neutral-300">
-                  <Box size={60} />
-                </div>
-              )}
-            </div>
+          
+          {/* Media Card */}
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                <span className="text-sm font-bold text-slate-900">Media</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.printifyId || "LOCAL"}</span>
+             </div>
+             <div className="aspect-[4/3] w-full relative bg-slate-50 flex items-center justify-center p-12">
+               {product.imageUrl ? (
+                 <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-8" />
+               ) : (
+                 <Box size={48} className="text-slate-200" />
+               )}
+             </div>
           </div>
 
-          <div className="bg-white border border-neutral-200/60 rounded-3xl p-8 space-y-6 shadow-sm">
-            <h3 className="text-sm font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-              <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
-              Product Description
-            </h3>
-            <div className="text-sm text-neutral-600 leading-relaxed max-w-none prose prose-indigo" dangerouslySetInnerHTML={{ __html: product.description || "No description provided." }} />
+          {/* Description Card */}
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+             <div className="px-6 py-4 border-b border-slate-100">
+                <span className="text-sm font-bold text-slate-900">Product Description</span>
+             </div>
+             <div className="p-8 space-y-6">
+                <div 
+                   className="text-sm text-slate-600 leading-relaxed max-w-none prose prose-slate" 
+                   dangerouslySetInnerHTML={{ __html: product.description || "No description provided." }} 
+                />
+             </div>
+             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                <span>Body Content</span>
+                <span>Rich Text Field</span>
+             </div>
           </div>
+
         </div>
 
-        {/* RIGHT COMPONENT: Logic Controls */}
+        {/* RIGHT COLUMN: Sidebar Stats & Organization */}
         <div className="space-y-6">
-          <div className="bg-white border border-neutral-200/60 rounded-3xl p-8 space-y-8 shadow-sm transition-all hover:shadow-md">
-            
-            {/* Title Section */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Marketing Name</label>
-              <h1 className="text-xl font-bold tracking-tight text-neutral-900 leading-snug">{product.name}</h1>
-            </div>
-
-            <div className="h-px bg-neutral-100" />
-
-            {/* Pricing Section */}
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 flex items-center gap-2">
-                  Pricing Configuration
-                </label>
-                <div className="p-1 px-2 bg-indigo-50 text-indigo-600 rounded text-[10px] font-bold">USD</div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-neutral-400">Base Cost</span>
-                  <div className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-xs font-bold text-rose-500 cursor-not-allowed">
-                    ${product.cost.toFixed(2)}
-                  </div>
+          
+          {/* Organization Card */}
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-6">
+             <div className="space-y-4">
+                <div className="flex items-center gap-2 text-slate-900">
+                   <Globe size={16} className="text-slate-400" />
+                   <span className="text-sm font-bold">Status</span>
                 </div>
+                <select 
+                   value={collectionId === "none" ? "draft" : "active"}
+                   disabled
+                   className="w-full bg-slate-50 border border-slate-200 rounded-md text-sm font-semibold text-slate-700 px-3 py-2 cursor-not-allowed"
+                >
+                   <option value="active">Active</option>
+                   <option value="draft">Draft</option>
+                </select>
+                <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
+                   Status is managed by Collection Assignment. Add to a collection to make it live.
+                </p>
+             </div>
 
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-neutral-900">Retail Price</span>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">$</span>
-                    <input 
-                      type="number" 
-                      value={price}
-                      onChange={e => setPrice(parseFloat(e.target.value) || 0)}
-                      className="w-full bg-white border border-neutral-200 rounded-xl text-xs font-bold text-neutral-900 pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
-                    />
-                  </div>
+             <div className="h-px bg-slate-100" />
+
+             <div className="space-y-4">
+                <div className="flex items-center gap-2 text-slate-900">
+                   <Tag size={16} className="text-slate-400" />
+                   <span className="text-sm font-bold">Collection</span>
                 </div>
-              </div>
-
-              {/* Profit Analysis */}
-              <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex justify-between items-center text-xs">
-                <span className="font-semibold text-emerald-800">Projected Profit</span>
-                <span className={`font-bold ${margin > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  +${margin.toFixed(2)} ({marginPercent.toFixed(1)}%)
-                </span>
-              </div>
-            </div>
-
-            <div className="h-px bg-neutral-100" />
-
-            {/* Collection Assignment */}
-            <div className="space-y-4">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Categorization</label>
-              <select 
-                value={collectionId}
-                onChange={e => setCollectionId(e.target.value)}
-                className="w-full bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-600 p-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all appearance-none"
-              >
-                <option value="none">Unassigned</option>
-                {collections.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="h-px bg-neutral-100" />
-            
-            <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
-              <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-2 px-1">Assignment status</p>
-              <div className={`p-3 rounded-lg flex items-center justify-between text-[10px] font-black tracking-widest ${product.collectionId ? "bg-white text-emerald-600 shadow-sm" : "bg-white text-rose-500 shadow-sm"}`}>
-                {product.collectionId ? "PUBLISHED TO STOREFRONT" : "DRAFT (UNASSIGNED)"}
-                <div className={`w-1.5 h-1.5 rounded-full ${product.collectionId ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`} />
-              </div>
-            </div>
-
+                <select 
+                   value={collectionId}
+                   onChange={e => setCollectionId(e.target.value)}
+                   className="w-full bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500"
+                >
+                   <option value="none">Choose Collection</option>
+                   {collections.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                   ))}
+                </select>
+             </div>
           </div>
+
+          {/* Profit Calculator Card */}
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+             <div className="p-4 border-b border-slate-100 flex items-center gap-2">
+                <DollarSign size={16} className="text-slate-400" />
+                <span className="text-sm font-bold text-slate-900">Financial Insights</span>
+             </div>
+             
+             <div className="p-6 space-y-6">
+                {/* Pricing Field */}
+                <div className="space-y-2">
+                   <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Retail Price</label>
+                      <span className="text-[10px] font-bold text-slate-300 uppercase">USD</span>
+                   </div>
+                   <div className="relative group">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm group-focus-within:text-indigo-600">$</span>
+                      <input 
+                         type="number" 
+                         value={price}
+                         onChange={e => setPrice(parseFloat(e.target.value) || 0)}
+                         className="w-full bg-white border border-slate-200 rounded-md text-sm font-bold text-slate-900 pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-mono"
+                      />
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Base Cost</span>
+                      <p className="text-xs font-bold text-slate-900">{formatUSD(product.cost)}</p>
+                   </div>
+                   <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Est. Fees</span>
+                      <p className="text-xs font-bold text-slate-400">{formatUSD(stripeFees)}</p>
+                   </div>
+                </div>
+
+                <div className="h-px bg-slate-100" />
+
+                <div className="space-y-4">
+                   <div className="flex justify-between items-end">
+                      <div className="space-y-1">
+                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Net Profit</span>
+                         <p className={`text-xl font-bold ${netProfit > 0 ? "text-emerald-600" : "text-rose-500"}`}>
+                            {formatUSD(netProfit)}
+                         </p>
+                      </div>
+                      <div className={`px-2 py-1 rounded text-[10px] font-black tracking-widest ${netProfit > 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                         {marginPercent.toFixed(1)}%
+                      </div>
+                   </div>
+                </div>
+             </div>
+             
+             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Margins Protected</span>
+                <Settings size={14} className="text-slate-300" />
+             </div>
+          </div>
+
         </div>
       </div>
     </div>

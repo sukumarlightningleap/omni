@@ -16,7 +16,37 @@ const adapter = new PrismaPg(pool)
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
 
-// This ensures we don't crash the database during Next.js hot-reloads
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter })
+// --- THE IMMORTALITY PROTOCOL ---
+// Block accidental bulk deletions in production
+const basePrisma = globalForPrisma.prisma ?? new PrismaClient({ adapter })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+export const prisma = basePrisma.$extends({
+  query: {
+    product: {
+      async deleteMany({ args, query }) {
+        if (process.env.NODE_ENV === "production" && !args.where) {
+           throw new Error("DANGER: Unauthorized attempt to wipe the 'Product' table in production.")
+        }
+        return query(args)
+      }
+    },
+    order: {
+      async deleteMany({ args, query }) {
+        if (process.env.NODE_ENV === "production" && !args.where) {
+           throw new Error("DANGER: Unauthorized attempt to wipe the 'Order' table in production.")
+        }
+        return query(args)
+      }
+    },
+    user: {
+      async deleteMany({ args, query }) {
+        if (process.env.NODE_ENV === "production" && !args.where) {
+           throw new Error("DANGER: Unauthorized attempt to wipe the 'User' table in production.")
+        }
+        return query(args)
+      }
+    }
+  }
+}) as unknown as PrismaClient // Cast back for standard usage across the app
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = basePrisma

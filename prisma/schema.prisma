@@ -118,6 +118,7 @@ model Product {
   printifyId    String      @unique
   name          String
   description   String?     @db.Text
+  metaDescription String?    @db.Text
   price         Float       // Retail price
   cost          Float?      // Printify base cost
   imageUrl      String

@@ -1,36 +1,22 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Unrwly: Admin Command Center
+Premium administrative interface for Unrwly storefront management.
 
-## Getting Started
+## 🚨 DANGER ZONE: DATABASE IMMORTALITY PROTOCOL
 
-First, run the development server:
+To prevent accidental data loss, the following rules are strictly enforced:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 1. NO `prisma db push` IN PRODUCTION
+Never run `npx prisma db push` against the production database. This command can be destructive and may wipe your tables if Prisma cannot resolve a schema conflict incrementally.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. USE MIGRATIONS + SHADOW DATABASE
+All production schema changes MUST use the migration workflow:
+1. Ensure `DIRECT_URL` (for migrations) and `DATABASE_URL` (for connection pooling) are correctly set.
+2. Run `npx prisma migrate dev` in a development environment to generate a migration file.
+3. This process uses a **Shadow Database** to safely test the migration before it touches any real data (standard on Supabase and most Cloud DBs).
+4. Deploy migrations using `npx prisma migrate deploy`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. DELETION GUARDS
+The Prisma client is hardened with guards that block **bulk `deleteMany`** operations on core models (`Product`, `Order`, `User`) when `NODE_ENV=production`. These guards will throw a "RED ALERT" error if a bulk wipe is attempted.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. AUTO-RECOVERY
+If the `Product` table is ever detected as empty (0 Skus), the **Sync Printify** action will automatically initiate a **Full Restore** mode, rebuilding your catalog and core collections ("New Arrivals", "Best Sellers") from your Printify API source-of-truth.

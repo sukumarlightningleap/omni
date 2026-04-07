@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     // if (!verifySignature(rawBody, signature, process.env.PRINTIFY_WEBHOOK_SECRET)) ...
 
     // Gatekeeper: Only parse product publishes.
-    if (body.type === "product:publish:finished" || body.type === "product:published" || body.type === "product:updated") {
+    if (body.type === "shop:product:published" || body.type === "product:published" || body.type === "product:updated") {
       const printifyId = body.resource?.id || body.id;
       if (!printifyId) {
         console.error("No product ID found in webhook body:", body);
@@ -57,6 +57,9 @@ export async function POST(req: Request) {
       const name = product.title || "UNKNOWN PRODUCT"
       const description = product.description || ""
       
+      // SEO Auto-Gen: Strip HTML and truncate for meta description
+      const metaDescription = description.replace(/<[^>]*>?/gm, '').substring(0, 157).trim() + "...";
+
       // Extract the primary image URL
       const imageUrl = product.images && product.images.length > 0 
         ? product.images[0].src 
@@ -67,12 +70,13 @@ export async function POST(req: Request) {
         ? product.variants[0].cost / 100 
         : 0
 
-      // Secure Upsert: Defaults to DRAFT mode per architectural specs
+      // Secure Upsert: Defaults to DRAFT mode in the Holding Pen
       await prisma.product.upsert({
         where: { printifyId },
         update: {
           name,
           description,
+          metaDescription,
           imageUrl,
           cost: baseCost,
         },
@@ -80,14 +84,14 @@ export async function POST(req: Request) {
           printifyId,
           name,
           description,
+          metaDescription,
           price: baseCost * 2, // Arbitrary markup fallback
           cost: baseCost,
           imageUrl,
         }
       })
 
-      console.log(`\x1b[42m\x1b[30m SUCCESS \x1b[0m \x1b[32mPRODUCT SYNCED:\x1b[0m ${name}`);
-
+      console.log(`\x1b[42m\x1b[30m SUCCESS \x1b[0m \x1b[32mPRODUCT SYNCED (VIA WEBHOOK):\x1b[0m ${name}`);
       return NextResponse.json({ acknowledged: true })
     }
 

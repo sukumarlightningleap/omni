@@ -8,6 +8,7 @@ export default async function ProductsPage() {
       id: true,
       name: true,
       price: true,
+      cost: true,
       imageUrl: true,
       collectionId: true,
     }

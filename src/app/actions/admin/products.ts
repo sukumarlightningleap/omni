@@ -14,9 +14,18 @@ const requireAdmin = async () => {
 export async function updateProductGatekeeper(
   productId: string,
   price: number,
-  collectionId: string, // Changed to single ID for 1-to-many
+  collectionId: string,
 ) {
   await requireAdmin()
+
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { cost: true }
+  })
+
+  if (product && product.cost && price < product.cost) {
+    throw new Error(`Loss Prevention: Retail price ($${price}) cannot be lower than base cost ($${product.cost.toFixed(2)}).`)
+  }
 
   await prisma.product.update({
     where: { id: productId },
@@ -28,7 +37,7 @@ export async function updateProductGatekeeper(
 
   revalidatePath("/admin/products")
   revalidatePath("/collections")
-  revalidatePath("/") // Clear home cache for featured products
+  revalidatePath("/")
   return { success: true }
 }
 
@@ -67,30 +76,60 @@ export async function syncPrintifyManual() {
       return { success: false, message: "Authentication failed." }
     }
 
+    const currentProductCount = await prisma.product.count()
+    const isFullRestore = currentProductCount === 0
+
+    if (isFullRestore) {
+      console.log("⚠️ IMMORTALITY PROTOCOL: 0 products detected. Initiating Full Restore...")
+      
+      // Ensure default collections exist
+      const defaultCollections = ["New Arrivals", "Best Sellers"]
+      for (const name of defaultCollections) {
+         const handle = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+         await prisma.collection.upsert({
+            where: { handle },
+            update: {},
+            create: { name, handle }
+         })
+      }
+    }
+
+    let syncCount = 0
     for (const p of liveProducts) {
+      const description = p.descriptionHtml || p.description || "";
+      // Strip HTML and truncate for meta description
+      const metaDescription = description.replace(/<[^>]*>?/gm, '').substring(0, 157).trim() + "...";
+
       await prisma.product.upsert({
         where: { printifyId: p._id },
         update: {
           name: p.name,
-          description: p.descriptionHtml || p.description,
+          description: description,
+          metaDescription: metaDescription,
           imageUrl: p.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80", 
           cost: p.rawPrice,
         },
         create: {
           printifyId: p._id,
           name: p.name,
-          description: p.descriptionHtml || p.description,
+          description: description,
+          metaDescription: metaDescription,
           price: p.rawPrice * 2,
           cost: p.rawPrice,
           imageUrl: p.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
         }
       })
+      syncCount++
     }
 
     revalidatePath("/admin/products")
     revalidatePath("/")
     revalidatePath("/", "layout")
-    return { success: true }
+    
+    if (isFullRestore) {
+      return { success: true, message: `Full Restore Active: ${syncCount} products recovered.` }
+    }
+    return { success: true, message: `Manual Sync: ${syncCount} products processed.` }
   } catch (err) {
     console.error("Printify Sync Failed:", err)
     return { success: false, message: "Internal Server Error during sync." }
