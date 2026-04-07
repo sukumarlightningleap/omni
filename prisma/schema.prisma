@@ -48,6 +48,7 @@ model User {
 
 model Order {
   id              String      @id @default(cuid())
+  orderNumber     String?     @unique
   userId          String?
   stripeSessionId String?     @unique
   printifyOrderId String?     @unique

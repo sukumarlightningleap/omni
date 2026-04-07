@@ -66,9 +66,11 @@ export async function POST(req: Request) {
 
     // 2. Create a PENDING order in your database FIRST
     const totalAmount = items.reduce((total: number, item: any) => total + ((item.price || 0) * item.quantity), 0);
+    const orderNumber = `UNR-${Math.random().toString(36).toUpperCase().substring(2, 10)}`;
     
     const order = await prisma.order.create({
       data: {
+        orderNumber,
         userId,
         status: 'PENDING',
         totalAmount,
