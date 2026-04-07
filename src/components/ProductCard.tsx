@@ -90,48 +90,20 @@ const ProductCard = ({ product }: { product: Product; index?: number }) => {
               className={isWishlisted ? 'fill-[#ff3f6c] text-[#ff3f6c]' : 'text-[#282c3f]'}
             />
           </motion.button>
-
-          {/* Glassmorphism Rating — Bottom Left */}
-          <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-sm text-[10px] font-bold bg-white/60 backdrop-blur-md border border-white/20 text-[#282c3f] shadow-sm">
-            4.2 ★ <span className="text-neutral-500 font-normal">| 1.2k</span>
-          </div>
-
-          {/* Quick Add / View Floating Bar */}
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: isHovered ? '0%' : '100%' }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg flex divide-x divide-neutral-100 border-t border-neutral-100 z-20"
-          >
-            <button 
-              onClick={handleQuickAdd}
-              className="flex-1 py-3 text-[11px] font-bold uppercase tracking-widest text-[#ff3f6c] hover:bg-[#ff3f6c] hover:text-white transition-colors flex items-center justify-center gap-2"
-            >
-              <ShoppingBag size={14} /> Add to Bag
-            </button>
-          </motion.div>
         </div>
 
         {/* ── PRODUCT METADATA ─────────────────────────── */}
-        <div className="px-3 pt-4 pb-5">
-          <div className="space-y-0.5 mb-2">
-            <h3 className="text-[14px] font-black text-[#282C3F] uppercase tracking-tighter italic">
-              UNRWLY
-            </h3>
-            <p className="text-[12px] text-[#535766] truncate opacity-70 font-medium">
-              {product.name}
-            </p>
-          </div>
+        <div className="px-3 pt-6 pb-6">
+          <p className="text-[18px] md:text-[20px] font-black text-black tracking-tight leading-none mb-3 uppercase">
+            {product.name}
+          </p>
 
-          <div className="flex items-baseline gap-2 mt-3 flex-wrap">
-            <span className="text-[14px] font-black text-[#282C3F]">{product.price}</span>
+          <div className="flex items-baseline gap-2 mt-4 flex-wrap">
+            <span className="text-[18px] font-black text-black">{product.price}</span>
             {mrp && (
-              <>
-                <span className="text-[11px] text-[#94969f] line-through">₹{mrp}</span>
-                <span className="text-[11px] font-bold text-[#ff3f6c]">
-                   ({discountPct}% OFF)
-                </span>
-              </>
+              <span className="text-[12px] text-neutral-400 line-through font-medium">
+                ₹{mrp}
+              </span>
             )}
           </div>
         </div>
