@@ -58,10 +58,31 @@ const AccountClient = () => {
     }
   }, [wishlist, user, activeTab]);
 
-  if (isLoading || !user) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <Loader2 className="animate-spin text-white" size={32} />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white space-y-8">
+        <div className="space-y-4 text-center">
+          <h2 className="text-4xl md:text-6xl font-display italic uppercase font-bold tracking-tighter">
+            Access Denied.
+          </h2>
+          <p className="text-neutral-500 text-[10px] tracking-[0.3em] uppercase">
+            Your session has expired or you are not signed in.
+          </p>
+        </div>
+        <Link 
+          href="/login"
+          className="px-12 py-4 bg-white text-black text-[10px] uppercase tracking-[0.4em] font-bold hover:bg-neutral-200 transition-all"
+        >
+          Please Sign In
+        </Link>
       </div>
     );
   }

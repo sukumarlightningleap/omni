@@ -83,33 +83,35 @@ export async function POST(req: Request) {
       },
     });
 
-    // 3. Create the Stripe Payment Intent (Wrapped in specific try/catch)
-    let paymentIntent;
+    // 3. Create the Stripe Checkout Session (Production-Locked Redirect Flow)
+    const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    
+    let stripeSession;
     try {
-      paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(totalAmount * 100),
-        currency: 'usd',
+      stripeSession = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/checkout?canceled=1`,
         metadata: {
           orderId: order.id,
         },
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        customer_email: session?.user?.email || undefined,
       });
     } catch (stripeErr: any) {
-      console.error("STRIPE PAYMENT INTENT FAILED:", stripeErr);
-      // Update order to reflect failure if possible, but mainly throw
+      console.error("STRIPE SESSION CREATION FAILED:", stripeErr);
       throw new Error(`Stripe Initialization Failed: ${stripeErr.message}`);
     }
 
-    // 4. Update order with payment intent ID
+    // 4. Update order with payment intent ID (or session ID in this case)
     await prisma.order.update({
       where: { id: order.id },
-      data: { stripeSessionId: paymentIntent.id } 
+      data: { stripeSessionId: stripeSession.id } 
     });
 
     return NextResponse.json({ 
-      clientSecret: paymentIntent.client_secret,
+      url: stripeSession.url,
       orderId: order.id 
     });
 
