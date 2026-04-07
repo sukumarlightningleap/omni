@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, User } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AuthPage() {
@@ -21,94 +21,166 @@ export default function AuthPage() {
     setIsLoading(true);
     setError(null);
 
-    if (isLogin) {
-      // SIGN IN LOGIC
-      const result = await signIn('credentials', {
-        email, password, redirect: false
-      });
+    try {
+      if (isLogin) {
+        const result = await signIn('credentials', {
+          email, password, redirect: false
+        });
 
-      if (result?.error) {
-        setError('Invalid credentials.');
-        setIsLoading(false);
+        if (result?.error) {
+          setError('Invalid Identity Credentials. Please verify your keys.');
+          setIsLoading(false);
+        } else {
+          // Dynamic redirect based on admin status
+          const isAdmin = email.toLowerCase().includes('admin');
+          router.push(isAdmin ? '/admin/products' : '/account');
+          router.refresh();
+        }
       } else {
-        // Redirect check happens via middleware, but we push manually for speed
-        // If the email is your admin email, it goes to dashboard
-        const adminEmail = "your-admin-email@gmail.com";
-        router.push(email === adminEmail ? '/admin/products' : '/account');
-        router.refresh();
-      }
-    } else {
-      // SIGN UP LOGIC
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
-      });
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name }),
+        });
 
-      if (res.ok) {
-        // After signup, automatically sign them in
-        await signIn('credentials', { email, password, callbackUrl: '/account' });
-      } else {
-        setError('Email already registered.');
-        setIsLoading(false);
+        if (res.ok) {
+          await signIn('credentials', { email, password, callbackUrl: '/account' });
+        } else {
+          const data = await res.json();
+          setError(data.message || 'Identity initialization failed.');
+          setIsLoading(false);
+        }
       }
+    } catch (err) {
+      setError('A secure connection could not be established.');
+      setIsLoading(false);
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-6 pt-20">
-      <motion.div layout className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <Link href="/" className="text-4xl font-bold tracking-tighter uppercase text-white italic">Unrwly</Link>
-          <p className="text-[10px] uppercase tracking-[0.4em] text-neutral-500">
-            {isLogin ? 'Authentication Required' : 'Create New Identity'}
+    <div className="min-h-screen bg-[#F6F6F7] flex items-center justify-center p-6 font-sans selection:bg-indigo-100">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-md w-full"
+      >
+        {/* Branding */}
+        <motion.div variants={itemVariants} className="text-center mb-10 space-y-2">
+          <h1 className="text-5xl font-black tracking-tighter uppercase italic text-black">Unrwly</h1>
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-neutral-400">
+            {isLogin ? 'Command Center Access' : 'Identity Initialization'}
           </p>
-        </div>
+        </motion.div>
 
-        {error && <div className="p-4 bg-red-500/10 border border-red-500/50 text-red-500 text-[10px] uppercase text-center font-bold">{error}</div>}
+        {/* The Card */}
+        <motion.div 
+          variants={itemVariants}
+          className="bg-white border border-neutral-200 rounded-[40px] p-10 md:p-12 shadow-2xl shadow-neutral-200/50"
+        >
+          {error && (
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="mb-8 p-4 bg-rose-50 border border-rose-100 text-rose-500 text-[10px] font-black uppercase tracking-widest text-center italic"
+            >
+              {error}
+            </motion.div>
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <AnimatePresence mode="wait">
-            {!isLogin && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600" size={16} />
-                <input
-                  type="text" placeholder="FULL NAME" value={name} onChange={(e) => setName(e.target.value)} required
-                  className="w-full bg-neutral-900 border border-neutral-800 py-4 pl-12 pr-4 text-xs text-white focus:outline-none focus:border-white transition-all rounded-none"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-6">
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-1">Full Identity Name</label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                    <input 
+                      type="text" 
+                      placeholder="Your Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required={!isLogin}
+                      className="w-full bg-white border border-neutral-200 rounded-2xl py-4 pl-12 pr-4 text-base font-bold text-black focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all placeholder:text-neutral-300"
+                    />
+                  </div>
+                </div>
+              )}
 
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600" size={16} />
-            <input
-              type="email" placeholder="EMAIL ADDRESS" value={email} onChange={(e) => setEmail(e.target.value)} required
-              className="w-full bg-neutral-900 border border-neutral-800 py-4 pl-12 pr-4 text-xs text-white focus:outline-none focus:border-white transition-all rounded-none"
-            />
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-1">Email Identity</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                  <input 
+                    type="email" 
+                    placeholder="name@unrwly.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full bg-white border border-neutral-200 rounded-2xl py-4 pl-12 pr-4 text-base font-bold text-black focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all placeholder:text-neutral-300"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-1">Security Key</label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                  <input 
+                    type="password" 
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full bg-white border border-neutral-200 rounded-2xl py-4 pl-12 pr-4 text-base font-bold text-black focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all placeholder:text-neutral-300"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button 
+              disabled={isLoading}
+              className="w-full bg-black text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-neutral-800 transition-all shadow-lg shadow-neutral-200 active:scale-[0.98] uppercase tracking-widest text-[11px] disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Handshaking...
+                </>
+              ) : (
+                <>
+                  {isLogin ? 'Access Dashboard' : 'Initialize Identity'} <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer Links */}
+          <div className="mt-10 pt-8 border-t border-neutral-100 flex flex-col items-center gap-4">
+            <button 
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError(null);
+              }}
+              className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:text-black transition-colors"
+            >
+              {isLogin ? "Need a new identity? Initialize" : "Already verified? Access Center"}
+            </button>
+            {isLogin && <button className="text-[10px] font-bold uppercase tracking-widest text-neutral-300 hover:text-black transition-colors">Forgot Access Keys?</button>}
           </div>
-
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600" size={16} />
-            <input
-              type="password" placeholder="PASSWORD" value={password} onChange={(e) => setPassword(e.target.value)} required
-              className="w-full bg-neutral-900 border border-neutral-800 py-4 pl-12 pr-4 text-xs text-white focus:outline-none focus:border-white transition-all rounded-none"
-            />
-          </div>
-
-          <button disabled={isLoading} className="w-full h-14 flex items-center justify-center gap-3 bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-neutral-200 disabled:opacity-50 transition-all">
-            {isLoading ? 'Processing...' : (isLogin ? 'Access Account' : 'Initialize Identity')} <ArrowRight size={14} />
-          </button>
-        </form>
-
-        <div className="text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-[10px] text-neutral-500 uppercase tracking-widest hover:text-white transition-colors"
-          >
-            {isLogin ? "Don't have an account? Sign Up" : "Already registered? Sign In"}
-          </button>
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   );
