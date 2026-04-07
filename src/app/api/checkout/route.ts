@@ -35,15 +35,35 @@ export async function POST(req: Request) {
     const session = await auth();
     const userId = (session?.user as any)?.id;
 
+    // 1.5 Resolve real database IDs for all items (handling Printify vs Database IDs)
+    const resolvedItems = await Promise.all(items.map(async (item: any) => {
+      // Try to find the product in DB by ID (CUID) OR printifyId
+      const dbProduct = await prisma.product.findFirst({
+        where: {
+          OR: [
+            { id: item.productId },
+            { printifyId: String(item.productId) },
+            { printifyId: String(item.id).split('-')[0] } // Handles compound IDs like "id-default"
+          ]
+        },
+        select: { id: true }
+      });
+
+      return {
+        ...item,
+        dbId: dbProduct?.id || item.productId // Fallback to original if not found
+      };
+    }));
+
     // 2. Create a PENDING order in your database FIRST
     const order = await prisma.order.create({
       data: {
-        userId, // Optional field now
+        userId,
         status: 'PENDING',
         totalAmount: items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0),
         items: {
-          create: items.map((item: any) => ({
-            productId: item.productId,
+          create: resolvedItems.map((item: any) => ({
+            productId: item.dbId,
             quantity: item.quantity,
           })),
         },
