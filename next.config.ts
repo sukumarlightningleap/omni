@@ -49,6 +49,12 @@ const nextConfig: NextConfig = {
         hostname: '*.public.blob.vercel-storage.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'wallpaperaccess.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
