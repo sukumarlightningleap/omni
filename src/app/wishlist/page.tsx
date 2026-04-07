@@ -44,7 +44,6 @@ export default function WishlistPage() {
           {wishlistItems.map((item) => (
             <ProductCard 
               key={item.id} 
-              showQuickAdd={true}
               product={{
                 _id: item.id,
                 name: item.name,
