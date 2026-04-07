@@ -55,7 +55,7 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-16 mt-12">
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence>
             {filteredProducts.map((product, index) => (
               <ProductCard key={product._id || product.slug} product={product} index={index} />
             ))}

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import VTOModal from '@/components/VTOModal';
 import ProductCard from '@/components/ProductCard';
 import { useCartStore } from '@/store/useCartStore';
+import { useWishlistStore } from '@/store/useWishlistStore';
 
 const COLOR_MAP: Record<string, string> = {
   Black: '#000000', White: '#FFFFFF', Red: '#DC2626', Blue: '#2563EB',
@@ -42,6 +43,20 @@ export default function ProductClient({ product, recommendations = [] }: Product
 
   const addItem = useCartStore((state) => state.addItem);
   const setDrawerOpen = useCartStore((state) => state.setDrawerOpen);
+
+  const toggleWishlist = useWishlistStore((state) => state.toggleItem);
+  const isInWishlist = useWishlistStore((state) => state.items.some(i => i.id === product._id));
+
+  const handleToggleWishlist = () => {
+    toggleWishlist({
+      id: `${product._id}`,
+      name: product.name,
+      price: product.price,
+      image: images[0],
+      slug: product.slug,
+      rawPrice: activePriceNumber,
+    });
+  };
 
   const images = useMemo(() => (
     product.allImages && product.allImages.length > 0 ? product.allImages : [product.image]
@@ -188,8 +203,14 @@ export default function ProductClient({ product, recommendations = [] }: Product
               {currentSlide} / {images.length}
             </div>
             <div className="absolute top-4 right-4 flex flex-col gap-3">
-              <button className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-neutral-400 hover:text-rose-500 transition-colors">
-                <Heart size={20} />
+              <button 
+                onClick={handleToggleWishlist}
+                className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center transition-colors overflow-hidden group/heart"
+              >
+                <Heart 
+                  size={20} 
+                  className={`transition-all ${isInWishlist ? 'text-rose-500 fill-rose-500 scale-110' : 'text-neutral-400 group-hover/heart:text-rose-500'}`} 
+                />
               </button>
               <button className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-neutral-400 hover:text-black transition-colors">
                 <Share2 size={20} />
@@ -283,8 +304,13 @@ export default function ProductClient({ product, recommendations = [] }: Product
               >
                 <ShoppingBag size={16} /> Add to Bag
               </button>
-              <button className="py-4 font-black uppercase tracking-[0.15em] text-sm flex items-center justify-center gap-3 transition-all active:scale-95" style={{ border: '1px solid #d4d5d9', color: '#282C3F' }}>
-                <Heart size={16} /> Wishlist
+              <button 
+                onClick={handleToggleWishlist}
+                className="py-4 font-black uppercase tracking-[0.15em] text-sm flex items-center justify-center gap-3 transition-all active:scale-95 group/wish" 
+                style={{ border: '1px solid #d4d5d9', color: isInWishlist ? '#ff3f6c' : '#282C3F' }}
+              >
+                <Heart size={16} className={isInWishlist ? 'fill-[#ff3f6c]' : 'group-hover/wish:text-[#ff3f6c] transition-colors'} /> 
+                {isInWishlist ? 'In Wishlist' : 'Wishlist'}
               </button>
             </div>
 
@@ -313,8 +339,12 @@ export default function ProductClient({ product, recommendations = [] }: Product
 
       {/* Mobile Sticky Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white flex p-3 gap-3" style={{ borderTop: '1px solid #eaeaec', boxShadow: '0 -4px 12px rgba(0,0,0,0.06)' }}>
-        <button className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-black uppercase tracking-widest" style={{ border: '1px solid #d4d5d9', color: '#282C3F' }}>
-          <Heart size={18} /> Wishlist
+        <button 
+          onClick={handleToggleWishlist}
+          className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-black uppercase tracking-widest" 
+          style={{ border: '1px solid #d4d5d9', color: isInWishlist ? '#ff3f6c' : '#282C3F' }}
+        >
+          <Heart size={18} className={isInWishlist ? 'fill-[#ff3f6c]' : ''} /> {isInWishlist ? 'Wishlisted' : 'Wishlist'}
         </button>
         <button
           onClick={handleAddToCart}

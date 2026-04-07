@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/store/useCartStore';
+import { useWishlistStore } from '@/store/useWishlistStore';
 
 interface Product {
   _id: string;
@@ -20,14 +21,20 @@ interface Product {
   sizes?: string[];
 }
 
-const ProductCard = ({ product }: { product: Product; index?: number }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+const ProductCard = ({ product, index = 0 }: { product: Product; index?: number }) => {
+  const toggleWishlist = useWishlistStore((s) => s.toggleItem);
+  const isInWishlist = useWishlistStore((s) => s.items.some((i) => i.id === product._id));
+  
   const [isHovered, setIsHovered] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const setDrawerOpen = useCartStore((s) => s.setDrawerOpen);
 
-  const mrp = product.rawPrice ? (product.rawPrice * 1.5).toFixed(0) : null;
-  const discountPct = 33;
+  const activeRawPrice = useMemo(() => {
+    if (product.rawPrice) return product.rawPrice;
+    if (!product.price) return 0;
+    const parsed = parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
+    return isNaN(parsed) ? 0 : parsed;
+  }, [product.rawPrice, product.price]);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -36,7 +43,7 @@ const ProductCard = ({ product }: { product: Product; index?: number }) => {
       id: `${product._id}-default`,
       productId: product._id,
       name: product.name,
-      price: product.rawPrice || 0,
+      price: activeRawPrice,
       image: product.image,
       quantity: 1,
       variantId: product.variantId || '',
@@ -46,30 +53,30 @@ const ProductCard = ({ product }: { product: Product; index?: number }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.6, delay: index * 0.05, ease: [0.211, 0, 0.076, 1] }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative bg-white transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)]"
+      className="group relative bg-[#F6F6F6] transition-all duration-700"
     >
       <Link href={`/products/${product.slug}`} className="block">
         {/* ── IMAGE CONTAINER ────────────────────────────── */}
-        <div className="relative w-full overflow-hidden bg-[#f5f5f6] aspect-[3/4] border-b border-[#eaeaec]">
+        <div className="relative w-full overflow-hidden aspect-[3/4] bg-neutral-100">
           <AnimatePresence mode="wait">
             <motion.div
               key={isHovered && product.secondaryImage ? 'secondary' : 'primary'}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.8, ease: [0.211, 0, 0.076, 1] }}
               className="absolute inset-0"
             >
               <Image
                 src={isHovered && product.secondaryImage ? product.secondaryImage : (product.image || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600')}
                 alt={product.name}
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover transition-transform duration-1000 group-hover:scale-110"
                 sizes="(max-width:640px) 50vw,(max-width:1024px) 25vw,20vw"
               />
             </motion.div>
@@ -81,27 +88,54 @@ const ProductCard = ({ product }: { product: Product; index?: number }) => {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setIsWishlisted(!isWishlisted);
+              toggleWishlist({
+                id: product._id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                slug: product.slug,
+                rawPrice: activeRawPrice,
+              });
             }}
-            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/80 backdrop-blur-md shadow-sm border border-white/40 flex items-center justify-center z-10 transition-colors hover:bg-white"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center z-10 transition-all hover:bg-white/30 hover:scale-110"
           >
             <Heart
-              size={16}
-              className={isWishlisted ? 'fill-[#ff3f6c] text-[#ff3f6c]' : 'text-[#282c3f]'}
+              size={18}
+              className={`transition-all duration-300 ${isInWishlist ? 'fill-[#ff3f6c] text-[#ff3f6c] scale-110' : 'text-white'}`}
             />
           </motion.button>
+
+          {/* Quick Add Overlay (Desktop) */}
+          <div className="absolute inset-x-4 bottom-4 z-20 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 hidden md:block">
+            <button
+              onClick={handleQuickAdd}
+              className="w-full py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-black hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              <ShoppingBag size={14} />
+              Add to Bag
+            </button>
+          </div>
         </div>
 
         {/* ── PRODUCT METADATA ─────────────────────────── */}
-        <div className="px-3 pt-6 pb-6">
-          <p className="text-[16px] md:text-[18px] font-medium text-neutral-500 tracking-tight leading-tight mb-2">
-            {product.name}
-          </p>
-
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-[18px] font-black text-black tracking-tighter">
-              {product.price}
-            </span>
+        <div className="pt-6 pb-4">
+          <div className="flex justify-between items-start gap-4">
+            <div className="space-y-1">
+              <h3 className="text-xs md:text-sm font-medium text-neutral-400 uppercase tracking-widest truncate max-w-[180px]">
+                {product.name}
+              </h3>
+              <p className="text-sm md:text-base font-black text-black tracking-tighter">
+                {product.price}
+              </p>
+            </div>
+            
+            {/* Mobile Only Quick Add Circle */}
+            <button
+              onClick={handleQuickAdd}
+              className="md:hidden w-10 h-10 rounded-full bg-black flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform"
+            >
+              <ShoppingBag size={16} />
+            </button>
           </div>
         </div>
       </Link>

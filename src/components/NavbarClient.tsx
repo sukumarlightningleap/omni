@@ -9,6 +9,7 @@ import CartDrawer from './CartDrawer';
 import SearchModal from './SearchModal';
 import { useSession, signOut } from 'next-auth/react';
 import { useCartStore } from '@/store/useCartStore';
+import { useWishlistStore } from '@/store/useWishlistStore';
 import { getVisibleCollections } from '@/app/actions/storefront';
 
 const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] }) => {
@@ -17,6 +18,9 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
   const setDrawerOpen = useCartStore((state) => state.setDrawerOpen);
   const clearCart = useCartStore((state) => state.clearCart);
+  
+  const wishlistItems = useWishlistStore((state) => state.items);
+  const wishlistCount = wishlistItems.length;
 
   // States
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -141,18 +145,25 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
             </button>
 
             {/* Wishlist */}
-            <Link href="/wishlist" className="hidden sm:flex flex-col items-center gap-1 group">
-              <svg 
-                className="w-5 h-5 text-[#282C3F] group-hover:text-[#ff3f6c] transition-colors" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-              </svg>
+            <Link href="/wishlist" className="hidden sm:flex flex-col items-center gap-1 group relative">
+              <div className="relative">
+                <svg 
+                  className={`w-5 h-5 transition-colors ${wishlistCount > 0 ? 'text-[#ff3f6c] fill-[#ff3f6c]' : 'text-[#282C3F] group-hover:text-[#ff3f6c]'}`}
+                  viewBox="0 0 24 24" 
+                  fill={wishlistCount > 0 ? "currentColor" : "none"}
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                </svg>
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#ff3f6c] text-white rounded-full flex items-center justify-center text-[8px] font-black w-4 h-4">
+                    {wishlistCount}
+                  </span>
+                )}
+              </div>
               <span className="text-[11px] font-bold text-[#282C3F] uppercase tracking-wide">Wishlist</span>
             </Link>
 

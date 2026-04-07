@@ -78,6 +78,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ...printifyProduct,
     name: dbProduct.name, // Local overrides
     description: dbProduct.description || printifyProduct.description,
+    _id: dbProduct.id,
     price: `$${dbProduct.price.toFixed(2)}`,
     rawPrice: dbProduct.price,
     category: dbProduct.collection?.name || printifyProduct.category
