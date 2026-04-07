@@ -1,8 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
-import { Search, ChevronDown, Activity, Box, DollarSign } from "lucide-react"
-import { StatusBadge } from "@/components/admin/StatusBadge"
+import { Search, ChevronDown, DollarSign, TrendingUp, CreditCard, Percent, ArrowUpRight, BarChart3 } from "lucide-react"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import Image from "next/image"
 
 type UnitData = {
@@ -18,111 +18,202 @@ type UnitData = {
   isAssigned: boolean;
 }
 
-export default function FinanceClient({ items }: { items: UnitData[] }) {
+type FinancialSummary = {
+  grossRevenue: number;
+  productionCost: number;
+  stripeFeeEstimate: number;
+  netProfit: number;
+  graphData: { date: string; revenue: number; orders: number }[];
+  liveTickerTotal: number;
+}
+
+export default function FinanceClient({ 
+  items, 
+  summary 
+}: { 
+  items: UnitData[]; 
+  summary: FinancialSummary 
+}) {
   const [search, setSearch] = useState("")
 
   const filtered = items.filter(i => i.name.toLowerCase().includes(search.toLowerCase()))
+  
+  // Derived Stats
+  const totalOrders = summary.graphData.reduce((acc, curr) => acc + curr.orders, 0)
+  const aov = totalOrders > 0 ? summary.grossRevenue / totalOrders : 0
+  const avgMargin = items.length > 0 
+    ? items.reduce((acc, curr) => acc + curr.marginPercent, 0) / items.length 
+    : 0
+
   const formatUSD = (val: number) => `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   return (
-    <div className="space-y-12 font-sans text-neutral-900">
-      {/* Header - Integrated */}
-      <div className="flex justify-between items-end mb-8">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 italic">Unit Economics</h2>
-          <p className="text-sm text-neutral-500 font-medium">Analyze asset performance, base costs, and profit velocity.</p>
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
-          <Activity size={12} className="animate-pulse" /> Live Uplink
+    <div className="space-y-8 font-sans bg-[#F6F6F7] min-h-screen p-8">
+      {/* PAGE HEADER */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-slate-900">Finance & Analytics</h1>
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
+            Download Report
+          </button>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex gap-4 p-4 bg-white border border-neutral-200/60 rounded-3xl shadow-sm">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
-          <input
-            type="text"
-            placeholder="Filter assets by classification or marketing name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-neutral-50 border border-neutral-100 text-sm font-bold text-neutral-900 pl-12 pr-4 py-3 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all"
-          />
+      {/* KPI STAT CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-2">
+           <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center gap-2">
+                 <DollarSign size={16} />
+                 <span className="text-xs font-bold uppercase tracking-wider">Total Revenue</span>
+              </div>
+              <TrendingUp size={14} className="text-emerald-500" />
+           </div>
+           <p className="text-2xl font-bold text-slate-900">{formatUSD(summary.grossRevenue)}</p>
+           <p className="text-[10px] text-slate-400 font-medium tracking-wide">Last 30 days aggregate</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-white border border-neutral-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 transition-all">
-          Sort By: Profit <ChevronDown size={14} />
-        </button>
+
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-2">
+           <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center gap-2">
+                 <CreditCard size={16} />
+                 <span className="text-xs font-bold uppercase tracking-wider">Net Profit</span>
+              </div>
+              <span className="text-[10px] font-bold text-slate-400">AUDITED</span>
+           </div>
+           <p className="text-2xl font-bold text-slate-900">{formatUSD(summary.netProfit)}</p>
+           <p className="text-[10px] text-slate-400 font-medium tracking-wide">After COGS & Stripe Fees</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-2">
+           <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center gap-2">
+                 <BarChart3 size={16} />
+                 <span className="text-xs font-bold uppercase tracking-wider">Avg Order Value</span>
+              </div>
+           </div>
+           <p className="text-2xl font-bold text-slate-900">{formatUSD(aov)}</p>
+           <p className="text-[10px] text-slate-400 font-medium tracking-wide">Based on {totalOrders} orders</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-2">
+           <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center gap-2">
+                 <Percent size={16} />
+                 <span className="text-xs font-bold uppercase tracking-wider">Avg Margin</span>
+              </div>
+           </div>
+           <p className="text-2xl font-bold text-slate-900">{avgMargin.toFixed(1)}%</p>
+           <p className="text-[10px] text-slate-400 font-medium tracking-wide">Portfolio-wide average</p>
+        </div>
       </div>
 
-      {/* High-Density Data Table */}
-      <div className="bg-white border border-neutral-200/60 rounded-[32px] overflow-hidden shadow-sm">
+      {/* REVENUE VELOCITY CHART */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden p-6">
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest italic mb-6">Revenue Velocity (Last 30 Days)</h3>
+        <div className="h-[300px] w-full">
+           <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={summary.graphData}>
+                 <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                       <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    </linearGradient>
+                 </defs>
+                 <XAxis 
+                    dataKey="date" 
+                    hide 
+                 />
+                 <YAxis 
+                    hide 
+                 />
+                 <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                 />
+                 <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#6366f1" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                 />
+              </AreaChart>
+           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* UNIT ECONOMICS TABLE */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+           <div className="relative group flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={16} />
+              <input
+                type="text"
+                placeholder="Product SKU search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-sm text-slate-900 pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+              />
+           </div>
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
+          <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-neutral-100 bg-neutral-50/50">
-                <th className="p-4 w-20 text-center"></th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black">Asset Overview</th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black">Retail price</th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-rose-400 font-black">Base Production Cost</th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-emerald-400 font-black">Margin percentage</th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-black text-center">Velocity (Units)</th>
-                <th className="p-4 text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-black text-right">Profit generated</th>
+              <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                <th className="px-6 py-4">Product</th>
+                <th className="px-4 py-4">Retail</th>
+                <th className="px-4 py-4">Base Cost</th>
+                <th className="px-4 py-4">Profit/Unit</th>
+                <th className="px-4 py-4">Margin %</th>
+                <th className="px-4 py-4 text-center">Velocity</th>
+                <th className="px-6 py-4 text-right">Yield</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {filtered.map((item) => {
-                const isHighMargin = item.marginPercent >= 60
+                const profitPerUnit = item.price - item.cost
+                const isLowMargin = item.marginPercent < 40
+                const isHighMargin = item.marginPercent > 60
 
                 return (
-                  <tr 
-                    key={item.id} 
-                    className="hover:bg-neutral-50/50 transition-colors group border-b border-neutral-100 last:border-0"
-                  >
-                    <td className="p-5 text-center">
-                      <div className="w-14 h-14 border border-neutral-100 bg-neutral-50 rounded-2xl flex items-center justify-center shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform">
-                        {item.imageUrl && item.imageUrl.includes('http') ? (
-                          <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
-                        ) : (
-                          <Box size={20} className="text-neutral-300" />
-                        )}
-                      </div>
+                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4">
+                       <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center overflow-hidden relative">
+                             {item.imageUrl && <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />}
+                          </div>
+                          <span className="text-sm font-bold text-slate-900">{item.name}</span>
+                       </div>
                     </td>
-                    <td className="p-5">
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-xs font-black text-neutral-900 font-sans uppercase italic tracking-tight">{item.name}</span>
-                        <StatusBadge status={item.status} />
-                      </div>
+                    <td className="px-4 py-4 text-sm font-medium text-slate-600">
+                       {formatUSD(item.price)}
                     </td>
-                    <td className="p-5 text-sm font-black text-neutral-900 tracking-tight">
-                      {formatUSD(item.price)}
+                    <td className="px-4 py-4 text-sm font-medium text-slate-400">
+                       {formatUSD(item.cost)}
                     </td>
-                    <td className="p-5 text-sm font-black text-rose-500 tracking-tight">
-                      -{formatUSD(item.cost)}
+                    <td className="px-4 py-4 text-sm font-bold text-slate-900">
+                       {formatUSD(profitPerUnit)}
                     </td>
-                    <td className="p-5">
-                      <div className={`inline-flex px-3 py-1 rounded-lg text-[10px] font-black tracking-widest ${isHighMargin ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>
-                        {item.marginPercent.toFixed(1)}%
-                      </div>
+                    <td className="px-4 py-4">
+                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          isHighMargin ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
+                          isLowMargin ? "bg-rose-50 text-rose-700 border border-rose-100" :
+                          "bg-slate-50 text-slate-600 border border-slate-200"
+                        }`}>
+                          {item.marginPercent.toFixed(1)}%
+                       </span>
                     </td>
-                    <td className="p-5 text-sm text-neutral-900 text-center font-black">
-                      {item.unitsSold}
+                    <td className="px-4 py-4 text-sm text-slate-600 font-medium text-center">
+                       {item.unitsSold}
                     </td>
-                    <td className="p-5 text-right">
-                      <div className="inline-flex items-center justify-end gap-1.5 px-4 py-2 bg-indigo-50 text-indigo-700 text-sm font-black rounded-xl border border-indigo-100">
-                        <DollarSign size={14} className="text-indigo-400" />
-                        {item.totalProfitGenerated.toFixed(2)}
-                      </div>
+                    <td className="px-6 py-4 text-right text-sm font-bold text-slate-900">
+                       {formatUSD(item.totalProfitGenerated)}
                     </td>
                   </tr>
                 )
               })}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="p-12 text-center text-[10px] uppercase tracking-widest text-neutral-600 bg-[#050505]">
-                    NO FINANCIAL DATA FOUND
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
