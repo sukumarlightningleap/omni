@@ -7,6 +7,8 @@ import { compare } from "bcryptjs"
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
