@@ -27,6 +27,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
         return {
           allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'],
+          addRandomSuffix: true,
           tokenPayload: JSON.stringify({
             userId: session.user.id,
           }),
