@@ -26,9 +26,34 @@ export async function fetchPrintifyProducts(page = 1) {
       descriptionHtml: p.description, // Printify description is usually HTML-ready
       image: p.images?.[0]?.src || "",
       rawPrice: (p.variants?.[0]?.price || 0) / 100, // Printify prices are in cents
+      slug: p.id, // Use ID as slug for consistency with dynamic routes
     }));
   } catch (err) {
     console.error("fetchPrintifyProducts Error:", err);
+    return null;
+  }
+}
+
+/**
+ * Fetches single product details from Printify.
+ */
+export async function fetchPrintifyProductById(productId: string) {
+  const shopId = process.env.PRINTIFY_SHOP_ID;
+  const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
+
+  if (!shopId || !token) return null;
+
+  try {
+    const res = await fetch(`https://api.printify.com/v1/shops/${shopId}/products/${productId}.json`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("fetchPrintifyProductById Error:", err);
     return null;
   }
 }
