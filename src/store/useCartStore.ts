@@ -29,15 +29,21 @@ export const useCartStore = create<CartState>()(
 
       addItem: (item) =>
         set((state) => {
-          const existingItem = state.items.find((i) => i.id === item.id);
-          if (existingItem) {
+          // Robust Deduplication: Check if item already exists by ID
+          const existingItemIndex = state.items.findIndex((i) => i.id === item.id);
+          
+          if (existingItemIndex > -1) {
+            const nextItems = [...state.items];
+            nextItems[existingItemIndex] = {
+              ...nextItems[existingItemIndex],
+              quantity: nextItems[existingItemIndex].quantity + item.quantity
+            };
             return {
-              items: state.items.map((i) =>
-                i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
-              ),
-              isDrawerOpen: true, // Automatically slide drawer open when item added
+              items: nextItems,
+              isDrawerOpen: true,
             };
           }
+          
           return { items: [...state.items, item], isDrawerOpen: true };
         }),
 

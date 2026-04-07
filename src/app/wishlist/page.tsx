@@ -8,6 +8,7 @@ import ProductCard from '@/components/ProductCard';
 
 export default function WishlistPage() {
   const wishlistItems = useWishlistStore((state) => state.items);
+  const removeItem = useWishlistStore((state) => state.removeItem);
   const wishlistCount = wishlistItems.length;
 
   if (wishlistCount === 0) {
@@ -44,6 +45,8 @@ export default function WishlistPage() {
           {wishlistItems.map((item) => (
             <ProductCard 
               key={item.id} 
+              showRemove={true}
+              onRemove={removeItem}
               product={{
                 _id: item.id,
                 name: item.name,
