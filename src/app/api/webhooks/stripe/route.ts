@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import Stripe from "stripe"
+import { createPrintifyOrder } from "@/lib/printify"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2023-10-16" as any // Safe fallback for types
@@ -28,7 +29,17 @@ export async function POST(req: Request) {
 
   // --- SHARED ORDER FULFILLMENT LOGIC ---
   async function fulfillOrder(orderId: string, stripeObject: any) {
-    // 1. Extract Details
+    // DOUBLE-GATE CHECK: Ensure we don't process the same payment twice
+    const existingOrder = await prisma.order.findUnique({
+      where: { stripeSessionId: stripeObject.id }
+    });
+
+    if (existingOrder && existingOrder.status !== "PENDING") {
+      console.log(`Order ${orderId} already processed with Stripe ID ${stripeObject.id}.`);
+      return;
+    }
+
+    // 1. Extract Details & Calculate Profit
     const addressDetails = stripeObject.shipping?.address || stripeObject.shipping_details?.address;
     const customerName = stripeObject.shipping?.name || stripeObject.shipping_details?.name || stripeObject.customer_details?.name;
     const customerEmail = stripeObject.receipt_email || stripeObject.customer_details?.email;
@@ -37,77 +48,42 @@ export async function POST(req: Request) {
       `${addressDetails.line1}, ${addressDetails.line2 ? addressDetails.line2 + ', ' : ''}${addressDetails.city}, ${addressDetails.state} ${addressDetails.postal_code}, ${addressDetails.country}` 
       : "No address provided";
 
+    const orderWithItems = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: { include: { product: true } } }
+    });
+
+    if (!orderWithItems) return;
+
+    // Profit = Total - Total Cost
+    const totalCost = orderWithItems.items.reduce((sum, item) => sum + (item.product.cost || 0) * item.quantity, 0);
+    const profit = orderWithItems.totalAmount - totalCost;
+    const amountPaid = stripeObject.amount_received ? stripeObject.amount_received / 100 : 
+                       (stripeObject.amount_total ? stripeObject.amount_total / 100 : 0);
+
     // 2. Update Database to PAID
-    const order = await prisma.order.update({
+    await prisma.order.update({
       where: { id: orderId },
       data: {
         status: "PAID",
+        stripeSessionId: stripeObject.id,
+        profit: profit,
+        totalPaid: amountPaid,
         shippingAddress: `${customerName} | ${customerEmail} | ${formattedAddress}`,
-        user: {
-          update: {
-            totalSpent: {
-              increment: stripeObject.amount_received ? stripeObject.amount_received / 100 : 
-                        (stripeObject.amount_total ? stripeObject.amount_total / 100 : 0)
+        ...(orderWithItems.userId && {
+          user: {
+            update: {
+              totalSpent: {
+                increment: amountPaid
+              }
             }
           }
-        }
-      },
-      include: {
-        items: { include: { product: true } }
+        })
       }
     });
 
-    // 3. Printify Handoff
-    const shopId = process.env.PRINTIFY_SHOP_ID;
-    const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
-
-    if (shopId && token) {
-      try {
-        const printifyLineItems = await Promise.all(order.items.map(async item => {
-          const pRes = await fetch(`https://api.printify.com/v1/shops/${shopId}/products/${item.product.printifyId}.json`, {
-            headers: { "Authorization": `Bearer ${token}` }
-          });
-          const pData = pRes.ok ? await pRes.json() : null;
-          return {
-            product_id: item.product.printifyId,
-            variant_id: pData?.variants?.[0]?.id || 1,
-            quantity: item.quantity
-          };
-        }));
-
-        const printifyPayload = {
-          external_id: order.id,
-          label: `UNRWLY-${order.id.substring(0,6)}`,
-          line_items: printifyLineItems,
-          shipping_method: 1,
-          address_to: {
-            first_name: customerName?.split(' ')[0] || "Customer",
-            last_name: customerName?.split(' ').slice(1).join(' ') || "",
-            email: customerEmail,
-            country: addressDetails?.country,
-            region: addressDetails?.state,
-            address1: addressDetails?.line1,
-            address2: addressDetails?.line2 || "",
-            city: addressDetails?.city,
-            zip: addressDetails?.postal_code
-          }
-        };
-
-        const printifyRes = await fetch(`https://api.printify.com/v1/shops/${shopId}/orders.json`, {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify(printifyPayload)
-        });
-
-        if (printifyRes.ok) {
-          const printifyOrder = await printifyRes.json();
-          await prisma.order.update({
-            where: { id: order.id },
-            data: { printifyOrderId: printifyOrder.id, internalNotes: "Auto-synced to Printify.\n" }
-          });
-        }
-      } catch (err) { console.error("Printify Sync Error:", err); }
-    }
+    // 3. Printify Automation Bridge
+    await createPrintifyOrder(orderId);
   }
 
   // --- EVENT HANDLERS ---

@@ -18,7 +18,9 @@ export default async function OrdersPage() {
     user: o.user,
     status: o.status,
     totalAmount: Number(o.totalAmount),
-    printifyOrderId: o.printifyOrderId
+    totalPaid: o.totalPaid ? Number(o.totalPaid) : null,
+    printifyOrderId: o.printifyOrderId,
+    trackingNumber: o.trackingNumber
   }))
 
   return (

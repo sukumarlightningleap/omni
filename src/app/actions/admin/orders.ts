@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
+import { createPrintifyOrder } from "@/lib/printify"
 
 const requireAdmin = async () => {
   const session = await auth()
@@ -13,7 +14,7 @@ const requireAdmin = async () => {
 
 export async function updateOrderStatus(
   orderId: string, 
-  status: "PENDING" | "PAID" | "PROCESSING" | "SHIPPED" | "CANCELLED",
+  status: "PENDING" | "PAID" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "MANUAL_INTERVENTION_REQUIRED",
   notes?: string
 ) {
   await requireAdmin()
@@ -44,8 +45,11 @@ export async function fetchPrintifyTracking(orderId: string) {
     return { error: "No Printify Order ID tied to this record." }
   }
 
+  const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
+  const shopId = process.env.PRINTIFY_SHOP_ID;
+
   // Fallback testing mechanism when PRINTIFY_TOKEN is mocked
-  if (!process.env.PRINTIFY_TOKEN) {
+  if (!token || !shopId) {
     await prisma.order.update({
       where: { id: orderId },
       data: {
@@ -57,8 +61,8 @@ export async function fetchPrintifyTracking(orderId: string) {
   }
 
   try {
-    const res = await fetch(`https://api.printify.com/v1/shops/${process.env.PRINTIFY_SHOP_ID}/orders/${order.printifyOrderId}.json`, {
-      headers: { "Authorization": `Bearer ${process.env.PRINTIFY_TOKEN}` }
+    const res = await fetch(`https://api.printify.com/v1/shops/${shopId}/orders/${order.printifyOrderId}.json`, {
+      headers: { "Authorization": `Bearer ${token}` }
     })
     
     if (res.ok) {
@@ -90,16 +94,17 @@ export async function fetchPrintifyTracking(orderId: string) {
 export async function forcePushToPrintify(orderId: string) {
   await requireAdmin()
 
-  // In a robust system, this rebuilds the Printify payload exactly like the Stripe webhook
-  // and issues it manually if the webhook failed.
+  // 1. Log the initiation
   await prisma.order.update({
     where: { id: orderId },
     data: {
-      status: "PROCESSING",
-      internalNotes: "[OVERRIDE]: Force pushed to external logistics pipeline.\n"
+      internalNotes: "[OVERRIDE]: Manual propagation trigger detected. Syncing...\n"
     }
-  })
+  });
+
+  // 2. Use the shared bridge
+  const result = await createPrintifyOrder(orderId);
 
   revalidatePath("/admin/orders")
-  return { success: true }
+  return result;
 }

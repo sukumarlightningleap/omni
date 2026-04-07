@@ -2,36 +2,39 @@ import React from "react";
 
 export function StatusBadge({ status }: { status: string }) {
   const norm = status.toUpperCase();
-  let baseColor = "text-neutral-500 border-neutral-200 bg-neutral-50"; 
+  let baseColor = "text-neutral-400 border-neutral-800 bg-neutral-900/50"; 
+  let glowColor = "rgba(163, 163, 163, 0.2)";
 
   switch (norm) {
-    case "ACTIVE":
     case "PAID":
+    case "PLACED":
+      baseColor = "text-blue-400 border-blue-500/30 bg-blue-500/10 font-bold shadow-[0_0_10px_rgba(59,130,246,0.1)]";
+      glowColor = "rgba(59, 130, 246, 0.5)";
+      break;
     case "DELIVERED":
-      baseColor = "text-emerald-700 border-emerald-200 bg-emerald-50 font-bold shadow-sm shadow-emerald-100";
+      baseColor = "text-emerald-400 border-emerald-500/30 bg-emerald-500/10 font-bold shadow-[0_0_10px_rgba(52,211,153,0.1)]";
+      glowColor = "rgba(52, 211, 153, 0.5)";
       break;
     case "SHIPPED":
-    case "IN TRANSIT":
-      baseColor = "text-blue-700 border-blue-200 bg-blue-50 font-bold";
+      baseColor = "text-purple-400 border-purple-500/30 bg-purple-500/10 font-bold shadow-[0_0_10px_rgba(168,85,247,0.1)]";
+      glowColor = "rgba(168, 85, 247, 0.5)";
       break;
     case "CANCELLED":
-    case "ARCHIVED":
     case "FAILED":
-      baseColor = "text-rose-700 border-rose-200 bg-rose-50 font-bold";
+    case "MANUAL_INTERVENTION_REQUIRED":
+      baseColor = "text-rose-400 border-rose-500/30 bg-rose-500/10 font-bold shadow-[0_0_10px_rgba(244,63,94,0.1)] animate-pulse";
+      glowColor = "rgba(244, 63, 94, 0.5)";
       break;
     case "PROCESSING":
-    case "PENDING":
-      baseColor = "text-amber-700 border-amber-200 bg-amber-50 font-bold";
-      break;
-    case "DRAFT":
-      baseColor = "text-indigo-700 border-indigo-200 bg-indigo-50 font-bold animate-pulse";
+      baseColor = "text-amber-400 border-amber-500/30 bg-amber-500/10 font-bold shadow-[0_0_10px_rgba(251,191,36,0.1)]";
+      glowColor = "rgba(251, 191, 36, 0.5)";
       break;
   }
 
   return (
-    <span className={`inline-flex items-center text-[10px] uppercase tracking-[0.05em] px-3 py-1 border rounded-full whitespace-nowrap transition-all duration-300 ${baseColor}`}>
-      <div className={`w-1 h-1 rounded-full mr-2 ${norm === 'ACTIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-current opacity-40'}`} />
-      {norm}
+    <span className={`inline-flex items-center text-[9px] font-mono uppercase tracking-[0.1em] px-2.5 py-1 border rounded-sm whitespace-nowrap transition-all duration-300 ${baseColor}`}>
+      <div className={`w-1 h-1 rounded-full mr-2 shadow-[0_0_4px_currentColor]`} style={{ backgroundColor: glowColor }} />
+      {norm === 'MANUAL_INTERVENTION_REQUIRED' ? 'INTERVENTION REQ' : norm}
     </span>
   );
 }
