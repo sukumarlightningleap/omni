@@ -94,17 +94,14 @@ const ProductCard = ({ product }: { product: Product; index?: number }) => {
 
         {/* ── PRODUCT METADATA ─────────────────────────── */}
         <div className="px-3 pt-6 pb-6">
-          <p className="text-[18px] md:text-[20px] font-black text-black tracking-tight leading-none mb-3 uppercase">
+          <p className="text-[16px] md:text-[18px] font-medium text-neutral-500 tracking-tight leading-tight mb-2">
             {product.name}
           </p>
 
-          <div className="flex items-baseline gap-2 mt-4 flex-wrap">
-            <span className="text-[18px] font-black text-black">{product.price}</span>
-            {mrp && (
-              <span className="text-[12px] text-neutral-400 line-through font-medium">
-                ₹{mrp}
-              </span>
-            )}
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-[18px] font-black text-black tracking-tighter">
+              {product.price}
+            </span>
           </div>
         </div>
       </Link>
