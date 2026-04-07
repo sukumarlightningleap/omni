@@ -27,6 +27,7 @@ export default async function ProductEditorPage({ params }: { params: Promise<{ 
     imageUrl: product.imageUrl || "",
     collectionId: product.collectionId,
     printifyId: product.printifyId,
+    status: product.status,
   }
 
   return (

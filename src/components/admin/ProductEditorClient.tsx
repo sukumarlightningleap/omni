@@ -15,6 +15,7 @@ type ProductData = {
   imageUrl: string
   collectionId: string | null
   printifyId: string | null
+  status: "LIVE" | "DRAFT"
 }
 
 type CollectionData = {
@@ -31,6 +32,7 @@ export default function ProductEditorClient({
 }) {
   const [price, setPrice] = useState(product.price)
   const [collectionId, setCollectionId] = useState(product.collectionId || "none")
+  const [status, setStatus] = useState<"LIVE" | "DRAFT">(product.status || "DRAFT")
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,7 +45,7 @@ export default function ProductEditorClient({
     setIsSaving(true)
     setError(null)
     try {
-       await updateProductGatekeeper(product.id, price, collectionId)
+       await updateProductGatekeeper(product.id, price, collectionId, status)
        // Optional: router.refresh() if needed, but updateProductGatekeeper does revalidatePath
     } catch (err: any) {
        setError(err.message || "An unexpected error occurred.")
@@ -129,24 +131,43 @@ export default function ProductEditorClient({
         {/* RIGHT COLUMN: Sidebar Stats & Organization */}
         <div className="space-y-6">
           
-          {/* Organization Card */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-6">
              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-slate-900">
-                   <Globe size={16} className="text-slate-400" />
-                   <span className="text-sm font-bold">Status</span>
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-2 text-slate-900">
+                      <Globe size={16} className="text-slate-400" />
+                      <span className="text-sm font-bold">Storefront Status</span>
+                   </div>
+                   <button
+                      disabled={collectionId === "none" || isSaving}
+                      onClick={() => setStatus(status === "LIVE" ? "DRAFT" : "LIVE")}
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${collectionId === "none" ? 'bg-slate-200 cursor-not-allowed' : status === "LIVE" ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                      title={collectionId === "none" ? "Assign a collection first" : `Switch to ${status === "LIVE" ? "DRAFT" : "LIVE"}`}
+                    >
+                      <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${status === "LIVE" ? 'translate-x-4' : 'translate-x-0'}`} />
+                    </button>
                 </div>
-                <select 
-                   value={collectionId === "none" ? "draft" : "active"}
-                   disabled
-                   className="w-full bg-slate-50 border border-slate-200 rounded-md text-sm font-semibold text-slate-700 px-3 py-2 cursor-not-allowed"
-                >
-                   <option value="active">Active</option>
-                   <option value="draft">Draft</option>
-                </select>
-                <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
-                   Status is managed by Collection Assignment. Add to a collection to make it live.
-                </p>
+                
+                <div className="flex items-center gap-2">
+                   {status === "LIVE" && collectionId !== "none" ? (
+                      <span className="bg-[#E3F1DF] text-[#008060] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#B7DDB0] uppercase tracking-wider">
+                        Live on Storefront
+                      </span>
+                   ) : (
+                      <span className="bg-[#F1F2F3] text-[#5C5F62] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#D3D6D8] uppercase tracking-wider">
+                        Hidden / Draft
+                      </span>
+                   )}
+                </div>
+
+                {collectionId === "none" && (
+                   <div className="flex items-start gap-2 p-2 bg-amber-50 rounded border border-amber-100">
+                      <AlertCircle size={12} className="text-amber-600 mt-0.5" />
+                      <p className="text-[10px] text-amber-700 font-medium leading-relaxed italic">
+                         Assign a collection to enable storefront publication.
+                      </p>
+                   </div>
+                )}
              </div>
 
              <div className="h-px bg-slate-100" />

@@ -15,6 +15,7 @@ export async function updateProductGatekeeper(
   productId: string,
   price: number,
   collectionId: string,
+  status: "LIVE" | "DRAFT" = "DRAFT"
 ) {
   await requireAdmin()
 
@@ -32,6 +33,7 @@ export async function updateProductGatekeeper(
     data: {
       price,
       collectionId: collectionId === "none" ? null : collectionId,
+      status,
     }
   })
 

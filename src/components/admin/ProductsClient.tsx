@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, ChevronDown, Image as ImageIcon, Loader2, Plus, ArrowUpRight, DollarSign, Filter } from "lucide-react";
+import { Search, ChevronDown, Image as ImageIcon, Loader2, Plus, ArrowUpRight, DollarSign, Filter, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { bulkPublishToCollection, syncPrintifyManual } from "@/app/actions/admin/products";
+import { bulkPublishToCollection, syncPrintifyManual, updateProductGatekeeper } from "@/app/actions/admin/products";
 
 type ProductData = {
   id: string;
@@ -14,6 +14,7 @@ type ProductData = {
   cost: number | null;
   imageUrl: string;
   collectionId: string | null;
+  status: "LIVE" | "DRAFT";
 };
 
 type CollectionData = {
@@ -32,6 +33,8 @@ export default function ProductsClient({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkCollectionSync, setBulkCollectionSync] = useState("none");
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const router = useRouter();
 
   // UI Reactive Safety Net: Brute-force refresh as a fallback for the webhook
@@ -79,6 +82,32 @@ export default function ProductsClient({
       if (result.message) alert(result.message);
     } else {
       alert("Sync Failed: " + (result.message || "Check server logs."));
+    }
+  };
+
+  const handleInlineUpdate = async (productId: string, price: number, collectionId: string, status: "LIVE" | "DRAFT") => {
+    setSavingIds(prev => new Set(prev).add(productId));
+    try {
+      const result = await updateProductGatekeeper(productId, price, collectionId, status);
+      if (result.success) {
+        setSavedIds(prev => new Set(prev).add(productId));
+        setTimeout(() => {
+          setSavedIds(prev => {
+            const next = new Set(prev);
+            next.delete(productId);
+            return next;
+          });
+        }, 2000);
+        router.refresh();
+      }
+    } catch (error: any) {
+      alert(error.message || "Update failed.");
+    } finally {
+      setSavingIds(prev => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
     }
   };
 
@@ -173,16 +202,20 @@ export default function ProductsClient({
                 </th>
                 <th className="px-4 py-4 w-16"></th>
                 <th className="px-4 py-4">Product</th>
-                <th className="px-4 py-4 text-right">Status</th>
+                <th className="px-4 py-4">Collection</th>
                 <th className="px-4 py-4 text-right">Retail</th>
+                <th className="px-4 py-4 text-center">Status</th>
                 <th className="px-4 py-4 text-right">Potential Profit</th>
+                <th className="px-4 py-4 w-10"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredProducts.map((product) => {
                 const isSelected = selectedIds.has(product.id);
+                const isSaving = savingIds.has(product.id);
+                const isSaved = savedIds.has(product.id);
                 const potentialProfit = product.price - (product.cost || 0);
-                const isLive = !!product.collectionId;
+                const hasCollection = !!product.collectionId;
 
                 return (
                   <tr 
@@ -211,19 +244,48 @@ export default function ProductsClient({
                           <span className="text-[10px] text-slate-400 font-medium font-mono uppercase tracking-widest">{product.id.substring(0, 8)}</span>
                        </Link>
                     </td>
-                    <td className="px-4 py-4 text-right">
-                       {isLive ? (
-                          <span className="bg-[#E3F1DF] text-[#008060] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#B7DDB0] uppercase tracking-wider">
-                            Active
-                          </span>
-                       ) : (
-                          <span className="bg-[#F1F2F3] text-[#5C5F62] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#D3D6D8] uppercase tracking-wider">
-                            Draft
-                          </span>
-                       )}
+                    <td className="px-4 py-4">
+                       <select
+                         disabled={isSaving}
+                         value={product.collectionId || "none"}
+                         onChange={(e) => handleInlineUpdate(product.id, product.price, e.target.value, product.status)}
+                         className="bg-transparent border-none text-sm font-medium text-slate-600 focus:ring-0 focus:outline-none cursor-pointer hover:bg-slate-100 rounded px-1 transition-colors capitalize"
+                       >
+                         <option value="none">Unassigned</option>
+                         {collections.map(c => (
+                           <option key={c.id} value={c.id}>{c.name}</option>
+                         ))}
+                       </select>
                     </td>
                     <td className="px-4 py-4 text-right">
-                       <span className="text-sm font-bold text-slate-900">${product.price.toFixed(2)}</span>
+                       <div className="flex items-center justify-end gap-1">
+                          <span className="text-slate-400 text-xs">$</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            disabled={isSaving}
+                            defaultValue={product.price}
+                            onBlur={(e) => {
+                               const newPrice = parseFloat(e.target.value);
+                               if (newPrice !== product.price) {
+                                 handleInlineUpdate(product.id, newPrice, product.collectionId || "none", product.status);
+                               }
+                            }}
+                            className="bg-slate-50 border-none text-right text-sm font-bold text-slate-900 w-20 px-2 py-1 rounded focus:ring-2 focus:ring-indigo-500/10 focus:bg-white transition-all"
+                          />
+                       </div>
+                    </td>
+                    <td className="px-4 py-4">
+                       <div className="flex items-center justify-center">
+                          <button
+                            disabled={!hasCollection || isSaving}
+                            onClick={() => handleInlineUpdate(product.id, product.price, product.collectionId!, product.status === "LIVE" ? "DRAFT" : "LIVE")}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${!hasCollection ? 'bg-slate-200 cursor-not-allowed' : product.status === "LIVE" ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                            title={!hasCollection ? "Assign a collection first" : `Switch to ${product.status === "LIVE" ? "DRAFT" : "LIVE"}`}
+                          >
+                            <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${product.status === "LIVE" ? 'translate-x-4' : 'translate-x-0'}`} />
+                          </button>
+                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
                        <div className="flex flex-col items-end">
@@ -233,12 +295,19 @@ export default function ProductsClient({
                           <span className="text-[10px] text-slate-400 font-medium">per unit</span>
                        </div>
                     </td>
+                    <td className="px-4 py-4 w-10 text-center">
+                       {isSaving ? (
+                         <Loader2 size={14} className="text-indigo-500 animate-spin" />
+                       ) : isSaved ? (
+                         <CheckCircle2 size={14} className="text-emerald-500 animate-in zoom-in duration-300" />
+                       ) : null}
+                    </td>
                   </tr>
                 );
               })}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="p-20 text-center text-sm font-medium text-slate-400 italic">
+                  <td colSpan={8} className="p-20 text-center text-sm font-medium text-slate-400 italic">
                     No products found matching your search.
                   </td>
                 </tr>

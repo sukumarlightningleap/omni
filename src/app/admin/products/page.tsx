@@ -11,6 +11,7 @@ export default async function ProductsPage() {
       cost: true,
       imageUrl: true,
       collectionId: true,
+      status: true,
     }
   })
 
