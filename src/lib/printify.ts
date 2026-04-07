@@ -1,9 +1,20 @@
 import { prisma } from "./prisma";
 
+export interface PrintifyProduct {
+  _id: string;
+  name: string;
+  description: string;
+  descriptionHtml?: string;
+  image: string;
+  rawPrice: number;
+  slug: string;
+  category?: string;
+}
+
 /**
  * Fetches all products from the Printify shop and maps them for local synchronization.
  */
-export async function fetchPrintifyProducts(page = 1) {
+export async function fetchPrintifyProducts(page = 1): Promise<PrintifyProduct[] | null> {
   const shopId = process.env.PRINTIFY_SHOP_ID;
   const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
 
