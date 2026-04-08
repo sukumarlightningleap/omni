@@ -100,11 +100,6 @@ export async function POST(req: Request) {
         shipping_address_collection: {
           allowed_countries: ['US', 'CA', 'IN', 'GB'],
         },
-        // DYNAMIC SHIPPING: Managed in Stripe Dashboard
-        shipping_options: [
-          { shipping_rate: 'shr_1QscyS2N7M9Z5v5z5z5z5z5z' }, // Standard placeholder
-          { shipping_rate: 'shr_1QscyP2N7M9Z5v5z5z5z5z5z' }, // Priority placeholder
-        ],
         metadata: {
           orderId: order.id,
         },
