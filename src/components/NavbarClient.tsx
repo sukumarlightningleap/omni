@@ -58,7 +58,7 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
       >
         <div className="px-4 md:px-8 h-20 flex items-center gap-2 md:gap-6">
           {/* LOGO */}
-          <Link href="/" className="text-xl font-black tracking-tighter uppercase italic font-display shrink-0 text-black">
+          <Link href="/" className="text-xl font-black tracking-tighter uppercase italic font-display shrink-0 text-[#1A1A1A]">
             Unrwly
           </Link>
 
@@ -68,7 +68,7 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
               <Link
                 key={col.id}
                 href={`/collections/${col.handle}`}
-                className="text-sm font-bold text-[#282C3F] uppercase tracking-wide whitespace-nowrap hover:border-b-2 hover:border-[#ff3f6c] pb-1 transition-all"
+                className="text-sm font-bold text-[#334155] uppercase tracking-wide whitespace-nowrap hover:border-b-2 hover:border-[#4F46E5] pb-1 transition-all"
               >
                 {col.name || col.title}
               </Link>
@@ -77,7 +77,7 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
               <div className="relative">
                 <button 
                   onClick={() => setIsMoreOpen(!isMoreOpen)}
-                  className={`text-sm font-bold text-[#282C3F] uppercase tracking-wide flex items-center gap-1 pb-1 transition-colors ${isMoreOpen ? 'text-[#ff3f6c]' : ''}`}
+                  className={`text-sm font-bold text-[#334155] uppercase tracking-wide flex items-center gap-1 pb-1 transition-colors ${isMoreOpen ? 'text-[#4F46E5]' : ''}`}
                 >
                   More <ChevronDown size={14} className={`transition-transform duration-200 ${isMoreOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -140,15 +140,15 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
               onClick={() => session ? router.push(isAdmin ? '/admin/products' : '/account') : router.push('/auth')}
               className="hidden sm:flex flex-col items-center gap-1 group"
             >
-              <User size={20} className="text-[#282C3F] group-hover:text-[#ff3f6c] transition-colors" />
-              <span className="text-[11px] font-bold text-[#282C3F] uppercase tracking-wide">Profile</span>
+              <User size={20} className="text-[#334155] group-hover:text-[#4F46E5] transition-colors" />
+              <span className="text-[11px] font-bold text-[#334155] uppercase tracking-wide">Profile</span>
             </button>
 
             {/* Wishlist */}
             <Link href="/wishlist" className="hidden sm:flex flex-col items-center gap-1 group relative">
               <div className="relative">
                 <svg 
-                  className={`w-5 h-5 transition-colors ${wishlistCount > 0 ? 'text-[#ff3f6c] fill-[#ff3f6c]' : 'text-[#282C3F] group-hover:text-[#ff3f6c]'}`}
+                  className={`w-5 h-5 transition-colors ${wishlistCount > 0 ? 'text-[#4F46E5] fill-[#4F46E5]' : 'text-[#334155] group-hover:text-[#4F46E5]'}`}
                   viewBox="0 0 24 24" 
                   fill={wishlistCount > 0 ? "currentColor" : "none"}
                   stroke="currentColor" 
@@ -159,12 +159,12 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
                   <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                 </svg>
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#ff3f6c] text-white rounded-full flex items-center justify-center text-[8px] font-black w-4 h-4">
+                  <span className="absolute -top-1 -right-1 bg-[#4F46E5] text-white rounded-full flex items-center justify-center text-[8px] font-black w-4 h-4">
                     {wishlistCount}
                   </span>
                 )}
               </div>
-              <span className="text-[11px] font-bold text-[#282C3F] uppercase tracking-wide">Wishlist</span>
+              <span className="text-[11px] font-bold text-[#334155] uppercase tracking-wide">Wishlist</span>
             </Link>
 
             {/* Bag */}
@@ -173,20 +173,20 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
               className="flex flex-col items-center gap-1 group relative"
             >
               <div className="relative">
-                <ShoppingBag size={20} className="text-[#282C3F] group-hover:text-[#ff3f6c] transition-colors" />
+                <ShoppingBag size={20} className="text-[#334155] group-hover:text-[#4F46E5] transition-colors" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#ff3f6c] text-white rounded-full flex items-center justify-center text-[8px] font-black w-4 h-4">
+                  <span className="absolute -top-1 -right-1 bg-[#4F46E5] text-white rounded-full flex items-center justify-center text-[8px] font-black w-4 h-4">
                     {itemCount}
                   </span>
                 )}
               </div>
-              <span className="text-[11px] font-bold text-[#282C3F] uppercase tracking-wide">Bag</span>
+              <span className="text-[11px] font-bold text-[#334155] uppercase tracking-wide">Bag</span>
             </button>
 
             {/* Mobile Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-[#282C3F]"
+              className="lg:hidden p-2 text-[#334155]"
             >
               <Menu size={24} />
             </button>
@@ -226,7 +226,7 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
                     key={col.id} 
                     href={`/collections/${col.handle}`}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-lg font-black tracking-tighter text-black hover:text-neutral-500 transition-colors uppercase italic"
+                    className="text-lg font-black tracking-tighter text-[#0F172A] hover:text-[#4F46E5] transition-colors uppercase italic"
                   >
                     {col.title}
                   </Link>

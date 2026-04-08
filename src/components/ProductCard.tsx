@@ -159,7 +159,7 @@ const ProductCard = ({
           <div className="absolute inset-x-4 bottom-4 z-20 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 hidden md:block">
             <button
               onClick={handleQuickAdd}
-              className="w-full py-4 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-white hover:text-black transition-all duration-300 flex items-center justify-center gap-2 rounded-lg"
+              className="w-full py-4 bg-[#121212] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-[#3730A3] transition-all duration-300 flex items-center justify-center gap-2 rounded-lg"
             >
               <ShoppingBag size={14} />
               Add to Bag
@@ -171,11 +171,11 @@ const ProductCard = ({
         <div className="pt-5 pb-4 px-4 bg-white">
           <div className="flex justify-between items-start gap-4">
             <div className="space-y-1">
-              <h3 className="text-xs md:text-sm font-bold text-neutral-900 uppercase tracking-tight truncate max-w-[150px]">
+              <h3 className="text-xs md:text-sm font-bold text-[#0F172A] uppercase tracking-tight truncate max-w-[150px]">
                 {product.name}
               </h3>
               <div className="flex items-center gap-3">
-                <p className="text-sm md:text-base font-black text-brand-indigo">
+                <p className="text-sm md:text-base font-black text-[#4F46E5]">
                   {product.price}
                 </p>
                 {inCartCount > 0 && (
@@ -189,7 +189,7 @@ const ProductCard = ({
             {/* Mobile Only Quick Add Circle */}
             <button
               onClick={handleQuickAdd}
-              className="md:hidden w-10 h-10 rounded-full bg-black flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
+              className="md:hidden w-10 h-10 rounded-full bg-[#121212] flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
             >
               <ShoppingBag size={16} />
             </button>

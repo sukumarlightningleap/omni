@@ -26,21 +26,21 @@ const Footer = () => {
           {/* Column 1: Brand */}
           <div className="space-y-8">
             <Link href="/" className="inline-block">
-              <span className="text-4xl font-black tracking-tighter text-black uppercase italic">
+              <span className="text-4xl font-black tracking-tighter text-[#1A1A1A] uppercase italic">
                 {storeName}
               </span>
             </Link>
-            <p className="text-gray-500 font-sans text-sm leading-relaxed max-w-[320px]">
+            <p className="text-[#334155] font-sans text-sm leading-relaxed max-w-[320px]">
               Premium quality essentials for the unruly generation. Designed with purpose, crafted with care. {storeName} is your destination for modern, production-on-demand living.
             </p>
             <div className="flex items-center gap-6">
-              <Link href="https://twitter.com" className="text-gray-400 hover:text-black transition-colors">
+              <Link href="https://twitter.com" className="text-slate-400 hover:text-[#1A1A1A] transition-colors">
                 <Twitter size={20} />
               </Link>
-              <Link href="https://instagram.com" className="text-gray-400 hover:text-black transition-colors">
+              <Link href="https://instagram.com" className="text-slate-400 hover:text-[#1A1A1A] transition-colors">
                 <Instagram size={20} />
               </Link>
-              <Link href="https://youtube.com" className="text-gray-400 hover:text-black transition-colors">
+              <Link href="https://youtube.com" className="text-slate-400 hover:text-[#1A1A1A] transition-colors">
                 <Youtube size={20} />
               </Link>
             </div>
@@ -48,12 +48,12 @@ const Footer = () => {
 
           {/* Column 2: Support */}
           <div className="space-y-8">
-            <h3 className="text-[10px] font-black text-black uppercase tracking-[0.4em]">Service Hub</h3>
+            <h3 className="text-[10px] font-black text-[#0F172A] uppercase tracking-[0.4em]">Service Hub</h3>
             <ul className="space-y-5">
-              <li><Link href="/faq" className="text-gray-500 hover:text-black transition-colors font-sans text-xs font-bold uppercase tracking-widest">Help Center</Link></li>
-              <li><Link href="/account" className="text-gray-500 hover:text-black transition-colors font-sans text-xs font-bold uppercase tracking-widest">Logistics Tracking</Link></li>
-              <li><Link href="/contact" className="text-gray-500 hover:text-black transition-colors font-sans text-xs font-bold uppercase tracking-widest">Connect with Us</Link></li>
-              <li><Link href="/policies/refund-policy" className="text-gray-500 hover:text-black transition-colors font-sans text-xs font-bold uppercase tracking-widest">Returns & Manifests</Link></li>
+              <li><Link href="/faq" className="text-slate-500 hover:text-[#1A1A1A] transition-colors font-sans text-xs font-bold uppercase tracking-widest">Help Center</Link></li>
+              <li><Link href="/account" className="text-slate-500 hover:text-[#1A1A1A] transition-colors font-sans text-xs font-bold uppercase tracking-widest">Logistics Tracking</Link></li>
+              <li><Link href="/contact" className="text-slate-500 hover:text-[#1A1A1A] transition-colors font-sans text-xs font-bold uppercase tracking-widest">Connect with Us</Link></li>
+              <li><Link href="/policies/refund-policy" className="text-slate-500 hover:text-[#1A1A1A] transition-colors font-sans text-xs font-bold uppercase tracking-widest">Returns & Manifests</Link></li>
             </ul>
           </div>
         </div>

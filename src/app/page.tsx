@@ -132,12 +132,12 @@ export default async function Home() {
 
         <div className="absolute inset-0 flex items-end pb-20 px-6 md:px-16 lg:px-24">
           <div className="max-w-2xl space-y-6">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-[#D97757] text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full">
               New Season Drop
             </div>
-            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white tracking-tighter uppercase leading-[0.85]">
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-[#1A1A1A] tracking-tighter uppercase leading-[0.85]">
               UNRWLY<br />
-              <span className="text-neutral-400">2026</span>
+              <span className="text-slate-400">2026</span>
             </h1>
             <p className="text-lg text-white/80 font-medium max-w-md">
               Curated essentials built for the unruly generation.
@@ -145,7 +145,7 @@ export default async function Home() {
             <div className="flex gap-4 pt-2">
               <Link
                 href="/collections"
-                className="bg-white text-black px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-neutral-100 transition-all duration-300 flex items-center gap-3 group"
+                className="bg-[#121212] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-[#3730A3] transition-all duration-300 flex items-center gap-3 group"
               >
                 Shop All <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -170,10 +170,10 @@ export default async function Home() {
           <div
             className="h-32 flex items-center justify-center"
             style={{
-              background: 'linear-gradient(to bottom, #FFF5F2 0%, rgba(255,245,242,1) 40%, rgba(217,119,87,0.1) 75%, rgba(217,119,87,0.15) 100%)'
+              background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
             }}
           >
-            <h2 className="text-6xl font-light text-slate-800 tracking-tighter">Budget-Friendly Picks</h2>
+            <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Budget-Friendly Picks</h2>
           </div>
 
           {/* Sleek Space */}
@@ -188,10 +188,10 @@ export default async function Home() {
           <div
             className="h-32 flex items-center justify-center"
             style={{
-              background: 'linear-gradient(to bottom, #FFF5F2 0%, rgba(255,245,242,1) 40%, rgba(217,119,87,0.1) 75%, rgba(217,119,87,0.15) 100%)'
+              background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
             }}
           >
-            <h2 className="text-6xl font-light text-slate-800 tracking-tighter">OMG! Deals</h2>
+            <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">OMG! Deals</h2>
           </div>
 
           {/* Sleek Gap */}
@@ -214,10 +214,10 @@ export default async function Home() {
             <div
               className="h-32 flex items-center justify-center"
               style={{
-                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(217,119,87,0.1) 75%, rgba(217,119,87,0.15) 100%)'
+                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
               }}
             >
-              <h2 className="text-6xl font-light text-slate-800 tracking-tighter">Shop By Category</h2>
+              <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Shop By Category</h2>
             </div>
 
             {/* Sleek White Space */}
@@ -237,10 +237,10 @@ export default async function Home() {
             <div
               className="h-32 flex items-center justify-center"
               style={{
-                background: 'linear-gradient(to bottom, #FFF5F2 0%, rgba(255,245,242,1) 40%, rgba(217,119,87,0.1) 75%, rgba(217,119,87,0.15) 100%)'
+                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
               }}
             >
-              <h2 className="text-6xl font-light text-slate-800 tracking-tighter">Trending Now</h2>
+              <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Trending Now</h2>
             </div>
 
             {/* Space */}
@@ -272,7 +272,7 @@ export default async function Home() {
             </p>
             <Link
               href="/admin/products"
-              className="inline-flex items-center gap-2 mt-6 bg-black text-white text-xs font-black uppercase tracking-widest px-8 py-4 hover:bg-neutral-800 transition-colors"
+              className="inline-flex items-center gap-2 mt-6 bg-[#121212] text-white text-xs font-black uppercase tracking-widest px-8 py-4 hover:bg-[#3730A3] transition-colors"
             >
               Go to Admin <ArrowRight size={14} />
             </Link>
@@ -294,7 +294,7 @@ export default async function Home() {
               placeholder="Your email address"
               className="flex-grow bg-white/5 border border-white/10 px-5 py-4 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 transition-colors text-sm"
             />
-            <button className="bg-white text-black px-8 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-neutral-200 transition-colors shrink-0">
+            <button className="bg-[#121212] text-white px-8 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-[#3730A3] transition-colors shrink-0">
               Subscribe
             </button>
           </form>

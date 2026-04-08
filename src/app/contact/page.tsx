@@ -21,7 +21,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white pt-32 pb-24 px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-5xl md:text-7xl font-syne font-bold text-slate-900 mb-16 tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-syne font-bold text-[#0F172A] mb-16 tracking-tighter">
           CONTACT US
         </h1>
 
@@ -32,7 +32,7 @@ export default function ContactPage() {
               <h2 className="text-2xl font-syne font-semibold text-brand-terracotta mb-6 uppercase tracking-widest">
                 Support
               </h2>
-              <p className="text-slate-600 font-inter text-lg leading-relaxed max-w-md">
+              <p className="text-[#334155] font-inter text-lg leading-relaxed max-w-md">
                 We're here to help with orders, product inquiries, or just to chat. 
                 Our team typically responds within 24 hours.
               </p>
@@ -44,8 +44,8 @@ export default function ContactPage() {
                   <Mail size={20} />
                 </div>
                 <div>
-                  <h3 className="text-slate-900 font-syne font-medium mb-1">Email</h3>
-                  <a href="mailto:support@unrwly.com" className="text-slate-600 hover:text-slate-900 transition-colors">
+                  <h3 className="text-[#0F172A] font-syne font-medium mb-1">Email</h3>
+                  <a href="mailto:support@unrwly.com" className="text-[#334155] hover:text-[#0F172A] transition-colors">
                     support@unrwly.com
                   </a>
                 </div>
@@ -56,8 +56,8 @@ export default function ContactPage() {
                   <Clock size={20} />
                 </div>
                 <div>
-                  <h3 className="text-slate-900 font-syne font-medium mb-1">Response Time</h3>
-                  <p className="text-slate-600">Monday - Friday: 9am - 6pm EST</p>
+                  <h3 className="text-[#0F172A] font-syne font-medium mb-1">Response Time</h3>
+                  <p className="text-[#334155]">Monday - Friday: 9am - 6pm EST</p>
                 </div>
               </div>
 
@@ -66,8 +66,8 @@ export default function ContactPage() {
                   <HelpCircle size={20} />
                 </div>
                 <div>
-                  <h3 className="text-slate-900 font-syne font-medium mb-1">FAQs</h3>
-                  <Link href="/faq" className="text-slate-600 hover:text-slate-900 underline underline-offset-4 transition-colors">
+                  <h3 className="text-[#0F172A] font-syne font-medium mb-1">FAQs</h3>
+                  <Link href="/faq" className="text-[#334155] hover:text-[#0F172A] underline underline-offset-4 transition-colors">
                     Browse our common questions
                   </Link>
                 </div>
@@ -82,13 +82,13 @@ export default function ContactPage() {
                   <div className="bg-indigo-50 p-4 rounded-full mb-6">
                     <CheckCircle2 color="#4f46e5" size={48} />
                   </div>
-                  <h2 className="text-3xl font-syne font-bold text-slate-900 mb-4">Message Sent!</h2>
-                  <p className="text-slate-600 mb-8 max-w-[200px]">
+                  <h2 className="text-3xl font-syne font-bold text-[#0F172A] mb-4">Message Sent!</h2>
+                  <p className="text-[#334155] mb-8 max-w-[200px]">
                     We've received your request and will get back to you soon.
                   </p>
                   <button 
                     onClick={() => setIsSuccess(false)}
-                    className="px-8 py-3 bg-slate-900 text-white font-syne font-bold hover:bg-slate-800 transition-colors uppercase tracking-widest text-sm"
+                    className="px-8 py-3 bg-[#121212] text-white font-syne font-bold hover:bg-[#3730A3] transition-colors uppercase tracking-widest text-sm"
                   >
                     Send Another
                   </button>
@@ -97,7 +97,7 @@ export default function ContactPage() {
                 <form action={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label htmlFor="name" className="text-xs font-syne font-bold text-gray-500 uppercase tracking-widest ml-1">
+                      <label className="text-xs font-syne font-bold text-[#D97757] uppercase tracking-widest ml-1">
                         Name
                       </label>
                       <input
@@ -106,11 +106,11 @@ export default function ContactPage() {
                         id="name"
                         required
                         placeholder="ALEX DOE"
-                        className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-slate-900 font-inter placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors rounded-sm"
+                        className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-[#0F172A] font-inter placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] transition-colors rounded-sm"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="email" className="text-xs font-syne font-bold text-gray-500 uppercase tracking-widest ml-1">
+                      <label htmlFor="email" className="text-xs font-syne font-bold text-[#D97757] uppercase tracking-widest ml-1">
                         Email
                       </label>
                       <input
@@ -119,7 +119,7 @@ export default function ContactPage() {
                         id="email"
                         required
                         placeholder="ALEX@EXAMPLE.COM"
-                        className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-slate-900 font-inter placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors rounded-sm"
+                        className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-[#0F172A] font-inter placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] transition-colors rounded-sm"
                       />
                     </div>
                   </div>
@@ -133,12 +133,12 @@ export default function ContactPage() {
                       name="orderNumber"
                       id="orderNumber"
                       placeholder="#12345"
-                      className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-slate-900 font-inter placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors rounded-sm"
+                      className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-[#0F172A] font-inter placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] transition-colors rounded-sm"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label htmlFor="message" className="text-xs font-syne font-bold text-gray-500 uppercase tracking-widest ml-1">
+                    <label htmlFor="message" className="text-xs font-syne font-bold text-[#D97757] uppercase tracking-widest ml-1">
                       Message
                     </label>
                     <textarea
@@ -147,14 +147,14 @@ export default function ContactPage() {
                       required
                       placeholder="HOW CAN WE HELP?"
                       rows={6}
-                      className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-slate-900 font-inter placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none rounded-sm"
+                      className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-[#0F172A] font-inter placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] transition-colors resize-none rounded-sm"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="w-full h-16 bg-slate-900 text-white font-syne font-black text-sm uppercase tracking-[0.2em] transition-all hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed group relative overflow-hidden flex items-center justify-center gap-2"
+                    className="w-full h-16 bg-[#121212] text-white font-syne font-black text-sm uppercase tracking-[0.2em] transition-all hover:bg-[#3730A3] disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed group relative overflow-hidden flex items-center justify-center gap-2"
                   >
                     {isPending ? (
                       <div className="flex items-center gap-2">

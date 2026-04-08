@@ -26,8 +26,9 @@
   /* Neutral Scale */
   --color-bg:       #ffffff;
   --color-surface:  #f5f5f6;
-  --color-text:     #282C3F;
-  --color-muted:    #535766;
+  --color-text:     #334155;
+  --color-heading:  #0F172A;
+  --color-muted:    #64748b;
   --color-meta:     #94969f;
   --color-border:   #eaeaec;
 
@@ -58,7 +59,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: "Assistant", ui-sans-serif, system-ui, sans-serif;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-heading);
 }
 
 /* ── SCROLLBAR ────────────────────────────────────── */
@@ -82,14 +83,14 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ── MYNTRA-STYLE BUTTONS ─────────────────────────── */
 .btn-pink {
-  background-color: var(--myntra-pink);
+  background-color: #121212;
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
 }
-.btn-pink:hover { background-color: var(--myntra-pink-dk); }
+.btn-pink:hover { background-color: #3730A3; }
 
 .btn-outline {
   border: 1px solid #d4d5d9;

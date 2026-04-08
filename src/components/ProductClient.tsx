@@ -69,9 +69,11 @@ export default function ProductClient({ product, recommendations = [] }: Product
     });
   };
 
-  const images = useMemo(() => (
-    product.allImages && product.allImages.length > 0 ? product.allImages : [product.image]
-  ), [product.allImages, product.image]);
+  const images = useMemo(() => {
+    const rawImages = product.allImages && product.allImages.length > 0 ? product.allImages : [product.image];
+    const filtered = rawImages.filter((img: any) => typeof img === 'string' && img.trim() !== '');
+    return filtered.length > 0 ? filtered : ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80"];
+  }, [product.allImages, product.image]);
 
   const variants = product.variants || [];
   const availableColors = useMemo(() => {
@@ -162,7 +164,7 @@ export default function ProductClient({ product, recommendations = [] }: Product
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 font-sans selection:bg-neutral-900 selection:text-white">
+    <div className="min-h-screen bg-white text-[#334155] font-sans selection:bg-[#0F172A] selection:text-white">
       {/* Breadcrumb */}
       <div className="hidden md:block max-w-7xl mx-auto px-12 pt-32 pb-4" style={{paddingTop: '128px'}}>
         <nav className="flex items-center gap-2 text-xs text-neutral-500 font-medium">
@@ -170,7 +172,7 @@ export default function ProductClient({ product, recommendations = [] }: Product
           <ChevronRight size={10} />
           <Link href="/collections" className="hover:text-black">{product.category || 'Collection'}</Link>
           <ChevronRight size={10} />
-          <span className="text-black font-bold">{product.name}</span>
+          <span className="text-[#0F172A] font-bold">{product.name}</span>
         </nav>
       </div>
 
@@ -244,11 +246,11 @@ export default function ProductClient({ product, recommendations = [] }: Product
             {/* Pricing Engine */}
             <div className="space-y-1">
               <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-black text-neutral-900 tracking-tighter">{activePriceDisplay}</span>
-                <span className="text-lg text-neutral-400 line-through font-medium">MRP ${strikethroughPrice}</span>
-                <span className="text-lg font-black uppercase" style={{color: '#ff905a'}}>({discountPercent}% OFF)</span>
+                <span className="text-4xl font-black text-[#0F172A] tracking-tighter">{activePriceDisplay}</span>
+                <span className="text-lg text-slate-400 line-through font-medium">MRP ${strikethroughPrice}</span>
+                <span className="text-lg font-black uppercase" style={{color: '#D97757'}}>({discountPercent}% OFF)</span>
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-widest" style={{color: '#14958f'}}>inclusive of all taxes</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">inclusive of all taxes</p>
             </div>
 
             {/* Selection Grid */}
@@ -311,17 +313,16 @@ export default function ProductClient({ product, recommendations = [] }: Product
             <div className="hidden md:grid grid-cols-2 gap-3 mt-8">
               <button
                 onClick={handleAddToCart}
-                className="py-4 font-black uppercase tracking-[0.15em] text-sm flex items-center justify-center gap-3 active:scale-95 transition-all"
-                style={{ backgroundColor: '#ff3f6c', color: '#fff' }}
+                className="py-4 font-black uppercase tracking-[0.15em] text-sm flex items-center justify-center gap-3 active:scale-95 transition-all bg-[#121212] text-white hover:bg-[#3730A3]"
               >
                 <ShoppingBag size={16} /> Add to Bag
               </button>
               <button 
                 onClick={handleToggleWishlist}
-                className="py-4 font-black uppercase tracking-[0.15em] text-sm flex items-center justify-center gap-3 transition-all active:scale-95 group/wish" 
-                style={{ border: '1px solid #d4d5d9', color: isInWishlist ? '#ff3f6c' : '#282C3F' }}
+                className="py-4 font-black uppercase tracking-[0.15em] text-sm flex items-center justify-center gap-3 transition-all active:scale-95 group/wish border border-slate-200 hover:border-[#D97757]" 
+                style={{ color: isInWishlist ? '#D97757' : '#334155' }}
               >
-                <Heart size={16} className={isInWishlist ? 'fill-[#ff3f6c]' : 'group-hover/wish:text-[#ff3f6c] transition-colors'} /> 
+                <Heart size={16} className={isInWishlist ? 'fill-[#D97757]' : 'group-hover/wish:text-[#D97757] transition-colors'} /> 
                 {isInWishlist ? 'In Wishlist' : 'Wishlist'}
               </button>
             </div>
@@ -350,18 +351,17 @@ export default function ProductClient({ product, recommendations = [] }: Product
       </div>
 
       {/* Mobile Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white flex p-3 gap-3" style={{ borderTop: '1px solid #eaeaec', boxShadow: '0 -4px 12px rgba(0,0,0,0.06)' }}>
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white flex p-3 gap-3 border-t border-slate-100 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
         <button 
           onClick={handleToggleWishlist}
-          className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-black uppercase tracking-widest" 
-          style={{ border: '1px solid #d4d5d9', color: isInWishlist ? '#ff3f6c' : '#282C3F' }}
+          className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-black uppercase tracking-widest border border-slate-200" 
+          style={{ color: isInWishlist ? '#D97757' : '#334155' }}
         >
-          <Heart size={18} className={isInWishlist ? 'fill-[#ff3f6c]' : ''} /> {isInWishlist ? 'Wishlisted' : 'Wishlist'}
+          <Heart size={18} className={isInWishlist ? 'fill-[#D97757]' : ''} /> {isInWishlist ? 'Wishlisted' : 'Wishlist'}
         </button>
         <button
           onClick={handleAddToCart}
-          className="flex-[1.5] flex items-center justify-center gap-2 py-4 text-sm font-black uppercase tracking-widest active:scale-95 transition-transform"
-          style={{ backgroundColor: '#ff3f6c', color: '#fff' }}
+          className="flex-[1.5] flex items-center justify-center gap-2 py-4 text-sm font-black uppercase tracking-widest active:scale-95 transition-transform bg-[#121212] text-white hover:bg-[#3730A3]"
         >
           <ShoppingBag size={18} /> Add to Bag
         </button>
