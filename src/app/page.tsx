@@ -141,7 +141,7 @@ export default async function Home() {
 
       {/* ── ANIMATION SLIDER SECTION ──────────────────────── */}
       {(config?.heroVideoUrls && config.heroVideoUrls.length > 0) && (
-        <section className={`relative w-full overflow-hidden ${config.heroImageUrl ? 'h-[100vh]' : 'h-[105vh]'}`}>
+        <section className={`relative w-full overflow-hidden md:h-[110vh] h-[85vh]`}>
           <HeroSequencer urls={config.heroVideoUrls} poster={config.heroImageUrl} />
           
           {!config.heroImageUrl && (

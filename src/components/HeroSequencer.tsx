@@ -57,8 +57,9 @@ export default function HeroSequencer({ urls, poster }: HeroSequencerProps) {
         </motion.div>
       </AnimatePresence>
       
-      {/* Brand Overlay - Constant */}
+      {/* Cinematic Overlays - Constant */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 via-[#FFF5F2]/10 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/80 via-transparent to-transparent pointer-events-none h-1/3 bottom-0 top-auto" />
     </div>
   );
 }
