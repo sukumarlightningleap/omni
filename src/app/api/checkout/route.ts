@@ -96,6 +96,9 @@ export async function POST(req: Request) {
         mode: 'payment',
         success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/checkout?canceled=1`,
+        shipping_address_collection: {
+          allowed_countries: ['US', 'CA', 'IN', 'GB'],
+        },
         metadata: {
           orderId: order.id,
         },

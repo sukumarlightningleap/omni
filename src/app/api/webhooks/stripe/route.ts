@@ -29,20 +29,22 @@ export async function POST(req: Request) {
 
   // --- SHARED ORDER FULFILLMENT LOGIC ---
   async function fulfillOrder(orderId: string, stripeObject: any) {
+    console.log(`[FULFILLMENT] Starting order fulfillment for: ${orderId} (Session: ${stripeObject.id})`);
+    
     // DOUBLE-GATE CHECK: Ensure we don't process the same payment twice
     const existingOrder = await prisma.order.findUnique({
       where: { stripeSessionId: stripeObject.id }
     });
 
     if (existingOrder && existingOrder.status !== "PENDING") {
-      console.log(`Order ${orderId} already processed with Stripe ID ${stripeObject.id}.`);
+      console.log(`[FULFILLMENT] Order ${orderId} already processed with Stripe ID ${stripeObject.id}. Aborting duplicate call.`);
       return;
     }
 
     // 1. Extract Details & Calculate Profit
-    const addressDetails = stripeObject.shipping?.address || stripeObject.shipping_details?.address;
-    const customerName = stripeObject.shipping?.name || stripeObject.shipping_details?.name || stripeObject.customer_details?.name;
-    const customerEmail = stripeObject.receipt_email || stripeObject.customer_details?.email;
+    const addressDetails = stripeObject.shipping_details?.address || stripeObject.shipping?.address;
+    const customerName = stripeObject.shipping_details?.name || stripeObject.shipping?.name || stripeObject.customer_details?.name;
+    const customerEmail = stripeObject.customer_details?.email || stripeObject.receipt_email;
     
     const formattedAddress = addressDetails ? 
       `${addressDetails.line1}, ${addressDetails.line2 ? addressDetails.line2 + ', ' : ''}${addressDetails.city}, ${addressDetails.state} ${addressDetails.postal_code}, ${addressDetails.country}` 
@@ -53,15 +55,21 @@ export async function POST(req: Request) {
       include: { items: { include: { product: true } } }
     });
 
-    if (!orderWithItems) return;
+    if (!orderWithItems) {
+      console.error(`[FULFILLMENT] CRITICAL ERROR: Order ${orderId} not found in database. Fulfillment aborted.`);
+      return;
+    }
 
     // Profit = Total - Total Cost
     const totalCost = orderWithItems.items.reduce((sum, item) => sum + (item.product.cost || 0) * item.quantity, 0);
     const profit = orderWithItems.totalAmount - totalCost;
-    const amountPaid = stripeObject.amount_received ? stripeObject.amount_received / 100 : 
-                       (stripeObject.amount_total ? stripeObject.amount_total / 100 : 0);
+    
+    // PRECISION LTV: Use amount_total from Stripe divided by 100
+    const amountPaid = (stripeObject.amount_total || stripeObject.amount_received || 0) / 100;
 
-    // 2. Update Database to PAID
+    console.log(`[FULFILLMENT] Verifying payment for Order ${orderId}: Expected ${orderWithItems.totalAmount}, Paid ${amountPaid}`);
+
+    // 2. Update Database to PAID (Simultaneous update for status, profit, totalPaid, and user LTV)
     await prisma.order.update({
       where: { id: orderId },
       data: {
@@ -82,8 +90,10 @@ export async function POST(req: Request) {
       }
     });
 
-    // 3. Printify Automation Bridge
-    await createPrintifyOrder(orderId);
+    console.log(`[FULFILLMENT] Order ${orderId} marked as PAID. Triggering Printify handoff...`);
+
+    // 3. Printify Automation Bridge (Enhanced with direct stripeObject sync)
+    await createPrintifyOrder(orderId, stripeObject);
   }
 
   // --- EVENT HANDLERS ---

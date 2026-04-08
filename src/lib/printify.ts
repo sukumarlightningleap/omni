@@ -76,12 +76,12 @@ export async function fetchPrintifyProductById(productId: string) {
  * 3. Pushes to Printify API.
  * 4. Updates Order status to PROCESSING or MANUAL_INTERVENTION_REQUIRED.
  */
-export async function createPrintifyOrder(orderId: string) {
+export async function createPrintifyOrder(orderId: string, stripeObject?: any) {
   const shopId = process.env.PRINTIFY_SHOP_ID;
   const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
 
   if (!shopId || !token) {
-    console.error("Printify credentials missing for fulfillment.");
+    console.error("[PRINTIFY] Credentials missing for fulfillment.");
     return { success: false, error: "CREDENTIALS_MISSING" };
   }
 
@@ -95,10 +95,57 @@ export async function createPrintifyOrder(orderId: string) {
 
     if (!order) return { success: false, error: "ORDER_NOT_FOUND" };
 
-    // Extract address details from the raw string we saved in the webhook
-    // Format: "Name | Email | Line1, City, State Zip, Country"
-    const [name, email, addressPart] = (order.shippingAddress || "").split(" | ");
-    const addressDetails = addressPart?.split(", ") || [];
+    // --- SECURE ADDRESS PARSING ---
+    // Rule: Prioritize the Stripe object (verified) over the database fallback string.
+    let firstName = "Customer";
+    let lastName = "Unrwly";
+    let email = "";
+    let address = {
+      country: "US",
+      region: "",
+      city: "",
+      address1: "",
+      address2: "",
+      zip: ""
+    };
+
+    if (stripeObject) {
+      console.log(`[PRINTIFY] Using Stripe Object for address sync: ${stripeObject.id}`);
+      const shipping = stripeObject.shipping_details || stripeObject.shipping;
+      const nameParts = (shipping?.name || stripeObject.customer_details?.name || "Customer").split(' ');
+      
+      firstName = nameParts[0];
+      lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : "Unrwly";
+      email = stripeObject.customer_details?.email || "";
+      
+      const addr = shipping?.address;
+      address = {
+        country: addr?.country || "US",
+        region: addr?.state || "",
+        city: addr?.city || "",
+        address1: addr?.line1 || "",
+        address2: addr?.line2 || "",
+        zip: addr?.postal_code || ""
+      };
+    } else {
+      console.log(`[PRINTIFY] Falling back to database address string for: ${orderId}`);
+      // Format: "Name | Email | Line1, City, State Zip, Country"
+      const [name, dbEmail, addressPart] = (order.shippingAddress || "").split(" | ");
+      const nameParts = (name || "Customer").split(' ');
+      firstName = nameParts[0];
+      lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : "Unrwly";
+      email = dbEmail || "";
+      
+      const addressDetails = addressPart?.split(", ") || [];
+      address = {
+        country: addressDetails[addressDetails.length - 1] || "US",
+        region: addressDetails[addressDetails.length - 2]?.split(' ')[0] || "",
+        city: addressDetails[addressDetails.length - 3] || "",
+        address1: addressDetails[0] || "",
+        address2: addressDetails[1] || "",
+        zip: addressDetails[addressDetails.length - 2]?.split(' ').slice(1).join(' ') || ""
+      };
+    }
 
     const printifyLineItems = await Promise.all(order.items.map(async item => {
       // Re-fetch to ensure we have the latest variant list
@@ -109,7 +156,7 @@ export async function createPrintifyOrder(orderId: string) {
       
       return {
         product_id: item.product.printifyId,
-        variant_id: pData?.variants?.[0]?.id || 1, // Fallback to first variant
+        variant_id: pData?.variants?.[0]?.id || item.variantId || 1, // Fallback order: API -> DB -> Default
         quantity: item.quantity
       };
     }));
@@ -120,15 +167,15 @@ export async function createPrintifyOrder(orderId: string) {
       line_items: printifyLineItems,
       shipping_method: 1, // Standard
       address_to: {
-        first_name: name?.split(' ')[0] || "Customer",
-        last_name: name?.split(' ').slice(1).join(' ') || "Unrwly",
-        email: email || "",
-        country: addressDetails[addressDetails.length - 1] || "US",
-        region: addressDetails[addressDetails.length - 2]?.split(' ')[0] || "",
-        city: addressDetails[addressDetails.length - 3] || "",
-        address1: addressDetails[0] || "",
-        address2: addressDetails[1] || "",
-        zip: addressDetails[addressDetails.length - 2]?.split(' ').slice(1).join(' ') || ""
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        country: address.country,
+        region: address.region,
+        city: address.city,
+        address1: address.address1,
+        address2: address.address2,
+        zip: address.zip
       }
     };
 
