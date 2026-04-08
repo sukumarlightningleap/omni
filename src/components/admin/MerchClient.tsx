@@ -9,6 +9,7 @@ import { Video, Megaphone, Image as ImageIcon, Trash2, Plus, Loader2, Star, Zap,
 
 type Config = {
   heroVideoUrl: string;
+  heroVideoUrls: string[];
   promoAnnouncement: string | null;
 };
 
@@ -55,6 +56,13 @@ export default function MerchClient({
   const pathname = usePathname();
 
   const [heroVideoUrl, setHeroVideoUrl] = useState(initialConfig?.heroVideoUrl || "");
+  const [heroVideoUrls, setHeroVideoUrls] = useState<string[]>(() => {
+    const urls = initialConfig?.heroVideoUrls || [];
+    // Ensure we always have 4 slots
+    const result = [...urls];
+    while (result.length < 4) result.push("");
+    return result.slice(0, 4);
+  });
   const [promoAnnouncement, setPromoAnnouncement] = useState(initialConfig?.promoAnnouncement || "");
   
   const [images, setImages] = useState(initialImages);
@@ -104,7 +112,7 @@ export default function MerchClient({
     if (e) e.preventDefault();
     setIsSavingConfig(true);
     try {
-      await updateMerchSettings({ heroVideoUrl, promoAnnouncement });
+      await updateMerchSettings({ heroVideoUrl, heroVideoUrls, promoAnnouncement });
       alert("GLOBAL ASSETS SYNCED.");
     } catch {
       alert("FAILED TO SYNC CONFIGURATION.");
@@ -481,7 +489,7 @@ export default function MerchClient({
             
             <form onSubmit={handleSaveConfig} className="space-y-6 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
               <div className="space-y-2.5">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Hero Media Node (MP4/WebM URL)</label>
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Legacy Hero Media Node (Backup)</label>
                 <div className="relative">
                   <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input
@@ -490,10 +498,29 @@ export default function MerchClient({
                     onChange={(e) => setHeroVideoUrl(e.target.value)}
                     placeholder="/hero-banner.mp4"
                     className="w-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 rounded-xl px-12 py-4 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                    required
                   />
                 </div>
               </div>
+
+              {heroVideoUrls.map((url, idx) => (
+                <div key={idx} className="space-y-2.5">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Hero Animation {idx + 1}</label>
+                  <div className="relative">
+                    <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      type="text"
+                      value={url}
+                      onChange={(e) => {
+                        const next = [...heroVideoUrls];
+                        next[idx] = e.target.value;
+                        setHeroVideoUrls(next);
+                      }}
+                      placeholder={`/hero-sequencer-${idx + 1}.mp4`}
+                      className="w-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 rounded-xl px-12 py-4 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    />
+                  </div>
+                </div>
+              ))}
 
               <div className="space-y-2.5">
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Global Promo Broadcast (Header Text)</label>

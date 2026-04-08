@@ -25,6 +25,7 @@ const requireAdmin = async () => {
 
 export async function updateMerchSettings(data: { 
   heroVideoUrl: string, 
+  heroVideoUrls?: string[],
   promoAnnouncement: string
 }) {
   await requireAdmin()
@@ -33,11 +34,13 @@ export async function updateMerchSettings(data: {
     where: { id: "global" },
     update: {
       heroVideoUrl: data.heroVideoUrl,
+      heroVideoUrls: data.heroVideoUrls || [],
       promoAnnouncement: data.promoAnnouncement,
     },
     create: {
       id: "global",
       heroVideoUrl: data.heroVideoUrl,
+      heroVideoUrls: data.heroVideoUrls || [],
       promoAnnouncement: data.promoAnnouncement,
     }
   })

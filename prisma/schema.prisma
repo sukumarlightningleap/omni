@@ -14,6 +14,7 @@ model StoreConfig {
   flashSaleEndsAt   DateTime?
   flashSaleMessage  String    @default("LIMITED DROP ENDING SOON")
   heroVideoUrl      String    @default("/hero-banner-cap.mp4")
+  heroVideoUrls     String[]  @default([])
   promoAnnouncement String?
 }
 

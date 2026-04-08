@@ -7,6 +7,7 @@ import CategoryBudgetCarousel from "@/components/CategoryBudgetCarousel";
 import CollectionSquareCarousel from "@/components/CollectionSquareCarousel";
 import CollectionStaticGrid from "@/components/CollectionStaticGrid";
 import { prisma } from "@/lib/prisma";
+import HeroSequencer from "@/components/HeroSequencer";
 
 // Revalidate every 60 seconds (ISR)
 export const revalidate = 60;
@@ -109,27 +110,11 @@ export default async function Home() {
       )}
 
       {/* ── HERO BANNER ────────────────────────────────── */}
-      <section className="relative h-[92vh] w-full overflow-hidden bg-gray-900">
-        {config?.heroVideoUrl && config.heroVideoUrl.endsWith('.mp4') ? (
-          <video
-            src={config.heroVideoUrl}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-80"
-          />
-        ) : (
-          <Image
-            src={config?.heroVideoUrl || "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=2070&auto=format&fit=crop"}
-            alt="UNRWLY Drop 2026"
-            fill
-            priority
-            className="object-cover object-center opacity-80"
-          />
-        )}
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+      <section className="relative h-[92vh] w-full overflow-hidden bg-[#0F172A]">
+        <HeroSequencer urls={config?.heroVideoUrls || []} />
+        
+        {/* Peach-Tinted Cinematic Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 via-[#FFF5F2]/10 to-transparent pointer-events-none" />
 
         <div className="absolute inset-0 flex items-end pb-20 px-6 md:px-16 lg:px-24">
           <div className="max-w-2xl space-y-6">
