@@ -278,3 +278,70 @@ export async function registerPrintifyWebhook(targetUrl: string) {
     return { success: false, error: "NETWORK_FAILURE" };
   }
 }
+
+/**
+ * One Source of Truth: Synchronizes the local database with the Printify shop.
+ * Handles fetching, model mapping, meta-description generation, and persistence.
+ */
+export async function syncStorefrontWithPrintify() {
+  try {
+    const liveProducts = await fetchPrintifyProducts(0);
+    
+    if (liveProducts === null) {
+      return { success: false, error: "PRINTIFY_AUTH_FAILED" };
+    }
+
+    const currentProductCount = await prisma.product.count();
+    const isFullRestore = currentProductCount === 0;
+
+    if (isFullRestore) {
+      console.log("⚠️ IMMORTALITY PROTOCOL: Initiating Full Restore...");
+      const defaultCollections = ["New Arrivals", "Best Sellers"];
+      for (const name of defaultCollections) {
+         const handle = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+         await prisma.collection.upsert({
+            where: { handle },
+            update: {},
+            create: { name, handle }
+         });
+      }
+    }
+
+    let syncCount = 0;
+    for (const p of liveProducts) {
+      const description = p.descriptionHtml || p.description || "";
+      // Strip HTML and truncate for meta description
+      const metaDescription = description.replace(/<[^>]*>?/gm, '').substring(0, 157).trim() + "...";
+
+      await prisma.product.upsert({
+        where: { printifyId: p._id },
+        update: {
+          name: p.name,
+          description: description,
+          metaDescription: metaDescription,
+          imageUrl: p.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80", 
+          cost: p.rawPrice,
+        },
+        create: {
+          printifyId: p._id,
+          name: p.name,
+          description: description,
+          metaDescription: metaDescription,
+          price: p.rawPrice * 2,
+          cost: p.rawPrice,
+          imageUrl: p.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
+        }
+      });
+      syncCount++;
+    }
+
+    return { 
+      success: true, 
+      count: syncCount, 
+      isFullRestore 
+    };
+  } catch (err) {
+    console.error("syncStorefrontWithPrintify Error:", err);
+    return { success: false, error: "INTERNAL_SYNC_ERROR" };
+  }
+}

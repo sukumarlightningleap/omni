@@ -66,72 +66,26 @@ export async function bulkPublishToCollection(
   return { success: true }
 }
 
-import { fetchPrintifyProducts } from "@/lib/printify"
+import { syncStorefrontWithPrintify } from "@/lib/printify"
 
 export async function syncPrintifyManual() {
   await requireAdmin()
 
   try {
-    const liveProducts = await fetchPrintifyProducts(0) 
+    const result = await syncStorefrontWithPrintify();
     
-    if (liveProducts === null) {
-      return { success: false, message: "Authentication failed." }
-    }
-
-    const currentProductCount = await prisma.product.count()
-    const isFullRestore = currentProductCount === 0
-
-    if (isFullRestore) {
-      console.log("⚠️ IMMORTALITY PROTOCOL: 0 products detected. Initiating Full Restore...")
-      
-      // Ensure default collections exist
-      const defaultCollections = ["New Arrivals", "Best Sellers"]
-      for (const name of defaultCollections) {
-         const handle = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-         await prisma.collection.upsert({
-            where: { handle },
-            update: {},
-            create: { name, handle }
-         })
-      }
-    }
-
-    let syncCount = 0
-    for (const p of liveProducts) {
-      const description = p.descriptionHtml || p.description || "";
-      // Strip HTML and truncate for meta description
-      const metaDescription = description.replace(/<[^>]*>?/gm, '').substring(0, 157).trim() + "...";
-
-      await prisma.product.upsert({
-        where: { printifyId: p._id },
-        update: {
-          name: p.name,
-          description: description,
-          metaDescription: metaDescription,
-          imageUrl: p.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80", 
-          cost: p.rawPrice,
-        },
-        create: {
-          printifyId: p._id,
-          name: p.name,
-          description: description,
-          metaDescription: metaDescription,
-          price: p.rawPrice * 2,
-          cost: p.rawPrice,
-          imageUrl: p.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
-        }
-      })
-      syncCount++
+    if (!result.success) {
+      return { success: false, message: result.error || "Sync Failed." }
     }
 
     revalidatePath("/admin/products")
     revalidatePath("/")
     revalidatePath("/", "layout")
     
-    if (isFullRestore) {
-      return { success: true, message: `Full Restore Active: ${syncCount} products recovered.` }
+    if (result.isFullRestore) {
+      return { success: true, message: `Full Restore Active: ${result.count} products recovered.` }
     }
-    return { success: true, message: `Manual Sync: ${syncCount} products processed.` }
+    return { success: true, message: `Manual Sync: ${result.count} products processed.` }
   } catch (err) {
     console.error("Printify Sync Failed:", err)
     return { success: false, message: "Internal Server Error during sync." }
