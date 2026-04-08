@@ -74,9 +74,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   // 3. Merge data (Database prices/names override Printify if needed)
+  const allImages = printifyProduct.images?.map((img: any) => img.src) || [dbProduct.imageUrl];
+  
   const normalizedProduct = {
     ...printifyProduct,
-    name: dbProduct.name, // Local overrides
+    allImages,
+    image: allImages[0] || dbProduct.imageUrl,
+    name: dbProduct.name, 
     description: dbProduct.description || printifyProduct.description,
     _id: dbProduct.id,
     price: `$${dbProduct.price.toFixed(2)}`,

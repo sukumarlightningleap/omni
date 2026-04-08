@@ -70,10 +70,16 @@ export default function ProductClient({ product, recommendations = [] }: Product
   };
 
   const images = useMemo(() => {
-    const rawImages = product.allImages && product.allImages.length > 0 ? product.allImages : [product.image];
-    const filtered = rawImages.filter((img: any) => typeof img === 'string' && img.trim() !== '');
+    let raw: any[] = [];
+    if (product.allImages && product.allImages.length > 0) raw = product.allImages;
+    else if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      raw = product.images.map((img: any) => typeof img === 'string' ? img : img.src);
+    }
+    else if (product.image) raw = [product.image];
+    
+    const filtered = raw.filter((img: any) => typeof img === 'string' && img.trim() !== '');
     return filtered.length > 0 ? filtered : ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80"];
-  }, [product.allImages, product.image]);
+  }, [product.allImages, product.images, product.image]);
 
   const variants = product.variants || [];
   const availableColors = useMemo(() => {
