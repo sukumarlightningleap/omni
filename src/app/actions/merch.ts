@@ -24,7 +24,6 @@ const requireAdmin = async () => {
 }
 
 export async function updateMerchSettings(data: { 
-  heroVideoUrl: string, 
   heroVideoUrls?: string[],
   heroImageUrl?: string | null,
   promoAnnouncement?: string | null
@@ -34,14 +33,12 @@ export async function updateMerchSettings(data: {
   await prisma.storeConfig.upsert({
     where: { id: "global" },
     update: {
-      heroVideoUrl: data.heroVideoUrl,
       heroVideoUrls: data.heroVideoUrls || [],
       heroImageUrl: data.heroImageUrl,
       promoAnnouncement: data.promoAnnouncement,
     },
     create: {
       id: "global",
-      heroVideoUrl: data.heroVideoUrl,
       heroVideoUrls: data.heroVideoUrls || [],
       heroImageUrl: data.heroImageUrl,
       promoAnnouncement: data.promoAnnouncement,

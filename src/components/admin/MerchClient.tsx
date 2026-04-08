@@ -8,7 +8,6 @@ import { upload } from "@vercel/blob/client";
 import { Video, Megaphone, Image as ImageIcon, Trash2, Plus, Loader2, Star, Zap, Edit3, Check, Search, LayoutGrid, Flame, Upload, X } from "lucide-react";
 
 type Config = {
-  heroVideoUrl: string;
   heroVideoUrls: string[];
   heroImageUrl: string | null;
   promoAnnouncement: string | null;
@@ -56,7 +55,6 @@ export default function MerchClient({
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const [heroVideoUrl, setHeroVideoUrl] = useState(initialConfig?.heroVideoUrl || "");
   const [heroVideoUrls, setHeroVideoUrls] = useState<string[]>(() => {
     const urls = initialConfig?.heroVideoUrls || [];
     const result = [...urls];
@@ -113,7 +111,6 @@ export default function MerchClient({
     setIsSavingConfig(true);
     try {
       await updateMerchSettings({ 
-        heroVideoUrl, 
         heroVideoUrls, 
         heroImageUrl, 
         promoAnnouncement: promoAnnouncement || null 
@@ -490,20 +487,6 @@ export default function MerchClient({
                     )}
                     <input type="file" className="hidden" accept="image/*" onChange={handleHeroPosterUpload} disabled={isUploading} />
                   </label>
-                </div>
-              </div>
-
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Default Hero Media Node (Legacy)</label>
-                <div className="relative">
-                  <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    type="text"
-                    value={heroVideoUrl}
-                    onChange={(e) => setHeroVideoUrl(e.target.value)}
-                    placeholder="/hero-banner.mp4"
-                    className="w-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 rounded-xl px-12 py-4 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                  />
                 </div>
               </div>
 

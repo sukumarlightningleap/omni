@@ -109,9 +109,9 @@ export default async function Home() {
         </div>
       )}
 
-      {/* ── HERO BANNER ────────────────────────────────── */}
-      <section className="relative h-[92vh] w-full overflow-hidden bg-[#0F172A]">
-        {config?.heroImageUrl && (
+      {/* ── SPATIAL HIERARCHY: HERO ────────────────────────── */}
+      {config?.heroImageUrl && (
+        <section className="relative h-[92vh] w-full overflow-hidden bg-[#0F172A]">
           <Image 
             src={config.heroImageUrl}
             alt="UNRWLY Static Base"
@@ -119,43 +119,46 @@ export default async function Home() {
             priority
             className="object-cover object-center opacity-70"
           />
-        )}
-        <HeroSequencer urls={config?.heroVideoUrls || []} poster={config?.heroImageUrl} />
-        
-        {/* Peach-Tinted Cinematic Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 via-[#FFF5F2]/10 to-transparent pointer-events-none" />
-
-        <div className="absolute inset-0 flex items-end pb-20 px-6 md:px-16 lg:px-24">
-          <div className="max-w-2xl space-y-6">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-[#D97757] text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full">
-              New Season Drop
-            </div>
-            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-[#1A1A1A] tracking-tighter uppercase leading-[0.85]">
-              UNRWLY<br />
-              <span className="text-slate-400">2026</span>
-            </h1>
-            <p className="text-lg text-white/80 font-medium max-w-md">
-              Curated essentials built for the unruly generation.
-            </p>
-            <div className="flex gap-4 pt-2">
-              <Link
-                href="/collections"
-                className="bg-[#121212] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-[#3730A3] transition-all duration-300 flex items-center gap-3 group"
-              >
-                Shop All <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              {allCollections.length > 0 && (
-                <Link
-                  href={`/collections/${allCollections[0].handle}`}
-                  className="border border-white/40 text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all duration-300"
-                >
-                  {allCollections[0].name}
-                </Link>
-              )}
+          {/* Peach-Tinted Cinematic Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 via-[#FFF5F2]/10 to-transparent pointer-events-none" />
+          
+          <div className="absolute inset-0 flex items-end pb-20 px-6 md:px-16 lg:px-24">
+            <div className="max-w-2xl space-y-6">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-[#D97757] text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full">
+                New Season Drop
+              </div>
+              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-[#1A1A1A] tracking-tighter uppercase leading-[0.85]">
+                UNRWLY<br />
+                <span className="text-slate-400">2026</span>
+              </h1>
+              <p className="text-lg text-white/80 font-medium max-w-md">
+                Curated essentials built for the unruly generation.
+              </p>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* ── ANIMATION SLIDER SECTION ──────────────────────── */}
+      {(config?.heroVideoUrls && config.heroVideoUrls.length > 0) && (
+        <section className={`relative w-full overflow-hidden ${config.heroImageUrl ? 'h-[100vh]' : 'h-[105vh]'}`}>
+          <HeroSequencer urls={config.heroVideoUrls} poster={config.heroImageUrl} />
+          
+          {!config.heroImageUrl && (
+            <div className="absolute inset-0 flex items-end pb-20 px-6 md:px-16 lg:px-24">
+              <div className="max-w-2xl space-y-6">
+                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-[#D97757] text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full">
+                  Motion Edit
+                </div>
+                <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-[#1A1A1A] tracking-tighter uppercase leading-[0.85]">
+                  UNRWLY<br />
+                  <span className="text-slate-400">2026</span>
+                </h1>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
 
       {/* ── BUDGET-FRIENDLY PICKS ( DEAL-CAROUSEL) ── */}
