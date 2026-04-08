@@ -22,20 +22,20 @@ export default function FAQAccordion({ items }: FAQAccordionProps) {
       {items.map((faq, index) => (
         <div 
           key={index}
-          className="border border-neutral-800 bg-neutral-950/50 overflow-hidden"
+          className="border border-slate-100 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
         >
           <button
             onClick={() => setActiveIndex(activeIndex === index ? null : index)}
-            className="w-full flex items-center justify-between p-8 text-left hover:bg-white/[0.02] transition-colors"
+            className="w-full flex items-center justify-between p-8 text-left hover:bg-slate-50/50 transition-colors"
           >
             <div className="flex items-center gap-6">
-              {faq.icon && <span className="text-neutral-500">{faq.icon}</span>}
-              <span className="text-xs uppercase tracking-[0.3em] font-bold">{faq.question}</span>
+              {faq.icon && <span className="text-indigo-600">{faq.icon}</span>}
+              <span className="text-xs uppercase tracking-[0.3em] font-bold text-slate-900">{faq.question}</span>
             </div>
             <motion.div
               animate={{ rotate: activeIndex === index ? 180 : 0 }}
               transition={{ duration: 0.3 }}
-              className="text-neutral-500"
+              className="text-slate-400"
             >
               <ChevronDown size={16} />
             </motion.div>
@@ -49,7 +49,7 @@ export default function FAQAccordion({ items }: FAQAccordionProps) {
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
               >
-                <div className="px-8 pb-8 pt-0 text-[10px] text-neutral-500 leading-relaxed uppercase tracking-[0.2em] max-w-2xl">
+                <div className="px-8 pb-8 pt-0 text-[10px] text-slate-600 leading-relaxed uppercase tracking-[0.2em] max-w-2xl">
                   {faq.answer}
                 </div>
               </motion.div>

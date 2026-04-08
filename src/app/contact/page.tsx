@@ -19,9 +19,9 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black pt-32 pb-24 px-6 md:px-12 lg:px-24">
+    <div className="min-h-screen bg-white pt-32 pb-24 px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-5xl md:text-7xl font-syne font-bold text-white mb-16 tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-syne font-bold text-slate-900 mb-16 tracking-tighter">
           CONTACT US
         </h1>
 
@@ -29,10 +29,10 @@ export default function ContactPage() {
           {/* Left Side: Support Info */}
           <div className="space-y-12">
             <div>
-              <h2 className="text-2xl font-syne font-semibold text-white mb-6 uppercase tracking-widest">
+              <h2 className="text-2xl font-syne font-semibold text-slate-900 mb-6 uppercase tracking-widest">
                 Support
               </h2>
-              <p className="text-gray-400 font-inter text-lg leading-relaxed max-w-md">
+              <p className="text-slate-600 font-inter text-lg leading-relaxed max-w-md">
                 We're here to help with orders, product inquiries, or just to chat. 
                 Our team typically responds within 24 hours.
               </p>
@@ -40,34 +40,34 @@ export default function ContactPage() {
 
             <div className="space-y-8">
               <div className="flex items-start gap-4">
-                <div className="mt-1 bg-white/5 p-3 rounded-full border border-white/10 text-white">
+                <div className="mt-1 bg-indigo-50 p-3 rounded-full border border-indigo-100 text-indigo-600">
                   <Mail size={20} />
                 </div>
                 <div>
-                  <h3 className="text-white font-syne font-medium mb-1">Email</h3>
-                  <a href="mailto:support@unrwly.com" className="text-gray-400 hover:text-white transition-colors">
+                  <h3 className="text-slate-900 font-syne font-medium mb-1">Email</h3>
+                  <a href="mailto:support@unrwly.com" className="text-slate-600 hover:text-slate-900 transition-colors">
                     support@unrwly.com
                   </a>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="mt-1 bg-white/5 p-3 rounded-full border border-white/10 text-white">
+                <div className="mt-1 bg-indigo-50 p-3 rounded-full border border-indigo-100 text-indigo-600">
                   <Clock size={20} />
                 </div>
                 <div>
-                  <h3 className="text-white font-syne font-medium mb-1">Response Time</h3>
-                  <p className="text-gray-400">Monday - Friday: 9am - 6pm EST</p>
+                  <h3 className="text-slate-900 font-syne font-medium mb-1">Response Time</h3>
+                  <p className="text-slate-600">Monday - Friday: 9am - 6pm EST</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="mt-1 bg-white/5 p-3 rounded-full border border-white/10 text-white">
+                <div className="mt-1 bg-indigo-50 p-3 rounded-full border border-indigo-100 text-indigo-600">
                   <HelpCircle size={20} />
                 </div>
                 <div>
-                  <h3 className="text-white font-syne font-medium mb-1">FAQs</h3>
-                  <Link href="/faq" className="text-gray-400 hover:text-white underline underline-offset-4 transition-colors">
+                  <h3 className="text-slate-900 font-syne font-medium mb-1">FAQs</h3>
+                  <Link href="/faq" className="text-slate-600 hover:text-slate-900 underline underline-offset-4 transition-colors">
                     Browse our common questions
                   </Link>
                 </div>
@@ -76,21 +76,19 @@ export default function ContactPage() {
           </div>
 
           {/* Right Side: Contact Form */}
-          <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative bg-[#0A0A0A] border border-white/10 p-8 md:p-12 rounded-2xl">
+            <div className="relative bg-white border border-slate-200 p-8 md:p-12 rounded-2xl shadow-sm">
               {isSuccess ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in zoom-in duration-500">
-                  <div className="bg-white/10 p-4 rounded-full mb-6">
-                    <CheckCircle2 color="white" size={48} />
+                  <div className="bg-indigo-50 p-4 rounded-full mb-6">
+                    <CheckCircle2 color="#4f46e5" size={48} />
                   </div>
-                  <h2 className="text-3xl font-syne font-bold text-white mb-4">Message Sent!</h2>
-                  <p className="text-gray-400 mb-8 max-w-[200px]">
+                  <h2 className="text-3xl font-syne font-bold text-slate-900 mb-4">Message Sent!</h2>
+                  <p className="text-slate-600 mb-8 max-w-[200px]">
                     We've received your request and will get back to you soon.
                   </p>
                   <button 
                     onClick={() => setIsSuccess(false)}
-                    className="px-8 py-3 bg-white text-black font-syne font-bold hover:bg-gray-200 transition-colors uppercase tracking-widest text-sm"
+                    className="px-8 py-3 bg-slate-900 text-white font-syne font-bold hover:bg-slate-800 transition-colors uppercase tracking-widest text-sm"
                   >
                     Send Another
                   </button>
@@ -108,7 +106,7 @@ export default function ContactPage() {
                         id="name"
                         required
                         placeholder="ALEX DOE"
-                        className="w-full bg-white/5 border border-white/10 px-4 py-4 text-white font-inter placeholder:text-white/20 focus:outline-none focus:border-white/40 transition-colors"
+                        className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-slate-900 font-inter placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors rounded-sm"
                       />
                     </div>
                     <div className="space-y-2">
@@ -121,21 +119,21 @@ export default function ContactPage() {
                         id="email"
                         required
                         placeholder="ALEX@EXAMPLE.COM"
-                        className="w-full bg-white/5 border border-white/10 px-4 py-4 text-white font-inter placeholder:text-white/20 focus:outline-none focus:border-white/40 transition-colors"
+                        className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-slate-900 font-inter placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors rounded-sm"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <label htmlFor="orderNumber" className="text-xs font-syne font-bold text-gray-500 uppercase tracking-widest ml-1">
-                      Order Number <span className="text-white/20 font-inter font-normal lowercase">(optional)</span>
+                      Order Number <span className="text-slate-400 font-inter font-normal lowercase">(optional)</span>
                     </label>
                     <input
                       type="text"
                       name="orderNumber"
                       id="orderNumber"
                       placeholder="#12345"
-                      className="w-full bg-white/5 border border-white/10 px-4 py-4 text-white font-inter placeholder:text-white/20 focus:outline-none focus:border-white/40 transition-colors"
+                      className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-slate-900 font-inter placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors rounded-sm"
                     />
                   </div>
 
@@ -149,14 +147,14 @@ export default function ContactPage() {
                       required
                       placeholder="HOW CAN WE HELP?"
                       rows={6}
-                      className="w-full bg-white/5 border border-white/10 px-4 py-4 text-white font-inter placeholder:text-white/20 focus:outline-none focus:border-white/40 transition-colors resize-none"
+                      className="w-full bg-slate-50 border border-slate-200 px-4 py-4 text-slate-900 font-inter placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none rounded-sm"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="w-full h-16 bg-white text-black font-syne font-black text-sm uppercase tracking-[0.2em] transition-all hover:bg-gray-200 disabled:bg-gray-600 disabled:cursor-not-allowed group relative overflow-hidden flex items-center justify-center gap-2"
+                    className="w-full h-16 bg-slate-900 text-white font-syne font-black text-sm uppercase tracking-[0.2em] transition-all hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed group relative overflow-hidden flex items-center justify-center gap-2"
                   >
                     {isPending ? (
                       <div className="flex items-center gap-2">
@@ -176,6 +174,5 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
 }
