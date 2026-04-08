@@ -85,7 +85,7 @@ export async function POST(req: Request) {
       },
     });
 
-    // 3. Create the Stripe Checkout Session (Production-Locked Redirect Flow)
+    // 3. Create the Stripe Checkout Session (Frictionless Redirect Flow)
     const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     
     let stripeSession;
@@ -96,20 +96,25 @@ export async function POST(req: Request) {
         mode: 'payment',
         success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/checkout?canceled=1`,
+        customer_email: session?.user?.email || undefined, // AUTO-RECOVERY: Pre-fill email
         shipping_address_collection: {
           allowed_countries: ['US', 'CA', 'IN', 'GB'],
         },
+        // DYNAMIC SHIPPING: Managed in Stripe Dashboard
+        shipping_options: [
+          { shipping_rate: 'shr_1QscyS2N7M9Z5v5z5z5z5z5z' }, // Standard placeholder
+          { shipping_rate: 'shr_1QscyP2N7M9Z5v5z5z5z5z5z' }, // Priority placeholder
+        ],
         metadata: {
           orderId: order.id,
         },
-        customer_email: session?.user?.email || undefined,
       });
     } catch (stripeErr: any) {
       console.error("STRIPE SESSION CREATION FAILED:", stripeErr);
       throw new Error(`Stripe Initialization Failed: ${stripeErr.message}`);
     }
 
-    // 4. Update order with payment intent ID (or session ID in this case)
+    // 4. Update order with session ID
     await prisma.order.update({
       where: { id: order.id },
       data: { stripeSessionId: stripeSession.id } 
