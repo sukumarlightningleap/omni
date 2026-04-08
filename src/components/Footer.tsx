@@ -21,89 +21,40 @@ const Footer = () => {
   return (
     <footer className="bg-white border-t border-gray-100 pt-24 pb-12 px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 lg:gap-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-32">
           
           {/* Column 1: Brand */}
           <div className="space-y-8">
             <Link href="/" className="inline-block">
-              <span className="text-3xl font-bold tracking-tighter text-black uppercase">
+              <span className="text-4xl font-black tracking-tighter text-black uppercase italic">
                 {storeName}
               </span>
             </Link>
-            <p className="text-gray-500 font-sans text-sm leading-relaxed max-w-[280px]">
-              Premium quality essentials for your daily life. Designed with purpose, crafted with care. {storeName} is your destination for modern living.
+            <p className="text-gray-500 font-sans text-sm leading-relaxed max-w-[320px]">
+              Premium quality essentials for the unruly generation. Designed with purpose, crafted with care. {storeName} is your destination for modern, production-on-demand living.
             </p>
-            <div className="flex items-center gap-4">
-              <Link href="https://twitter.com" className="text-gray-400 hover:text-blue-600 transition-colors">
-                <Twitter size={18} />
+            <div className="flex items-center gap-6">
+              <Link href="https://twitter.com" className="text-gray-400 hover:text-black transition-colors">
+                <Twitter size={20} />
               </Link>
-              <Link href="https://instagram.com" className="text-gray-400 hover:text-pink-600 transition-colors">
-                <Instagram size={18} />
+              <Link href="https://instagram.com" className="text-gray-400 hover:text-black transition-colors">
+                <Instagram size={20} />
               </Link>
-              <Link href="https://facebook.com" className="text-gray-400 hover:text-blue-800 transition-colors">
-                <Facebook size={18} />
-              </Link>
-              <Link href="https://youtube.com" className="text-gray-400 hover:text-red-600 transition-colors">
-                <Youtube size={18} />
+              <Link href="https://youtube.com" className="text-gray-400 hover:text-black transition-colors">
+                <Youtube size={20} />
               </Link>
             </div>
           </div>
 
-          {/* Column 2: Shop */}
+          {/* Column 2: Support */}
           <div className="space-y-8">
-            <h3 className="text-xs font-bold text-black uppercase tracking-[0.2em]">Shop</h3>
-            <ul className="space-y-4">
-              <li><Link href="/collections" className="text-gray-500 hover:text-black transition-colors font-sans text-sm uppercase tracking-widest">All Products</Link></li>
-              {collections
-                .map((col) => (
-                  <li key={col.id}>
-                    <Link href={`/collections/${col.handle}`} className="text-gray-500 hover:text-black transition-colors font-sans text-sm uppercase tracking-widest">
-                      {col.title}
-                    </Link>
-                  </li>
-                ))}
+            <h3 className="text-[10px] font-black text-black uppercase tracking-[0.4em]">Service Hub</h3>
+            <ul className="space-y-5">
+              <li><Link href="/faq" className="text-gray-500 hover:text-black transition-colors font-sans text-xs font-bold uppercase tracking-widest">Help Center</Link></li>
+              <li><Link href="/account" className="text-gray-500 hover:text-black transition-colors font-sans text-xs font-bold uppercase tracking-widest">Logistics Tracking</Link></li>
+              <li><Link href="/contact" className="text-gray-500 hover:text-black transition-colors font-sans text-xs font-bold uppercase tracking-widest">Connect with Us</Link></li>
+              <li><Link href="/policies/refund-policy" className="text-gray-500 hover:text-black transition-colors font-sans text-xs font-bold uppercase tracking-widest">Returns & Manifests</Link></li>
             </ul>
-          </div>
-
-          {/* Column 3: Support */}
-          <div className="space-y-8">
-            <h3 className="text-xs font-bold text-black uppercase tracking-[0.2em]">Support</h3>
-            <ul className="space-y-4">
-              <li><Link href="/faq" className="text-gray-500 hover:text-black transition-colors font-sans text-sm uppercase tracking-widest">FAQ</Link></li>
-              <li><Link href="/account" className="text-gray-500 hover:text-black transition-colors font-sans text-sm uppercase tracking-widest">Track Order</Link></li>
-              <li><Link href="/contact" className="text-gray-500 hover:text-black transition-colors font-sans text-sm uppercase tracking-widest">Contact Us</Link></li>
-              <li><Link href="/policies/refund-policy" className="text-gray-500 hover:text-black transition-colors font-sans text-sm uppercase tracking-widest">Returns & Exchanges</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 4: Community */}
-          <div className="space-y-8">
-            <h3 className="text-xs font-bold text-black uppercase tracking-[0.2em]">Community</h3>
-            <ul className="space-y-4">
-              <li><Link href="/journal" className="text-gray-500 hover:text-black transition-colors font-sans text-sm uppercase tracking-widest">Journal</Link></li>
-              <li><Link href="/lookbook" className="text-gray-500 hover:text-black transition-colors font-sans text-sm uppercase tracking-widest">Lookbook</Link></li>
-              <li><Link href="/rewards" className="text-gray-500 hover:text-black transition-colors font-sans text-sm uppercase tracking-widest">Rewards</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 4: Newsletter */}
-          <div className="space-y-8">
-            <h3 className="text-xs font-bold text-black uppercase tracking-[0.2em]">Stay Updated</h3>
-            <div className="space-y-4">
-              <p className="text-gray-500 font-sans text-sm leading-relaxed">
-                Subscribe to get 10% off your first order and stay in the loop.
-              </p>
-              <form className="relative group">
-                <input 
-                  type="email" 
-                  placeholder="EMAIL ADDRESS" 
-                  className="w-full bg-gray-50 border border-gray-100 px-4 py-4 text-black font-sans text-xs placeholder:text-gray-400 focus:outline-none focus:border-blue-200 transition-colors uppercase tracking-widest rounded-sm"
-                />
-                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-black transition-colors">
-                  <ArrowRight size={18} />
-                </button>
-              </form>
-            </div>
           </div>
         </div>
 

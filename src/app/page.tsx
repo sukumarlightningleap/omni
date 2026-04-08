@@ -57,7 +57,7 @@ async function getHomepageData() {
     }));
 
     // Map curated category items, fallback to recent collections if none curated
-    const categoryCollections = categoryItems.length > 0 
+    const categoryCollections = categoryItems.length > 0
       ? categoryItems.map((item: any) => ({
           ...item.collection,
           name: item.collection.name, // Can be overridden by customDescription if needed, but per-request name is usually standard
@@ -76,12 +76,12 @@ async function getHomepageData() {
     };
   } catch (error) {
     console.error("Failed to load homepage data:", error);
-    return { 
-      budgetItems: [], 
-      omgItems: [], 
+    return {
+      budgetItems: [],
+      omgItems: [],
       trendingItems: [],
-      categoryCollections: [], 
-      bestSellers: [], 
+      categoryCollections: [],
+      bestSellers: [],
       config: null,
       allCollections: []
     };
@@ -89,12 +89,12 @@ async function getHomepageData() {
 }
 
 export default async function Home() {
-  const { 
-    budgetItems, 
-    omgItems, 
+  const {
+    budgetItems,
+    omgItems,
     trendingItems,
-    categoryCollections, 
-    bestSellers, 
+    categoryCollections,
+    bestSellers,
     config,
     allCollections
   } = await getHomepageData();
@@ -162,36 +162,15 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── TRUST BAR ───────────────────────────────────── */}
-      <section className="bg-neutral-950 py-4 border-b border-neutral-800">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            {[
-              { icon: Truck, label: 'FREE SHIPPING', sub: 'on ₹999+' },
-              { icon: ShieldCheck, label: 'SECURE CHECKOUT', sub: '100% verified' },
-              { icon: RotateCcw, label: '30-DAY RETURNS', sub: 'easy & free' },
-              { icon: Headphones, label: '24/7 SUPPORT', sub: 'always here' },
-            ].map(({ icon: Icon, label, sub }) => (
-              <div key={label} className="flex items-center justify-center gap-3 py-2">
-                <Icon size={16} className="text-white/60" />
-                <div className="text-left">
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white">{label}</p>
-                  <p className="text-[9px] text-neutral-500 uppercase tracking-widest">{sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ── BUDGET-FRIENDLY PICKS (MYNTRA DEAL-CAROUSEL) ── */}
+      {/* ── BUDGET-FRIENDLY PICKS ( DEAL-CAROUSEL) ── */}
       <section className="bg-white overflow-hidden pb-16">
         <div className="max-w-7xl mx-auto px-6">
           {/* Tri-color Vertical Header - Width aligned to carousel */}
-          <div 
+          <div
             className="h-32 flex items-center justify-center"
-            style={{ 
-              background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)' 
+            style={{
+              background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
             }}
           >
             <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Budget-Friendly Picks</h2>
@@ -206,10 +185,10 @@ export default async function Home() {
           <div className="h-10 bg-white" />
 
           {/* OMG! Deals Header - Lower Section */}
-          <div 
+          <div
             className="h-32 flex items-center justify-center"
-            style={{ 
-              background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)' 
+            style={{
+              background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
             }}
           >
             <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">OMG! Deals</h2>
@@ -232,10 +211,10 @@ export default async function Home() {
         <section className="bg-white overflow-hidden pb-16">
           <div className="max-w-7xl mx-auto px-6">
             {/* Tri-color Vertical Header */}
-            <div 
+            <div
               className="h-32 flex items-center justify-center"
-              style={{ 
-                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)' 
+              style={{
+                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
               }}
             >
               <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Shop By Category</h2>
@@ -255,10 +234,10 @@ export default async function Home() {
         <section className="bg-[#f0f0f1] overflow-hidden pb-16">
           <div className="max-w-7xl mx-auto px-6">
             {/* Tri-color Vertical Header */}
-            <div 
+            <div
               className="h-32 flex items-center justify-center"
-              style={{ 
-                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)' 
+              style={{
+                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
               }}
             >
               <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Trending Now</h2>
