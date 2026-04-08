@@ -164,44 +164,44 @@ export default async function Home() {
 
 
       {/* ── BUDGET-FRIENDLY PICKS ( DEAL-CAROUSEL) ── */}
-      <section className="bg-white overflow-hidden pb-16">
+      <section className="bg-brand-peach overflow-hidden pb-16 border-y border-[#FCE8E2]">
         <div className="max-w-7xl mx-auto px-6">
           {/* Tri-color Vertical Header - Width aligned to carousel */}
           <div
             className="h-32 flex items-center justify-center"
             style={{
-              background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
+              background: 'linear-gradient(to bottom, #FFF5F2 0%, rgba(255,245,242,1) 40%, rgba(217,119,87,0.1) 75%, rgba(217,119,87,0.15) 100%)'
             }}
           >
-            <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Budget-Friendly Picks</h2>
+            <h2 className="text-6xl font-light text-slate-800 tracking-tighter">Budget-Friendly Picks</h2>
           </div>
 
-          {/* Sleek White Space */}
-          <div className="h-10 bg-white" />
+          {/* Sleek Space */}
+          <div className="h-10 bg-transparent" />
 
           <CategoryBudgetCarousel items={budgetItems} />
 
-          {/* Sleek White Space */}
-          <div className="h-10 bg-white" />
+          {/* Sleek Space */}
+          <div className="h-10 bg-transparent" />
 
           {/* OMG! Deals Header - Lower Section */}
           <div
             className="h-32 flex items-center justify-center"
             style={{
-              background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
+              background: 'linear-gradient(to bottom, #FFF5F2 0%, rgba(255,245,242,1) 40%, rgba(217,119,87,0.1) 75%, rgba(217,119,87,0.15) 100%)'
             }}
           >
-            <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">OMG! Deals</h2>
+            <h2 className="text-6xl font-light text-slate-800 tracking-tighter">OMG! Deals</h2>
           </div>
 
-          {/* Sleek White Gap */}
-          <div className="h-8 bg-white" />
+          {/* Sleek Gap */}
+          <div className="h-8 bg-transparent" />
 
           {/* OMG! Square Grid (3x6) */}
           <CollectionSquareCarousel items={omgItems} />
 
-          {/* Sleek White Space */}
-          <div className="h-10 bg-white" />
+          {/* Sleek Space */}
+          <div className="h-10 bg-transparent" />
 
         </div>
       </section>
@@ -214,10 +214,10 @@ export default async function Home() {
             <div
               className="h-32 flex items-center justify-center"
               style={{
-                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
+                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(217,119,87,0.1) 75%, rgba(217,119,87,0.15) 100%)'
               }}
             >
-              <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Shop By Category</h2>
+              <h2 className="text-6xl font-light text-slate-800 tracking-tighter">Shop By Category</h2>
             </div>
 
             {/* Sleek White Space */}
@@ -231,26 +231,26 @@ export default async function Home() {
 
       {/* ── TRENDING NOW (DENSE GRID) ─────────────────────── */}
       {bestSellers.length > 0 && (
-        <section className="bg-[#f0f0f1] overflow-hidden pb-16">
+        <section className="bg-brand-peach overflow-hidden pb-16 border-y border-[#FCE8E2]">
           <div className="max-w-7xl mx-auto px-6">
             {/* Tri-color Vertical Header */}
             <div
               className="h-32 flex items-center justify-center"
               style={{
-                background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
+                background: 'linear-gradient(to bottom, #FFF5F2 0%, rgba(255,245,242,1) 40%, rgba(217,119,87,0.1) 75%, rgba(217,119,87,0.15) 100%)'
               }}
             >
-              <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Trending Now</h2>
+              <h2 className="text-6xl font-light text-slate-800 tracking-tighter">Trending Now</h2>
             </div>
 
-            {/* Sleek White Space */}
-            <div className="h-10 bg-white" />
+            {/* Space */}
+            <div className="h-10 bg-transparent" />
 
             {/* Curated Trending Collections */}
             {trendingItems.length > 0 && (
               <>
                 <CollectionSquareCarousel items={trendingItems} />
-                <div className="h-16 bg-white" />
+                <div className="h-16 bg-transparent" />
               </>
             )}
 

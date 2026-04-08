@@ -27,9 +27,9 @@ export default function ContactPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
           {/* Left Side: Support Info */}
-          <div className="space-y-12">
+          <div className="space-y-12 bg-brand-peach p-8 md:p-12 rounded-2xl border border-[#FCE8E2]">
             <div>
-              <h2 className="text-2xl font-syne font-semibold text-slate-900 mb-6 uppercase tracking-widest">
+              <h2 className="text-2xl font-syne font-semibold text-brand-terracotta mb-6 uppercase tracking-widest">
                 Support
               </h2>
               <p className="text-slate-600 font-inter text-lg leading-relaxed max-w-md">
@@ -40,7 +40,7 @@ export default function ContactPage() {
 
             <div className="space-y-8">
               <div className="flex items-start gap-4">
-                <div className="mt-1 bg-indigo-50 p-3 rounded-full border border-indigo-100 text-indigo-600">
+                <div className="mt-1 bg-white p-3 rounded-full border border-brand-terracotta/20 text-brand-terracotta shadow-sm">
                   <Mail size={20} />
                 </div>
                 <div>
@@ -52,7 +52,7 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="mt-1 bg-indigo-50 p-3 rounded-full border border-indigo-100 text-indigo-600">
+                <div className="mt-1 bg-white p-3 rounded-full border border-brand-terracotta/20 text-brand-terracotta shadow-sm">
                   <Clock size={20} />
                 </div>
                 <div>
@@ -62,7 +62,7 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="mt-1 bg-indigo-50 p-3 rounded-full border border-indigo-100 text-indigo-600">
+                <div className="mt-1 bg-white p-3 rounded-full border border-brand-terracotta/20 text-brand-terracotta shadow-sm">
                   <HelpCircle size={20} />
                 </div>
                 <div>

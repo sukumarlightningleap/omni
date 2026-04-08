@@ -10,12 +10,18 @@
 ───────────────────────────────────────────────────── */
 
 
+@theme {
+  --color-brand-peach: #FFF5F2;
+  --color-brand-terracotta: #D97757;
+  --color-brand-indigo: #4F46E5;
+}
+
 :root {
   /* Brand Palette */
   --myntra-pink:    #ff3f6c;
-  --myntra-pink-dk: #d44070;
-  --myntra-orange:  #ff905a;
-  --myntra-green:   #14958f;
+  --brand-peach:    #FFF5F2;
+  --brand-terracotta: #D97757;
+  --brand-indigo:   #4F46E5;
 
   /* Neutral Scale */
   --color-bg:       #ffffff;
@@ -26,7 +32,7 @@
   --color-border:   #eaeaec;
 
   /* Accent */
-  --accent: var(--myntra-pink);
+  --accent: var(--brand-indigo);
 }
 
 /* ── RESET ────────────────────────────────────────── */

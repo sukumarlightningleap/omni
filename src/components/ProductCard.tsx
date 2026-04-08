@@ -97,7 +97,7 @@ const ProductCard = ({
       transition={{ duration: 0.6, delay: index * 0.05, ease: [0.211, 0, 0.076, 1] }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative bg-white rounded-xl transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden"
+      className="group relative bg-white rounded-xl transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:border-[#FCE8E2] border border-transparent overflow-hidden"
     >
       <Link href={`/products/${product.slug}`} className="block">
         {/* ── IMAGE CONTAINER ────────────────────────────── */}
@@ -175,7 +175,7 @@ const ProductCard = ({
                 {product.name}
               </h3>
               <div className="flex items-center gap-3">
-                <p className="text-sm md:text-base font-black text-black">
+                <p className="text-sm md:text-base font-black text-brand-indigo">
                   {product.price}
                 </p>
                 {inCartCount > 0 && (

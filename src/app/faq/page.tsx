@@ -30,7 +30,7 @@ export default function FAQPage() {
     <main className="min-h-screen bg-white text-slate-900 pt-32 pb-24 selection:bg-slate-900 selection:text-white font-sans">
       <section className="max-w-7xl mx-auto px-6 md:px-12 mb-24">
         <div className="flex flex-col gap-4 border-l border-slate-100 pl-8 py-12">
-          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.5em]">Support Center</span>
+          <span className="text-[10px] font-bold text-brand-terracotta uppercase tracking-[0.5em]">Support Center</span>
           <h1 className="text-6xl md:text-8xl font-bold tracking-tighter leading-[0.9] italic font-display uppercase">
             Operational <br /> 
             <span className="text-slate-400">Protocol.</span>
