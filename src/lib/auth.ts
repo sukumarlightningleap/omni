@@ -12,14 +12,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role;
+        const masterAdminEmail = process.env.MASTER_ADMIN_EMAIL;
+        const isMasterAdmin = masterAdminEmail && user.email?.toLowerCase() === masterAdminEmail.toLowerCase();
+
+        // Strict Enforcement: Only the Master Admin can have the ADMIN role in the session
+        if ((user as any).role === 'ADMIN' && !isMasterAdmin) {
+          token.role = 'CUSTOMER';
+        } else {
+          token.role = (user as any).role;
+        }
+        
         token.id = user.id;
+        token.email = user.email;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.role = token.role as any;
+        const masterAdminEmail = process.env.MASTER_ADMIN_EMAIL;
+        const isMasterAdmin = masterAdminEmail && token.email?.toLowerCase() === masterAdminEmail.toLowerCase();
+
+        // Final Security Gate: Ensure role consistency in the session object
+        if (token.role === 'ADMIN' && !isMasterAdmin) {
+          session.user.role = 'CUSTOMER';
+        } else {
+          session.user.role = token.role as any;
+        }
+        
         session.user.id = token.id as string;
       }
       return session;
