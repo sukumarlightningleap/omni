@@ -26,7 +26,8 @@ const requireAdmin = async () => {
 export async function updateMerchSettings(data: { 
   heroVideoUrl: string, 
   heroVideoUrls?: string[],
-  promoAnnouncement: string
+  heroImageUrl?: string | null,
+  promoAnnouncement?: string | null
 }) {
   await requireAdmin()
 
@@ -35,12 +36,14 @@ export async function updateMerchSettings(data: {
     update: {
       heroVideoUrl: data.heroVideoUrl,
       heroVideoUrls: data.heroVideoUrls || [],
+      heroImageUrl: data.heroImageUrl,
       promoAnnouncement: data.promoAnnouncement,
     },
     create: {
       id: "global",
       heroVideoUrl: data.heroVideoUrl,
       heroVideoUrls: data.heroVideoUrls || [],
+      heroImageUrl: data.heroImageUrl,
       promoAnnouncement: data.promoAnnouncement,
     }
   })
@@ -107,29 +110,5 @@ export async function updateCollectionImage(collectionId: string, imageUrl: stri
 
   revalidatePath("/admin/content")
   revalidatePath("/")
-  return { success: true }
-}
-
-export async function addLookbookImage(url: string, alt: string) {
-  await requireAdmin()
-
-  await prisma.lookbookImage.create({
-    data: { url, alt }
-  })
-
-  revalidatePath("/admin/merch")
-  revalidatePath("/lookbook")
-  return { success: true }
-}
-
-export async function deleteLookbookImage(id: string) {
-  await requireAdmin()
-
-  await prisma.lookbookImage.delete({
-    where: { id }
-  })
-
-  revalidatePath("/admin/merch")
-  revalidatePath("/lookbook")
   return { success: true }
 }

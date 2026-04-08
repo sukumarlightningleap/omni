@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 interface HeroSequencerProps {
   urls: string[];
+  poster?: string | null;
 }
 
 const DEFAULT_VIDEOS = [
@@ -13,7 +14,7 @@ const DEFAULT_VIDEOS = [
   "https://res.cloudinary.com/dydv8v9p6/video/upload/v1712614561/hero-4_njysqv.mp4"
 ];
 
-export default function HeroSequencer({ urls }: HeroSequencerProps) {
+export default function HeroSequencer({ urls, poster }: HeroSequencerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -35,6 +36,7 @@ export default function HeroSequencer({ urls }: HeroSequencerProps) {
       <video
         key={currentIndex}
         src={activeUrls[currentIndex]}
+        poster={poster || undefined}
         autoPlay
         muted
         playsInline

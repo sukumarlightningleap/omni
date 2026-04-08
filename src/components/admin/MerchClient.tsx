@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { updateMerchSettings, addLookbookImage, deleteLookbookImage, updateCollectionImage, upsertDiscoveryItem, removeDiscoveryItem } from "@/app/actions/merch";
+import { updateMerchSettings, updateCollectionImage, upsertDiscoveryItem, removeDiscoveryItem } from "@/app/actions/merch";
 import { upload } from "@vercel/blob/client";
 import { Video, Megaphone, Image as ImageIcon, Trash2, Plus, Loader2, Star, Zap, Edit3, Check, Search, LayoutGrid, Flame, Upload, X } from "lucide-react";
 
 type Config = {
   heroVideoUrl: string;
   heroVideoUrls: string[];
+  heroImageUrl: string | null;
   promoAnnouncement: string | null;
 };
 
@@ -58,11 +59,11 @@ export default function MerchClient({
   const [heroVideoUrl, setHeroVideoUrl] = useState(initialConfig?.heroVideoUrl || "");
   const [heroVideoUrls, setHeroVideoUrls] = useState<string[]>(() => {
     const urls = initialConfig?.heroVideoUrls || [];
-    // Ensure we always have 4 slots
     const result = [...urls];
     while (result.length < 4) result.push("");
     return result.slice(0, 4);
   });
+  const [heroImageUrl, setHeroImageUrl] = useState(initialConfig?.heroImageUrl || "");
   const [promoAnnouncement, setPromoAnnouncement] = useState(initialConfig?.promoAnnouncement || "");
   
   const [images, setImages] = useState(initialImages);
@@ -71,7 +72,6 @@ export default function MerchClient({
   const [discoveryItems, setDiscoveryItems] = useState<DiscoveryItem[]>(initialDiscovery);
   
   const [isSavingConfig, setIsSavingConfig] = useState(false);
-  const [isAddingImage, setIsAddingImage] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Sync state with discovery items when they change from server
@@ -112,7 +112,12 @@ export default function MerchClient({
     if (e) e.preventDefault();
     setIsSavingConfig(true);
     try {
-      await updateMerchSettings({ heroVideoUrl, heroVideoUrls, promoAnnouncement });
+      await updateMerchSettings({ 
+        heroVideoUrl, 
+        heroVideoUrls, 
+        heroImageUrl, 
+        promoAnnouncement: promoAnnouncement || null 
+      });
       alert("GLOBAL ASSETS SYNCED.");
     } catch {
       alert("FAILED TO SYNC CONFIGURATION.");
@@ -121,53 +126,24 @@ export default function MerchClient({
     }
   };
 
-  const handleLookbookUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeroPosterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setIsAddingImage(true);
-
+    setIsUploading(true);
     try {
       const blob = await upload(file.name, file, {
         access: 'public',
         handleUploadUrl: '/api/upload',
       });
-      
-      await addLookbookImage(blob.url, "Lookbook item");
-      window.location.reload();
-    } catch (error: any) {
-      console.group("Lookbook Upload Diagnostic");
-      console.error("Error Object:", error);
-      if (error instanceof Response) {
-        try {
-          const body = await error.json();
-          console.error("Server Response Body:", body);
-          alert(`UPLOAD FAILED [${body.code || 'UNKNOWN'}]: ${body.error || error.statusText}`);
-        } catch {
-          console.error("Raw status:", error.status, error.statusText);
-        }
-      } else {
-        alert(error.message || "FAILED TO UPLOAD. Check console for diagnostics.");
-      }
-      console.groupEnd();
+      setHeroImageUrl(blob.url);
+    } catch (error) {
+      alert("Poster Upload Failed.");
     } finally {
-      setIsAddingImage(false);
+      setIsUploading(false);
     }
   };
 
 
-  const handleDeleteImage = async (id: string) => {
-    if (!confirm("Delete this image?")) return;
-    setDeletingId(id);
-    try {
-      await deleteLookbookImage(id);
-      setImages(images.filter(img => img.id !== id));
-    } catch {
-      alert("FAILED TO DESTROY LOOKBOOK ASSET.");
-    } finally {
-      setDeletingId(null);
-    }
-  };
 
   const handleAddDiscovery = async (collectionId: string) => {
     setIsAddingDiscovery(collectionId);
@@ -479,17 +455,46 @@ export default function MerchClient({
           </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 pt-12 border-t border-slate-200">
+        <div className="pt-12 border-t border-slate-200">
           {/* Configuration Panel */}
-          <section className="space-y-8">
+          <section className="max-w-3xl space-y-8">
             <div className="space-y-1">
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight uppercase italic">Global Render Assets</h2>
-              <p className="text-sm text-slate-500 font-medium">Control high-level storefront media and announcements.</p>
+              <p className="text-sm text-slate-500 font-medium">Control hierarchical storefront media flow.</p>
             </div>
             
-            <form onSubmit={handleSaveConfig} className="space-y-6 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+            <form onSubmit={handleSaveConfig} className="space-y-8 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+              {/* Hierarchical Poster Link */}
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Hero Static Poster (IMG) - Desktop Optimized 2000x1200px</label>
+                <div className="flex flex-col gap-4">
+                  <div className="relative">
+                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      type="text"
+                      value={heroImageUrl}
+                      onChange={(e) => setHeroImageUrl(e.target.value)}
+                      placeholder="https://images.unsplash.com/..."
+                      className="w-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 rounded-xl px-12 py-4 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    />
+                  </div>
+                  
+                  <label className="cursor-pointer group flex items-center justify-center gap-4 w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl py-8 hover:border-indigo-500 hover:bg-indigo-50/30 transition-all duration-300">
+                    {isUploading ? (
+                      <Loader2 className="animate-spin text-indigo-600" size={24} />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Upload size={18} className="text-slate-400 group-hover:text-indigo-600" />
+                        <span className="text-xs font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-600">Upload from Device</span>
+                      </div>
+                    )}
+                    <input type="file" className="hidden" accept="image/*" onChange={handleHeroPosterUpload} disabled={isUploading} />
+                  </label>
+                </div>
+              </div>
+
               <div className="space-y-2.5">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Legacy Hero Media Node (Backup)</label>
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Default Hero Media Node (Legacy)</label>
                 <div className="relative">
                   <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input
@@ -502,105 +507,40 @@ export default function MerchClient({
                 </div>
               </div>
 
-              {heroVideoUrls.map((url, idx) => (
-                <div key={idx} className="space-y-2.5">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Hero Animation {idx + 1}</label>
-                  <div className="relative">
-                    <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                      type="text"
-                      value={url}
-                      onChange={(e) => {
-                        const next = [...heroVideoUrls];
-                        next[idx] = e.target.value;
-                        setHeroVideoUrls(next);
-                      }}
-                      placeholder={`/hero-sequencer-${idx + 1}.mp4`}
-                      className="w-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 rounded-xl px-12 py-4 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                    />
-                  </div>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Animation Sequencer Playlist</label>
+                   <span className="text-[8px] font-bold text-indigo-500 uppercase tracking-widest">Tip: Use Cloudinary f_auto,q_auto links</span>
                 </div>
-              ))}
-
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Global Promo Broadcast (Header Text)</label>
-                <div className="relative">
-                  <Megaphone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    type="text"
-                    value={promoAnnouncement}
-                    onChange={(e) => setPromoAnnouncement(e.target.value)}
-                    placeholder="FREE SHIPPING OVER ₹2000"
-                    className="w-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 rounded-xl px-12 py-4 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                  />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {heroVideoUrls.map((url, idx) => (
+                    <div key={idx} className="relative">
+                      <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                      <input
+                        type="text"
+                        value={url}
+                        onChange={(e) => {
+                          const next = [...heroVideoUrls];
+                          next[idx] = e.target.value;
+                          setHeroVideoUrls(next);
+                        }}
+                        placeholder={`Hero Animation ${idx + 1}`}
+                        className="w-full bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 rounded-xl px-10 py-3.5 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isSavingConfig}
-                className="w-full bg-indigo-600 text-white py-4 rounded-xl text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                className="w-full bg-[#121212] text-white py-4 rounded-xl text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-[#3730A3] transition-all shadow-lg"
               >
-                {isSavingConfig ? <Loader2 className="animate-spin" size={16} /> : "Update Configuration"}
+                {isSavingConfig ? <Loader2 className="animate-spin" size={16} /> : "Finalize Global Hierarchy"}
               </button>
             </form>
-          </section>
-
-          {/* Lookbook Panel */}
-          <section className="space-y-8">
-            <div className="space-y-1">
-              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight uppercase italic">Lookbook Image Data</h2>
-              <p className="text-sm text-slate-500 font-medium">Manage the static image grid for your lookbook page.</p>
-            </div>
-            
-            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-10">
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Ingestion Protocol</label>
-                
-                <label className="group relative flex flex-col items-center justify-center gap-4 w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl py-12 hover:border-indigo-500 hover:bg-indigo-50/30 transition-all duration-300 cursor-pointer">
-                  {isAddingImage ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <Loader2 className="animate-spin text-indigo-600" size={40} />
-                      <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">Ingesting Asset...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                        <Upload className="text-slate-400 group-hover:text-indigo-600" size={32} />
-                      </div>
-                      <div className="text-center space-y-1">
-                        <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Upload Content From Device</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supports PNG, JPG, WEBP • Cloud Hosted</p>
-                      </div>
-                    </>
-                  )}
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={handleLookbookUpload}
-                    disabled={isAddingImage}
-                  />
-                </label>
-              </div>
-
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-                {images.map((img) => (
-                  <div key={img.id} className="relative group aspect-square bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
-                    <Image src={img.url} alt={img.alt || "Lookbook"} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2">
-                      <button
-                        onClick={() => handleDeleteImage(img.id)}
-                        disabled={deletingId === img.id}
-                        className="bg-white/20 backdrop-blur-md p-2.5 rounded-full text-white hover:bg-red-500 transition-colors"
-                      >
-                        {deletingId === img.id ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </section>
         </div>
       </div>

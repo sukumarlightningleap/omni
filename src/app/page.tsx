@@ -111,7 +111,16 @@ export default async function Home() {
 
       {/* ── HERO BANNER ────────────────────────────────── */}
       <section className="relative h-[92vh] w-full overflow-hidden bg-[#0F172A]">
-        <HeroSequencer urls={config?.heroVideoUrls || []} />
+        {config?.heroImageUrl && (
+          <Image 
+            src={config.heroImageUrl}
+            alt="UNRWLY Static Base"
+            fill
+            priority
+            className="object-cover object-center opacity-70"
+          />
+        )}
+        <HeroSequencer urls={config?.heroVideoUrls || []} poster={config?.heroImageUrl} />
         
         {/* Peach-Tinted Cinematic Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 via-[#FFF5F2]/10 to-transparent pointer-events-none" />
