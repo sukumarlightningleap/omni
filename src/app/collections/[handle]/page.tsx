@@ -20,7 +20,9 @@ export default async function IndividualCollectionPage({ params }: CollectionPag
       handle
     },
     include: {
-      products: true
+      products: {
+        where: { status: 'LIVE' }
+      }
     }
   });
 

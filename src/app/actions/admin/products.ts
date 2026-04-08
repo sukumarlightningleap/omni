@@ -28,6 +28,10 @@ export async function updateProductGatekeeper(
     throw new Error(`Loss Prevention: Retail price ($${price}) cannot be lower than base cost ($${product.cost.toFixed(2)}).`)
   }
 
+  if (status === "LIVE" && (collectionId === "none" || !collectionId)) {
+    throw new Error("Gatekeeper: Product cannot be LIVE without an assigned collection.")
+  }
+
   await prisma.product.update({
     where: { id: productId },
     data: {
@@ -35,6 +39,30 @@ export async function updateProductGatekeeper(
       collectionId: collectionId === "none" ? null : collectionId,
       status,
     }
+  })
+
+  revalidatePath("/admin/products")
+  revalidatePath("/collections")
+  revalidatePath("/")
+  return { success: true }
+}
+
+export async function toggleProductStatus(productId: string, isLive: boolean) {
+  await requireAdmin()
+
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { collectionId: true }
+  })
+
+  // Enforce the rule: LIVE requires a collection
+  if (isLive && !product?.collectionId) {
+    throw new Error("Gatekeeper: Cannot publish. Choose a collection first.")
+  }
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: { status: isLive ? 'LIVE' : 'DRAFT' }
   })
 
   revalidatePath("/admin/products")

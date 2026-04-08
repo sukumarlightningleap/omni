@@ -5,7 +5,7 @@ import { Search, ChevronDown, Image as ImageIcon, Loader2, Plus, ArrowUpRight, D
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { bulkPublishToCollection, syncPrintifyManual, updateProductGatekeeper } from "@/app/actions/admin/products";
+import { bulkPublishToCollection, syncPrintifyManual, updateProductGatekeeper, toggleProductStatus } from "@/app/actions/admin/products";
 
 type ProductData = {
   id: string;
@@ -82,6 +82,33 @@ export default function ProductsClient({
       if (result.message) alert(result.message);
     } else {
       alert("Sync Failed: " + (result.message || "Check server logs."));
+    }
+  };
+
+  const handleStatusToggle = async (productId: string, currentStatus: "LIVE" | "DRAFT") => {
+    const isLive = currentStatus === "LIVE";
+    setSavingIds(prev => new Set(prev).add(productId));
+    try {
+      const result = await toggleProductStatus(productId, !isLive);
+      if (result.success) {
+        setSavedIds(prev => new Set(prev).add(productId));
+        setTimeout(() => {
+          setSavedIds(prev => {
+            const next = new Set(prev);
+            next.delete(productId);
+            return next;
+          });
+        }, 2000);
+        router.refresh();
+      }
+    } catch (error: any) {
+      alert(error.message || "Toggle failed.");
+    } finally {
+      setSavingIds(prev => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
     }
   };
 
@@ -278,10 +305,10 @@ export default function ProductsClient({
                     <td className="px-4 py-4">
                        <div className="flex items-center justify-center">
                           <button
-                            disabled={!hasCollection || isSaving}
-                            onClick={() => handleInlineUpdate(product.id, product.price, product.collectionId!, product.status === "LIVE" ? "DRAFT" : "LIVE")}
-                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${!hasCollection ? 'bg-slate-200 cursor-not-allowed' : product.status === "LIVE" ? 'bg-emerald-500' : 'bg-slate-300'}`}
-                            title={!hasCollection ? "Assign a collection first" : `Switch to ${product.status === "LIVE" ? "DRAFT" : "LIVE"}`}
+                            disabled={isSaving}
+                            onClick={() => handleStatusToggle(product.id, product.status)}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${product.status === "LIVE" ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                            title={`Switch to ${product.status === "LIVE" ? "DRAFT" : "LIVE"}`}
                           >
                             <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${product.status === "LIVE" ? 'translate-x-4' : 'translate-x-0'}`} />
                           </button>

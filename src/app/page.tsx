@@ -39,6 +39,7 @@ async function getHomepageData() {
         take: 100,
       }),
       prisma.product.findMany({
+        where: { status: 'LIVE' },
         take: 20,
         orderBy: { createdAt: 'desc' },
       }),
