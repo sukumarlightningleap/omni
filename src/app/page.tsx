@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Truck, ShieldCheck, Headphones, RotateCcw, ArrowRight, Star, Heart } from 'lucide-react';
+import { ArrowRight, Star, Heart } from 'lucide-react';
 import TrendingCarousel from "@/components/TrendingCarousel";
 import CategoryBudgetCarousel from "@/components/CategoryBudgetCarousel";
 import CollectionSquareCarousel from "@/components/CollectionSquareCarousel";

@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowLeft, Star, ShoppingBag, ShieldCheck, Truck, RotateCcw, MapPin, ChevronRight, Heart, Share2 } from 'lucide-react';
 import Link from 'next/link';
-import VTOModal from '@/components/VTOModal';
 import ProductCard from '@/components/ProductCard';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
@@ -38,7 +37,6 @@ const CrossSellCarousel = ({ products }: { products: any[] }) => {
 export default function ProductClient({ product, recommendations = [] }: ProductClientProps) {
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
-  const [isVTOOpen, setIsVTOOpen] = useState(false);
   const [pincode, setPincode] = useState('');
   const [pincodeStatus, setPincodeStatus] = useState<null | 'valid' | 'invalid'>(null);
   const [currentSlide, setCurrentSlide] = useState(1);
@@ -415,7 +413,6 @@ export default function ProductClient({ product, recommendations = [] }: Product
       <CrossSellCarousel products={recommendations} />
       
 
-      <VTOModal isOpen={isVTOOpen} onClose={() => setIsVTOOpen(false)} productImage={images[0]} productName={product.name} />
     </div>
   );
 }
