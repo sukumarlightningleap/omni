@@ -61,6 +61,8 @@ model Order {
   internalNotes   String?
   shippingAddress String?
   trackingNumber  String?
+  carrier         String?
+  trackingUrl     String?
   user            User?        @relation(fields: [userId], references: [id])
   items           OrderItem[]
 }

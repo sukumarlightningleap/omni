@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, RefreshCcw, Save, Loader2, Package, MapPin, Hash, Network } from "lucide-react";
-import { fetchPrintifyTracking, updateOrderStatus } from "@/app/actions/admin/orders";
+import { X, RefreshCcw, Save, Loader2, Package, MapPin, Hash, Network, ExternalLink, Lock, CheckCircle2 } from "lucide-react";
+import { fetchPrintifyTracking, updateOrderStatus, repairOrder, syncPrintifyOrder } from "@/app/actions/admin/orders";
 import { OrderStatus } from "@prisma/client";
 
 export default function OrderDetailDrawer({ order, onClose }: { order: any; onClose: () => void }) {
@@ -11,6 +11,7 @@ export default function OrderDetailDrawer({ order, onClose }: { order: any; onCl
   const [notes, setNotes] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRepairing, setIsRepairing] = useState(false);
 
   useEffect(() => {
     if (order) {
@@ -22,22 +23,38 @@ export default function OrderDetailDrawer({ order, onClose }: { order: any; onCl
   if (!order) return null;
 
   const handleSyncPrintify = async () => {
-    if (!order.printifyOrderId) {
-      alert("NO PRINTIFY CIPHER ATTACHED TO THIS ORDER.");
-      return;
-    }
-    
     setIsSyncing(true);
     try {
-      const res = await fetchPrintifyTracking(order.id);
+      const res = await syncPrintifyOrder(order.id);
       if (res.success) {
         setStatus("SHIPPED");
+        alert("LOGISTICS DATA SYNCHRONIZED.");
+      } else {
+        alert(res.error || "LOGISTICS SYNC FAILED.");
       }
-      // We would ideally notify success, but the UI updates natively 
     } catch {
-      alert("FAILED TO SYNC WITH LOGISTICS NETWORK.");
+      alert("FAILED TO COMMUNICATE WITH FACTORY NETWORK.");
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleRepair = async () => {
+    if (!window.confirm("INITIATE ADMINISTRATIVE REPAIR? THIS WILL FORCE-FIX PENDING STATUS VIA STRIPE.")) return;
+    
+    setIsRepairing(true);
+    try {
+      const res = await repairOrder(order.id);
+      if (res.success) {
+        setStatus("PAID");
+        alert("REPAIR SUCCESSFUL. ORDER RECONCILED.");
+      } else {
+        alert(res.error || "REPAIR PROTOCOL FAILED.");
+      }
+    } catch {
+      alert("REPAIR ENCOUNTERED A NETWORK EXCEPTION.");
+    } finally {
+      setIsRepairing(false);
     }
   };
 
@@ -90,58 +107,86 @@ export default function OrderDetailDrawer({ order, onClose }: { order: any; onCl
           {/* Drawer Body */}
           <div className="p-6 flex-1 space-y-10">
             
-            {/* Logistics Sync */}
-            <div className="space-y-4">
-              <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2">Tracking Protocols</h3>
+            {/* ADMINISTRATIVE LOGISTICS HUB */}
+            <div className="space-y-6">
+              <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 flex items-center gap-2">
+                <Network size={12} />
+                Administrative Logistics Hub
+              </h3>
               
-              <div className="bg-white/[0.02] border border-white/10 p-4 space-y-4">
-                <div className="flex items-center gap-3">
-                  <Hash size={14} className="text-neutral-500" />
-                  <div className="space-y-1 w-full">
-                    <p className="text-[8px] uppercase tracking-widest text-neutral-600">Printify Identity Code</p>
-                    <p className="text-xs text-white tracking-widest">
-                      {order.printifyOrderId || "AWAITING FULFILLMENT ASSIGNMENT"}
+              <div className="space-y-4">
+                {/* REPAIR NODE (Visible for PENDING only) */}
+                {status === "PENDING" && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-5 bg-indigo-500/10 border border-indigo-500/30 rounded-xl space-y-4"
+                  >
+                    <div className="flex bg-indigo-500/20 p-2 rounded-lg items-center gap-2 w-fit">
+                      <Lock size={12} className="text-indigo-400" />
+                      <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400">Security Recovery Active</span>
+                    </div>
+                    <p className="text-[9px] text-indigo-300 leading-relaxed uppercase tracking-widest font-bold">
+                      Order is stuck in PENDING. Use the recovery protocol to verify payment via Stripe and trigger fulfillment.
                     </p>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={handleSyncPrintify}
-                  disabled={isSyncing || !order.printifyOrderId}
-                  className="w-full py-3 border border-white/10 text-[9px] text-white uppercase tracking-[0.3em] font-bold hover:bg-white/5 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {isSyncing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCcw size={12} />}
-                  Ping Printify Network
-                </button>
-              </div>
-            </div>
+                    <button
+                      onClick={handleRepair}
+                      disabled={isRepairing}
+                      className="w-full py-3 bg-indigo-600 text-[10px] text-white font-black uppercase tracking-[0.3em] hover:bg-indigo-500 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-indigo-600/20"
+                    >
+                      {isRepairing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
+                      Force Administrative Repair
+                    </button>
+                  </motion.div>
+                )}
 
-            {/* Manual Status Override */}
-            <div className="space-y-4">
-              <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2">Status Coordinator</h3>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as OrderStatus)}
-                className={`w-full bg-black border text-[10px] uppercase tracking-[0.2em] p-4 focus:outline-none transition-colors appearance-none cursor-pointer font-bold ${
-                  status === 'PAID' ? 'text-green-500 border-green-500/30' : 
-                  status === 'SHIPPED' ? 'text-blue-500 border-blue-500/30' : 
-                  status === 'CANCELLED' ? 'text-red-500 border-red-500/30' : 
-                  status === 'PROCESSING' ? 'text-yellow-500 border-yellow-500/30' : 
-                  'text-neutral-300 border-white/20'
-                }`}
-              >
-                {["PENDING", "PAID", "PROCESSING", "SHIPPED", "CANCELLED"].map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+                {/* TRACKING PROTOCOLS (Visible for PAID/SHIPPED/PROCESSING) */}
+                {status !== "PENDING" && status !== "CANCELLED" && (
+                  <div className="bg-white/[0.03] border border-white/10 p-6 rounded-2xl space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-[8px] uppercase tracking-widest text-neutral-500">Logistics Carrier</p>
+                        <p className="text-xs text-white font-black uppercase tracking-widest">{order.carrier || "MANIFESTED"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[8px] uppercase tracking-widest text-neutral-500">Tracking Number</p>
+                        <p className="text-xs text-white font-black uppercase tracking-widest">{order.trackingNumber || "AWAITING..."}</p>
+                      </div>
+                    </div>
+
+                    {order.trackingUrl && (
+                      <a 
+                        href={order.trackingUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors group"
+                      >
+                        <span className="text-[9px] font-black uppercase tracking-widest text-white">Live Tracking Vector</span>
+                        <ExternalLink size={14} className="text-neutral-500 group-hover:text-white transition-colors" />
+                      </a>
+                    )}
+
+                    <button
+                      onClick={handleSyncPrintify}
+                      disabled={isSyncing}
+                      className="w-full py-4 border border-white/20 text-[10px] text-white font-black uppercase tracking-[0.3em] hover:bg-white/5 transition-all flex items-center justify-center gap-3 rounded-xl"
+                    >
+                      {isSyncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
+                      Sync With Factory
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Destination Vector */}
             <div className="space-y-4">
-              <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2">Destination Vector</h3>
-              <div className="flex items-start gap-3 p-4 bg-white/[0.02] border border-white/10">
-                <MapPin size={14} className="text-neutral-500 shrink-0 mt-0.5" />
-                <p className="text-[10px] text-neutral-300 leading-relaxed tracking-wider uppercase">
+              <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 flex items-center gap-2">
+                <MapPin size={12} />
+                Destination Vector
+              </h3>
+              <div className="flex items-start gap-4 p-5 bg-white/[0.02] border border-white/10 rounded-2xl">
+                <p className="text-[10px] text-neutral-300 leading-relaxed tracking-wider uppercase font-bold">
                   {order.shippingAddress || "NO DESTINATION RECORDED. DIGITAL DELIVERY ONLY."}
                 </p>
               </div>

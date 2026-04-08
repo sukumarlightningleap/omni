@@ -101,20 +101,56 @@ export async function POST(req: Request) {
       return NextResponse.json({ acknowledged: true })
     }
 
-    if (body.type === "order:shipped") {
-      const orderData = body.resource
-      const tracking = orderData.shipments?.[0]?.number || "UNKNOWN"
-      const carrier = orderData.shipments?.[0]?.carrier || "UNKNOWN"
+    // 2. LOGISTICS HANDLER: Shipped
+    if (body.type === "order:shipped" || body.type === "order:shipment:created") {
+      const resource = body.resource;
+      // order:shipped has 'id', order:shipment:created has 'order_id'
+      const printifyOrderId = resource.order_id || resource.id;
+      const tracking = resource.tracking_number || resource.shipments?.[0]?.number || "UNKNOWN";
+      const carrier = resource.carrier || resource.shipments?.[0]?.carrier || "UNKNOWN";
+      const trackingUrl = resource.tracking_url || resource.shipments?.[0]?.url || null;
+
+      if (!printifyOrderId) return NextResponse.json({ error: "MISSING_ORDER_ID" }, { status: 400 });
 
       await prisma.order.update({
-        where: { printifyOrderId: orderData.id },
+        where: { printifyOrderId },
         data: {
           status: "SHIPPED",
-          internalNotes: `[SYSTEM]: Order dispatched via ${carrier}. Tracking: ${tracking}\n`
+          trackingNumber: tracking,
+          carrier: carrier,
+          trackingUrl: trackingUrl,
+          internalNotes: {
+            set: (await prisma.order.findUnique({ where: { printifyOrderId } }))?.internalNotes + 
+                 `\n[LOGISTICS]: DISPATCHED VIA ${carrier.toUpperCase()} AT ${new Date().toLocaleTimeString()}. TRACKING: ${tracking}`
+          }
         }
-      })
+      });
       
-      return NextResponse.json({ acknowledged: true })
+      revalidatePath("/admin/orders");
+      console.log(`\x1b[46m\x1b[30m LOGISTICS \x1b[0m \x1b[36mORDER SHIPPED:\x1b[0m ${printifyOrderId}`);
+      return NextResponse.json({ acknowledged: true });
+    }
+
+    // 3. LOGISTICS HANDLER: Delivered
+    if (body.type === "order:delivered" || body.type === "order:shipment:delivered") {
+      const resource = body.resource;
+      const printifyOrderId = resource.order_id || resource.id;
+
+      if (!printifyOrderId) return NextResponse.json({ error: "MISSING_ORDER_ID" }, { status: 400 });
+
+      await prisma.order.update({
+        where: { printifyOrderId },
+        data: {
+          status: "DELIVERED",
+          internalNotes: {
+            set: (await prisma.order.findUnique({ where: { printifyOrderId } }))?.internalNotes + 
+                 `\n[LOGISTICS]: CONFIRMED DELIVERY AT ${new Date().toLocaleTimeString()}.`
+          }
+        }
+      });
+      revalidatePath("/admin/orders");
+      console.log(`\x1b[42m\x1b[30m LOGISTICS \x1b[0m \x1b[32mORDER DELIVERED:\x1b[0m ${printifyOrderId}`);
+      return NextResponse.json({ acknowledged: true });
     }
 
     return NextResponse.json({ ignored: true })

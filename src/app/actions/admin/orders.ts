@@ -3,7 +3,12 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
-import { createPrintifyOrder } from "@/lib/printify"
+import { createPrintifyOrder, registerPrintifyWebhook } from "@/lib/printify"
+import Stripe from "stripe"
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: "2023-10-16" as any
+})
 
 const requireAdmin = async () => {
   const session = await auth()
@@ -48,7 +53,6 @@ export async function fetchPrintifyTracking(orderId: string) {
   const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
   const shopId = process.env.PRINTIFY_SHOP_ID;
 
-  // Fallback testing mechanism when PRINTIFY_TOKEN is mocked
   if (!token || !shopId) {
     await prisma.order.update({
       where: { id: orderId },
@@ -75,6 +79,8 @@ export async function fetchPrintifyTracking(orderId: string) {
           where: { id: orderId },
           data: {
             status: "SHIPPED",
+            trackingNumber: tracking,
+            carrier: carrier,
             internalNotes: (order.internalNotes || "") + `\n[ACTION]: Manual tracking pull. Carrier: ${carrier}. Tracking: ${tracking}`
           }
         })
@@ -94,7 +100,6 @@ export async function fetchPrintifyTracking(orderId: string) {
 export async function forcePushToPrintify(orderId: string) {
   await requireAdmin()
 
-  // 1. Log the initiation
   await prisma.order.update({
     where: { id: orderId },
     data: {
@@ -102,9 +107,103 @@ export async function forcePushToPrintify(orderId: string) {
     }
   });
 
-  // 2. Use the shared bridge
   const result = await createPrintifyOrder(orderId);
-
   revalidatePath("/admin/orders")
   return result;
 }
+
+export async function repairOrder(orderId: string) {
+  await requireAdmin()
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { stripeSessionId: true, status: true, internalNotes: true, userId: true, totalAmount: true }
+  })
+
+  if (!order || !order.stripeSessionId) {
+    return { error: "No Stripe Session ID associated with this order record." }
+  }
+
+  if (order.status !== "PENDING") {
+    return { error: "Order is already processed beyond the pending state." }
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId, {
+      expand: ["line_items", "customer"]
+    }) as any
+
+    if (session.payment_status === "paid" || session.status === "complete") {
+      const addressDetails = session.shipping_details?.address || session.shipping?.address;
+      const customerName = session.shipping_details?.name || session.shipping?.name || session.customer_details?.name;
+      const customerEmail = session.customer_details?.email || session.receipt_email;
+      
+      const formattedAddress = addressDetails ? 
+        `${customerName} | ${customerEmail} | ${addressDetails.line1}, ${addressDetails.line2 ? addressDetails.line2 + ', ' : ''}${addressDetails.city}, ${addressDetails.state} ${addressDetails.postal_code}, ${addressDetails.country}` 
+        : "No address recorded";
+
+      const orderWithItems = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: { include: { product: true } } }
+      });
+
+      if (!orderWithItems) return { error: "Order items not found." };
+
+      const totalCost = orderWithItems.items.reduce((sum: number, item: any) => sum + (item.product.cost || 0) * item.quantity, 0);
+      const profit = orderWithItems.totalAmount - totalCost;
+      const amountPaid = (session.amount_total || 0) / 100;
+
+      await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: "PAID",
+          profit: profit,
+          totalPaid: amountPaid,
+          shippingAddress: formattedAddress,
+          ...(order.userId && {
+            user: {
+              update: { totalSpent: { increment: amountPaid } }
+            }
+          }),
+          internalNotes: (order.internalNotes || "") + "\n[RECOVERY]: Manual administrative sync successful. Payment verified via Stripe. Fulfillment triggered."
+        }
+      });
+
+      await createPrintifyOrder(orderId, session);
+      
+      revalidatePath("/admin/orders")
+      return { success: true }
+    } else {
+      return { error: `Stripe reports payment status: ${session.payment_status}. Verification failed.` }
+    }
+  } catch (err: any) {
+    return { error: `Repair Failed: ${err.message}` }
+  }
+}
+
+export async function syncPrintifyOrder(orderId: string) {
+  return fetchPrintifyTracking(orderId);
+}
+
+export async function setupLogisticsWebhook() {
+  await requireAdmin()
+  
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
+  if (!appUrl) {
+    return { error: "Production URL not detected in environment. Setup failed." }
+  }
+
+  const protocol = appUrl.startsWith('http') ? '' : 'https://';
+  const targetUrl = `${protocol}${appUrl}/api/webhooks/printify`;
+
+  console.log(`[ADMIN] Initiating Logistics Registration for: ${targetUrl}`);
+  const result = await registerPrintifyWebhook(targetUrl);
+
+  if (result.success) {
+    revalidatePath("/admin/orders")
+    return { success: true, message: "Logistics Bridge established successfully." }
+  } else {
+    return { error: `Registration Failure: ${result.error}` }
+  }
+}
+

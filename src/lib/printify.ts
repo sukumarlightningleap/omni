@@ -215,3 +215,66 @@ export async function createPrintifyOrder(orderId: string, stripeObject?: any) {
     return { success: false, error: "NETWORK_FAILURE" };
   }
 }
+
+/**
+ * Programmatically registers the Unrwly webhook endpoint with Printify.
+ * Ensures the factory has a persistent link to propagate shipment data.
+ */
+export async function registerPrintifyWebhook(targetUrl: string) {
+  const shopId = process.env.PRINTIFY_SHOP_ID;
+  const token = process.env.PRINTIFY_API_TOKEN || process.env.PRINTIFY_TOKEN;
+
+  if (!shopId || !token) {
+    return { success: false, error: "CREDENTIALS_MISSING" };
+  }
+
+  try {
+    // 1. Check for existing webhooks to prevent duplicate noise
+    const existingRes = await fetch(`https://api.printify.com/v1/shops/${shopId}/webhooks.json`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    
+    if (existingRes.ok) {
+      const webhooks = await existingRes.json();
+      const duplicate = webhooks.find((w: any) => w.url === targetUrl);
+      if (duplicate) {
+        return { success: true, message: "WEBHOOK_ALREADY_REGISTERED", id: duplicate.id };
+      }
+    }
+
+    // 2. Register the new autonomous listener
+    const payload = {
+      topic: "order:shipment:created", // Primary event for Logistics Mastery
+      url: targetUrl
+    };
+
+    const res = await fetch(`https://api.printify.com/v1/shops/${shopId}/webhooks.json`, {
+      method: "POST",
+      headers: { 
+        "Authorization": `Bearer ${token}`, 
+        "Content-Type": "application/json" 
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      console.log(`[PRINTIFY] Webhook Registered successfully: ${targetUrl}`);
+      
+      // Also register for delivery if possible (optional but good for 'Live Status' objective)
+      await fetch(`https://api.printify.com/v1/shops/${shopId}/webhooks.json`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: "order:shipment:delivered", url: targetUrl })
+      });
+
+      return { success: true, id: data.id };
+    } else {
+      const error = await res.text();
+      return { success: false, error };
+    }
+  } catch (err) {
+    console.error("registerPrintifyWebhook Error:", err);
+    return { success: false, error: "NETWORK_FAILURE" };
+  }
+}

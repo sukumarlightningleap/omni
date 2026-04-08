@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Package, Heart, LogOut, Settings, Loader2, ShoppingBag } from 'lucide-react';
+import { User, Package, Heart, LogOut, Settings, Loader2, ShoppingBag, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import ProductCard from '@/components/ProductCard';
@@ -136,20 +136,47 @@ const AccountClient = ({ orders }: AccountClientProps) => {
                       <table className="w-full text-left border-collapse">
                         <thead className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 border-b border-neutral-100">
                           <tr>
-                            <th className="pb-6 font-black italic">Order Identity</th>
+                            <th className="pb-6 font-black italic text-black">Order Identity</th>
                             <th className="pb-6 font-black italic">Timestamp</th>
-                            <th className="pb-6 font-black italic">Value</th>
+                            <th className="pb-6 font-black italic">Logistics Status</th>
                             <th className="pb-6 font-black italic text-right">Clearance</th>
                           </tr>
                         </thead>
                         <tbody className="text-sm">
                           {orders.map((order) => (
                             <tr key={order.id} className="border-b border-neutral-50 hover:bg-neutral-50/50 transition-colors last:border-0 font-bold uppercase italic tracking-widest text-[11px]">
-                              <td className="py-8 font-black text-black">{order.orderNumber || 'UNR-XXXX'}</td>
+                              <td className="py-8 font-black text-black">
+                                <div className="space-y-1">
+                                  <p>{order.orderNumber || 'UNR-XXXX'}</p>
+                                  <p className="text-[8px] text-neutral-400 not-italic uppercase font-bold tracking-widest">
+                                    {order.items?.length || 0} Units Assigned
+                                  </p>
+                                </div>
+                              </td>
                               <td className="py-8 text-neutral-400">{new Date(order.createdAt).toLocaleDateString()}</td>
-                              <td className="py-8 text-black">${order.totalAmount.toFixed(2)}</td>
+                              <td className="py-8">
+                                <div className="flex flex-col gap-2">
+                                  <span className="text-black">${order.totalAmount.toFixed(2)}</span>
+                                  {order.trackingUrl && (
+                                    <a 
+                                      href={order.trackingUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition-colors"
+                                    >
+                                      <span className="text-[8px] font-black underline underline-offset-4">Track Shipment</span>
+                                      <ExternalLink size={10} />
+                                    </a>
+                                  )}
+                                </div>
+                              </td>
                               <td className="py-8 text-right">
-                                <span className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-full border border-indigo-100 text-[9px] font-black tracking-widest">
+                                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-[9px] font-black tracking-widest ${
+                                  order.status === 'PAID' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+                                  order.status === 'SHIPPED' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                  order.status === 'DELIVERED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                  'bg-neutral-50 text-neutral-400 border-neutral-100'
+                                }`}>
                                   {order.status}
                                 </span>
                               </td>

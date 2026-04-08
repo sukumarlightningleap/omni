@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Search, ChevronDown, CheckSquare, Square, CreditCard, Package, Truck, Zap, Loader2, X } from "lucide-react";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { forcePushToPrintify, fetchPrintifyTracking } from "@/app/actions/admin/orders";
+import { forcePushToPrintify, fetchPrintifyTracking, setupLogisticsWebhook } from "@/app/actions/admin/orders";
 
 type OrderData = {
   id: string;
@@ -14,6 +14,8 @@ type OrderData = {
   totalPaid?: number | null;
   printifyOrderId: string | null;
   trackingNumber?: string | null;
+  carrier?: string | null;
+  trackingUrl?: string | null;
   shippingAddress?: string | null;
   items: {
     id: string;
@@ -57,6 +59,18 @@ export default function OrdersClient({ initialOrders }: { initialOrders: OrderDa
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">Orders</h1>
         <div className="flex gap-3">
+          <button 
+            onClick={async () => {
+              if (confirm("Establish permanent Logistics Bridge with Printify?")) {
+                const res = await setupLogisticsWebhook();
+                alert(res.success ? res.message : `Setup Error: ${res.error}`);
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm group"
+          >
+            <Zap size={14} className="text-amber-500 group-hover:scale-125 transition-transform" />
+            Logistics Setup
+          </button>
           <button className="px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
             Export
           </button>
@@ -240,15 +254,21 @@ function OrderDetailDrawer({ order: initialOrder, onClose }: { order: OrderData;
 
            <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-6 space-y-4">
               <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">External Logs</h3>
-              <div className="p-4 bg-slate-50 border border-slate-100 rounded-lg font-mono text-[11px] text-slate-600 leading-relaxed max-h-40 overflow-y-auto">
-                 [BUILD_NODE_A] :: Handshake confirmed with external API.<br/>
-                 [PAYMENT_ENGINE] :: Verified receipt of ${(order.totalPaid || order.totalAmount).toFixed(2)} via Stripe.<br/>
-                 {order.printifyOrderId ? (
+               <div className="p-4 bg-slate-50 border border-slate-100 rounded-lg font-mono text-[11px] text-slate-600 leading-relaxed max-h-40 overflow-y-auto">
+                  [BUILD_NODE_A] :: Handshake confirmed with external API.<br/>
+                  [PAYMENT_ENGINE] :: Verified receipt of ${(order.totalPaid || order.totalAmount).toFixed(2)} via Stripe.<br/>
+                  {order.printifyOrderId ? (
                     <span className="text-indigo-600 font-bold">[PRODUCTION] :: Pushed to Printify ID: {order.printifyOrderId}</span>
-                 ) : (
+                  ) : (
                     <span className="text-rose-500 font-bold">[AWAITING] :: Pending manual or auto-handshake.</span>
-                 )}
-              </div>
+                  )}
+                  {order.trackingNumber && (
+                    <div className="mt-2 pt-2 border-t border-slate-200">
+                      <span className="text-emerald-600 font-bold">[LOGISTICS] :: SHIPPED // Carrier: {order.carrier || 'N/A'}</span><br/>
+                      <span className="text-emerald-600 font-bold">[LOGISTICS] :: Tracking: {order.trackingNumber}</span>
+                    </div>
+                  )}
+               </div>
            </section>
         </div>
 
@@ -291,15 +311,31 @@ function OrderDetailDrawer({ order: initialOrder, onClose }: { order: OrderData;
               </div>
            </section>
 
-           {/* ACTIONS */}
-           <div className="pt-4">
-              <button 
-                className="w-full h-12 bg-white border border-slate-200 text-slate-900 font-bold uppercase tracking-wider text-xs rounded-lg hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2"
-              >
-                <Zap size={14} className="text-amber-500" />
-                Manual Sync Override
-              </button>
-           </div>
+            {/* ACTIONS */}
+            <div className="pt-4 space-y-3">
+               {order.trackingUrl && (
+                 <a 
+                   href={order.trackingUrl}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="w-full h-12 bg-indigo-600 text-white font-bold uppercase tracking-wider text-xs rounded-lg hover:bg-indigo-700 transition-all shadow-md flex items-center justify-center gap-2"
+                 >
+                   <Truck size={14} />
+                   Track Package
+                 </a>
+               )}
+               <button 
+                 onClick={async () => {
+                   const res = await fetchPrintifyTracking(order.id);
+                   if (res.success) alert("Logistics sync successful.");
+                   else alert(res.error);
+                 }}
+                 className="w-full h-12 bg-white border border-slate-200 text-slate-900 font-bold uppercase tracking-wider text-xs rounded-lg hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2"
+               >
+                 <Zap size={14} className="text-amber-500" />
+                 Manual Sync Override
+               </button>
+            </div>
         </div>
       </div>
     </div>
