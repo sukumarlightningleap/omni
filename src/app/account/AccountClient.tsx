@@ -1,87 +1,58 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Package, Heart, LogOut, Settings, Loader2 } from 'lucide-react';
+import { User, Package, Heart, LogOut, Settings, Loader2, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { useAuth } from '@/context/AuthContext';
 import ProductCard from '@/components/ProductCard';
+import { useWishlistStore } from '@/store/useWishlistStore';
 
-const AccountClient = () => {
+interface AccountClientProps {
+  orders: any[];
+}
+
+const AccountClient = ({ orders }: AccountClientProps) => {
   const { data: session, status } = useSession();
-  const { logout: legacyLogout, wishlist } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = React.useState<'orders' | 'wishlist' | 'settings'>('orders');
-  const [wishlistProducts, setWishlistProducts] = React.useState<any[]>([]);
-  const [isFetchingWishlist, setIsFetchingWishlist] = React.useState(false);
-
+  const [activeTab, setActiveTab] = useState<'orders' | 'wishlist' | 'settings'>('orders');
+  
+  const wishlistItems = useWishlistStore((state) => state.items);
   const isLoading = status === 'loading';
   const user = session?.user;
 
-  // Handle Wishlist Data Fetching
+  // STRICT ADMIN REDIRECT
   useEffect(() => {
-    const fetchWishlistItems = async () => {
-      if (!wishlist || wishlist.length === 0) {
-        setWishlistProducts([]);
-        return;
-      }
-
-      setIsFetchingWishlist(true);
-      // Mock delay
-      setTimeout(() => {
-        const dummyProducts = [
-          {
-            _id: 'prod_1',
-            name: 'Signature Heavyweight Hoodie',
-            slug: 'signature-heavyweight-hoodie',
-            image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1000',
-            price: '65.00 USD'
-          },
-          {
-            _id: 'prod_2',
-            name: 'Matte Black Phone Case',
-            slug: 'matte-black-phone-case',
-            image: 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?q=80&w=1000',
-            price: '25.00 USD'
-          }
-        ];
-        const filtered = dummyProducts.filter((p: any) => wishlist.includes(p.slug));
-        setWishlistProducts(filtered);
-        setIsFetchingWishlist(false);
-      }, 500);
-    };
-
-    if (user && activeTab === 'wishlist') {
-      fetchWishlistItems();
+    if (status === 'authenticated' && user?.role === 'ADMIN') {
+      router.push('/admin');
     }
-  }, [wishlist, user, activeTab]);
+  }, [user, status, router]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="animate-spin text-white" size={32} />
+      <div className="min-h-screen bg-[#F6F6F7] flex items-center justify-center">
+        <Loader2 className="animate-spin text-neutral-300" size={32} />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white space-y-8">
+      <div className="min-h-screen bg-[#F6F6F7] flex flex-col items-center justify-center p-6 space-y-8">
         <div className="space-y-4 text-center">
-          <h2 className="text-4xl md:text-6xl font-display italic uppercase font-bold tracking-tighter">
-            Access Denied.
+          <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-black">
+            Access Denied
           </h2>
-          <p className="text-neutral-500 text-[10px] tracking-[0.3em] uppercase">
-            Your session has expired or you are not signed in.
+          <p className="text-neutral-400 text-[10px] tracking-[0.3em] uppercase font-black">
+            Session Expired or Identity Not Verified
           </p>
         </div>
         <Link 
-          href="/login"
-          className="px-12 py-4 bg-white text-black text-[10px] uppercase tracking-[0.4em] font-bold hover:bg-neutral-200 transition-all"
+          href="/auth"
+          className="px-12 py-4 bg-black text-white text-[10px] uppercase tracking-[0.4em] font-black hover:bg-neutral-800 transition-all rounded-2xl shadow-lg"
         >
-          Please Sign In
+          Verify Identity
         </Link>
       </div>
     );
@@ -93,65 +64,53 @@ const AccountClient = () => {
   const tabs = [
     { id: 'orders', title: 'Order History', icon: <Package size={16} /> },
     { id: 'wishlist', title: 'Wishlist', icon: <Heart size={16} /> },
-    { id: 'settings', title: 'Profile Settings', icon: <Settings size={16} /> },
-  ];
-
-  const mockOrders = [
-    {
-      id: 'ord_1',
-      orderNumber: 'ON-9921',
-      processedAt: new Date().toISOString(),
-      totalPrice: { amount: '90.00', currencyCode: 'USD' }
-    }
+    { id: 'settings', title: 'Identity Settings', icon: <User size={16} /> },
   ];
 
   return (
-    <div className="min-h-screen bg-black pt-32 pb-20 px-6 md:px-12 text-white">
+    <div className="min-h-screen bg-[#F6F6F7] pt-40 pb-20 px-6 md:px-12 text-black font-sans">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
           <div className="space-y-4">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-4"
+              className="flex items-center gap-6"
             >
-              <div className="w-16 h-16 bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white">
+              <div className="w-20 h-20 bg-white border border-neutral-200 rounded-[30px] flex items-center justify-center text-black shadow-sm">
                 <User size={32} />
               </div>
               <div className="space-y-1">
-                <h1 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase italic font-display">
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic text-black">
                   {userFirstName} {userLastName}
                 </h1>
-                <p className="text-neutral-500 text-[10px] tracking-[0.3em] uppercase">
-                  MEMBER SINCE {new Date().getFullYear()} • {user.email}
+                <p className="text-neutral-400 text-[10px] tracking-[0.4em] uppercase font-bold">
+                  Member Profile • {user.email}
                 </p>
               </div>
             </motion.div>
           </div>
 
           <button 
-            onClick={() => {
-              signOut({ callbackUrl: '/' });
-              legacyLogout();
-            }}
-            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] border border-neutral-800 px-6 py-3 hover:bg-white hover:text-black transition-all group"
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] bg-white border border-neutral-200 px-8 py-4 rounded-2xl hover:bg-neutral-50 transition-all shadow-sm group text-black"
           >
             <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" />
-            Sign Out
+            Terminate Session
           </button>
         </div>
 
         {/* Custom Tabs */}
-        <div className="flex gap-8 border-b border-neutral-900 mb-12">
+        <div className="flex gap-10 border-b border-neutral-200 mb-12">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`pb-4 text-[10px] uppercase tracking-[0.2em] font-bold flex items-center gap-2 transition-all border-b-2 ${
+              className={`pb-4 text-[11px] uppercase tracking-[0.3em] font-black flex items-center gap-2 transition-all border-b-2 ${
                 activeTab === tab.id 
-                  ? "text-white border-white" 
-                  : "text-neutral-500 border-transparent hover:text-neutral-300"
+                  ? "text-black border-black" 
+                  : "text-neutral-400 border-transparent hover:text-black"
               }`}
             >
               {tab.icon}
@@ -161,7 +120,7 @@ const AccountClient = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="min-h-[400px]">
+        <div className="min-h-[500px]">
           <AnimatePresence mode="wait">
             {activeTab === 'orders' && (
               <motion.div
@@ -171,36 +130,47 @@ const AccountClient = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-6"
               >
-                {mockOrders.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="text-[10px] uppercase tracking-[0.3em] text-neutral-500 border-b border-neutral-900">
-                        <tr>
-                          <th className="pb-4 font-medium italic">Order #</th>
-                          <th className="pb-4 font-medium italic">Date</th>
-                          <th className="pb-4 font-medium italic">Total</th>
-                          <th className="pb-4 font-medium italic text-right">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="text-sm">
-                        {mockOrders.map((node) => (
-                          <tr key={node.id} className="border-b border-neutral-950 hover:bg-neutral-950/50 transition-colors">
-                            <td className="py-6 font-mono tracking-tighter">{node.orderNumber}</td>
-                            <td className="py-6 text-neutral-400">{new Date(node.processedAt).toLocaleDateString()}</td>
-                            <td className="py-6 font-bold">{node.totalPrice.amount} {node.totalPrice.currencyCode}</td>
-                            <td className="py-6 text-right">
-                              <span className="text-[10px] uppercase tracking-widest px-2 py-1 bg-neutral-900 text-white border border-neutral-800">
-                                PAID
-                              </span>
-                            </td>
+                {orders.length > 0 ? (
+                  <div className="bg-white border border-neutral-200 rounded-[40px] p-8 md:p-10 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 border-b border-neutral-100">
+                          <tr>
+                            <th className="pb-6 font-black italic">Order Identity</th>
+                            <th className="pb-6 font-black italic">Timestamp</th>
+                            <th className="pb-6 font-black italic">Value</th>
+                            <th className="pb-6 font-black italic text-right">Clearance</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="text-sm">
+                          {orders.map((order) => (
+                            <tr key={order.id} className="border-b border-neutral-50 hover:bg-neutral-50/50 transition-colors last:border-0 font-bold uppercase italic tracking-widest text-[11px]">
+                              <td className="py-8 font-black text-black">{order.orderNumber || 'UNR-XXXX'}</td>
+                              <td className="py-8 text-neutral-400">{new Date(order.createdAt).toLocaleDateString()}</td>
+                              <td className="py-8 text-black">${order.totalAmount.toFixed(2)}</td>
+                              <td className="py-8 text-right">
+                                <span className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-full border border-indigo-100 text-[9px] font-black tracking-widest">
+                                  {order.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 ) : (
-                  <div className="py-20 text-center border border-dashed border-neutral-900">
-                    <p className="text-neutral-600 uppercase tracking-widest text-xs italic">You haven't placed any orders yet.</p>
+                  <div className="bg-white border border-neutral-200 rounded-[40px] py-32 flex flex-col items-center justify-center space-y-6 shadow-sm border-dashed">
+                    <div className="w-20 h-20 bg-neutral-50 rounded-full flex items-center justify-center text-neutral-200">
+                      <ShoppingBag size={40} />
+                    </div>
+                    <div className="text-center space-y-2">
+                       <p className="text-black font-black uppercase italic tracking-[0.2em] text-lg">Your collection is currently empty.</p>
+                       <p className="text-neutral-400 text-[10px] uppercase tracking-widest font-bold">Initiate your first acquisition today.</p>
+                    </div>
+                    <Link href="/collections" className="mt-4 px-10 py-4 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-neutral-800 transition-all shadow-lg active:scale-95">
+                       Acquire Products
+                    </Link>
                   </div>
                 )}
               </motion.div>
@@ -213,21 +183,23 @@ const AccountClient = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
               >
-                {isFetchingWishlist ? (
-                  <div className="flex justify-center py-20">
-                    <Loader2 className="animate-spin text-neutral-700" size={24} />
-                  </div>
-                ) : wishlistProducts.length > 0 ? (
+                {wishlistItems.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {wishlistProducts.map((product, idx) => (
-                      <ProductCard key={product._id} product={product} index={idx} />
+                    {wishlistItems.map((product: any, idx) => (
+                      <ProductCard key={product.id} product={{ ...product, _id: product.id }} index={idx} />
                     ))}
                   </div>
                 ) : (
-                  <div className="py-20 text-center border border-dashed border-neutral-900 space-y-4">
-                    <p className="text-neutral-600 uppercase tracking-widest text-xs italic">Your wishlist is empty. Go break some hearts.</p>
-                    <Link href="/collections" className="inline-block text-[10px] uppercase tracking-widest border-b border-white pb-1 font-bold">
-                      View Collection
+                  <div className="bg-white border border-neutral-200 rounded-[40px] py-32 flex flex-col items-center justify-center space-y-6 shadow-sm border-dashed">
+                    <div className="w-20 h-20 bg-neutral-50 rounded-full flex items-center justify-center text-neutral-200">
+                      <Heart size={40} />
+                    </div>
+                    <div className="text-center space-y-2">
+                       <p className="text-black font-black uppercase italic tracking-[0.2em] text-lg">Wishlist is currently offline.</p>
+                       <p className="text-neutral-400 text-[10px] uppercase tracking-widest font-bold">Bookmark your favorite pieces to see them here.</p>
+                    </div>
+                    <Link href="/collections" className="mt-4 px-10 py-4 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-neutral-800 transition-all shadow-lg active:scale-95">
+                       Browse Catalog
                     </Link>
                   </div>
                 )}
@@ -240,20 +212,20 @@ const AccountClient = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="max-w-2xl"
+                className="max-w-2xl bg-white border border-neutral-200 rounded-[40px] p-10 shadow-sm"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-bold font-display italic uppercase border-b border-neutral-900 pb-4">Personal Details</h3>
-                    <div className="space-y-4">
-                      <Detail label="First Name" value={userFirstName} />
-                      <Detail label="Last Name" value={userLastName} />
-                      <Detail label="Email Address" value={user.email || ''} />
+                  <div className="space-y-8">
+                    <h3 className="text-xl font-black italic uppercase text-black border-b border-neutral-100 pb-4 tracking-tighter">Identity Details</h3>
+                    <div className="space-y-6">
+                      <Detail label="Verified Name" value={user.name || 'Anonymous'} />
+                      <Detail label="Access Email" value={user.email || ''} />
+                      <Detail label="Identity Clearance" value={user.role || 'GUEST'} />
                     </div>
                   </div>
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-bold font-display italic uppercase border-b border-neutral-900 pb-4">Primary Address</h3>
-                    <p className="text-neutral-600 text-[10px] uppercase tracking-widest italic pt-2">No address on file.</p>
+                  <div className="space-y-8">
+                    <h3 className="text-xl font-black italic uppercase text-black border-b border-neutral-100 pb-4 tracking-tighter">Primary Node</h3>
+                    <p className="text-neutral-400 text-[10px] uppercase tracking-widest font-bold italic pt-2">No physical coordinates stored.</p>
                   </div>
                 </div>
               </motion.div>
@@ -266,13 +238,13 @@ const AccountClient = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-20 p-12 border border-neutral-900 text-center space-y-4"
+          className="mt-20 p-12 bg-white border border-neutral-200 rounded-[40px] text-center space-y-6 shadow-sm"
         >
-          <p className="text-[10px] text-neutral-500 uppercase tracking-[0.4em]">
-            Need help with an order?
+          <p className="text-[10px] text-neutral-400 uppercase tracking-[0.5em] font-black">
+            Logistical Resolution Center
           </p>
-          <a href="/faq" className="text-sm font-bold border-b border-white pb-1 hover:text-neutral-400 hover:border-neutral-400 transition-all uppercase tracking-widest">
-            Contact Support
+          <a href="/faq" className="inline-block text-sm font-black border-b-2 border-black pb-1 hover:text-neutral-500 hover:border-neutral-200 transition-all uppercase tracking-[0.2em] italic">
+            Access Support Handshake
           </a>
         </motion.div>
       </div>
@@ -281,9 +253,9 @@ const AccountClient = () => {
 };
 
 const Detail = ({ label, value }: { label: string; value: string }) => (
-  <div className="space-y-1">
-    <p className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold">{label}</p>
-    <p className="text-sm text-white font-mono tracking-tighter">{value || 'Not provided'}</p>
+  <div className="space-y-2">
+    <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-black">{label}</p>
+    <p className="text-sm text-black font-black uppercase italic tracking-widest">{value || 'Not provided'}</p>
   </div>
 );
 
