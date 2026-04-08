@@ -44,7 +44,38 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
     }
   }, [searchParams, clearCart, router]);
 
+  // Smart Hide States
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [hasScrolled, setHasScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Smart Hide Logic
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false); // Hiding on scroll down
+      } else {
+        setIsVisible(true); // Showing on scroll up
+      }
+
+      // Border Logic: appear after scrolling past initial hero area
+      if (currentScrollY > 100) {
+        setHasScrolled(true);
+      } else {
+        setHasScrolled(false);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+
   const topCollections = collections.slice(0, 5);
   const remainingCollections = collections.slice(5);
 
@@ -52,9 +83,11 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
     <>
       <motion.nav
         initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm"
-        style={{ borderBottom: '1px solid #eaeaec' }}
+        animate={{ y: isVisible ? 0 : -100 }}
+        transition={{ duration: 0.5, ease: [0.33, 1, 0.68, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-visible
+          ${hasScrolled ? 'bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm' : 'bg-transparent border-transparent'}
+        `}
       >
         <div className="px-4 md:px-8 h-20 flex items-center gap-2 md:gap-6">
           {/* LOGO */}
