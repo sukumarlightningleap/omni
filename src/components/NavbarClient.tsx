@@ -85,8 +85,8 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
         initial={{ y: -100 }}
         animate={{ y: isVisible ? 0 : -100 }}
         transition={{ duration: 0.5, ease: [0.33, 1, 0.68, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 overflow-visible
-          ${hasScrolled ? 'bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm' : 'bg-transparent border-transparent'}
+        className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-500 bg-white border-b border-slate-100
+          ${hasScrolled ? 'shadow-sm shadow-slate-200/50' : ''}
         `}
       >
         <div className="px-4 md:px-8 h-20 flex items-center gap-2 md:gap-6">
