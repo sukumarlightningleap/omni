@@ -153,3 +153,19 @@ export async function deleteCollection(id: string) {
   revalidatePath("/", "layout")
   return { success: true }
 }
+
+export async function deleteManyProducts(productIds: string[]) {
+  await requireAdmin()
+
+  await prisma.product.deleteMany({
+    where: {
+      id: { in: productIds }
+    }
+  })
+
+  revalidatePath("/admin/products")
+  revalidatePath("/collections")
+  revalidatePath("/")
+  revalidatePath("/", "layout")
+  return { success: true }
+}
