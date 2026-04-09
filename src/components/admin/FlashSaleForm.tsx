@@ -132,33 +132,27 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
           </div>
         </div>
 
-        <div className="bg-slate-50 border border-slate-100 rounded-[2.5rem] p-10 flex justify-center">
-          <div className="bg-[#3730A3] text-white w-full max-w-sm p-8 shadow-2xl rounded-3xl border-l-8 border-white flex flex-col gap-6 relative overflow-hidden">
-            <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
-            
+        <div className="bg-slate-50 border border-slate-100 rounded-[2.5rem] p-10 flex justify-end">
+          <div className="bg-[#FFF5F2] w-full max-w-xs p-6 shadow-[-10px_0_30px_rgba(0,0,0,0.05)] rounded-l-2xl border-l-2 border-t-2 border-b-2 border-[#FADED7] flex flex-col gap-3 text-left">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <Zap size={14} className="animate-pulse fill-white" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Studio Preview</span>
+                <Zap size={14} className="text-[#D97757] fill-[#D97757]/20" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D97757]/60">Studio Preview</span>
               </div>
-              <h2 className="text-2xl font-serif italic font-black tracking-tighter lowercase leading-tight">
+              <h2 className="text-xl font-serif italic font-black tracking-tighter text-[#D97757] lowercase leading-[1.1]">
                 {message || "creative protocol message"}
               </h2>
             </div>
 
-            <div className="flex items-center gap-6 border-t border-white/10 pt-6">
-              <div className="flex flex-col">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-mono font-bold leading-none">00</span>
-                  <span className="text-[10px] font-serif italic text-white/40">d</span>
-                </div>
+            <div className="flex items-center gap-3 border-t border-[#FADED7] pt-4">
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-mono font-bold text-[#D97757]">00</span>
+                <span className="text-[9px] font-serif italic text-[#D97757]/60">d</span>
               </div>
-              <div className="w-px h-8 bg-white/10" />
-              <div className="flex flex-col">
-                <div className="flex items-baseline gap-1 text-yellow-300">
-                  <span className="text-2xl font-mono font-bold leading-none">00</span>
-                  <span className="text-[10px] font-serif italic text-white/20">s</span>
-                </div>
+              <div className="w-px h-3 bg-[#FADED7]" />
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-mono font-bold text-[#D97757] animate-pulse">00</span>
+                <span className="text-[9px] font-serif italic text-[#D97757]/60">s</span>
               </div>
             </div>
           </div>

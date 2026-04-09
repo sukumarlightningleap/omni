@@ -42,71 +42,44 @@ const GlobalCountdown = ({ endsAt, message, isActive }: GlobalCountdownProps) =>
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ x: '120%', opacity: 0 }}
-        animate={{ 
-          x: 0, 
-          opacity: 1,
-          y: [0, -6, 0] // Gentle hover loop
-        }}
-        exit={{ x: '120%', opacity: 0 }}
-        transition={{ 
-          x: { delay: 1, duration: 0.8, ease: "circOut" },
-          y: { 
-            repeat: Infinity, 
-            duration: 4, 
-            ease: "easeInOut" 
-          }
-        }}
-        className="fixed right-6 top-1/2 -translate-y-1/2 z-[40] rotate-[-1deg]"
+        initial={{ x: '100%', opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: '100%', opacity: 0 }}
+        transition={{ delay: 1, duration: 0.8, ease: "easeOut" }}
+        className="fixed right-0 top-1/2 -translate-y-1/2 z-[50]"
       >
-        <div className="bg-[#3730A3] text-white w-72 md:w-80 p-6 shadow-2xl rounded-2xl border-l-4 border-white backdrop-blur-md flex flex-col gap-4 relative overflow-hidden group">
-          {/* Subtle background glow */}
-          <div className="absolute -right-10 -top-10 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors" />
-          
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Zap size={14} className="animate-pulse fill-white" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Flash Protocol</span>
-              </div>
-              <h2 className="text-xl font-serif italic font-black tracking-tighter lowercase leading-tight">
-                {message}
-              </h2>
+        <div className="bg-[#FFF5F2] w-64 p-6 shadow-[-10px_0_30px_rgba(0,0,0,0.05)] rounded-l-2xl border-l-2 border-t-2 border-b-2 border-[#FADED7] flex flex-col gap-3 text-left">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Zap size={14} className="text-[#D97757] fill-[#D97757]/20" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D97757]/60">Studio Drop</span>
             </div>
+            <h2 className="text-xl font-serif italic font-black tracking-tighter text-[#D97757] lowercase leading-[1.1]">
+              {message}
+            </h2>
           </div>
 
-          <div className="flex items-center gap-4 border-t border-white/10 pt-4">
-            <div className="flex flex-col">
-              <div className="flex items-baseline gap-1">
-                <span className="text-lg font-mono font-bold leading-none">{String(timeLeft.d).padStart(2, '0')}</span>
-                <span className="text-[10px] font-serif italic text-white/60">d</span>
-              </div>
+          <div className="flex items-center gap-3 border-t border-[#FADED7] pt-4">
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-mono font-bold text-[#D97757]">{String(timeLeft.d).padStart(2, '0')}</span>
+              <span className="text-[9px] font-serif italic text-[#D97757]/60">d</span>
             </div>
-            <div className="w-px h-6 bg-white/10" />
-            <div className="flex flex-col">
-              <div className="flex items-baseline gap-1">
-                <span className="text-lg font-mono font-bold leading-none">{String(timeLeft.h).padStart(2, '0')}</span>
-                <span className="text-[10px] font-serif italic text-white/60">h</span>
-              </div>
+            <div className="w-px h-3 bg-[#FADED7]" />
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-mono font-bold text-[#D97757]">{String(timeLeft.h).padStart(2, '0')}</span>
+              <span className="text-[9px] font-serif italic text-[#D97757]/60">h</span>
             </div>
-            <div className="w-px h-6 bg-white/10" />
-            <div className="flex flex-col">
-              <div className="flex items-baseline gap-1">
-                <span className="text-lg font-mono font-bold leading-none">{String(timeLeft.m).padStart(2, '0')}</span>
-                <span className="text-[10px] font-serif italic text-white/60">m</span>
-              </div>
+            <div className="w-px h-3 bg-[#FADED7]" />
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-mono font-bold text-[#D97757]">{String(timeLeft.m).padStart(2, '0')}</span>
+              <span className="text-[9px] font-serif italic text-[#D97757]/60">m</span>
             </div>
-            <div className="w-px h-6 bg-white/10" />
-            <div className="flex flex-col">
-              <div className="flex items-baseline gap-1 text-yellow-300">
-                <span className="text-lg font-mono font-bold leading-none">{String(timeLeft.s).padStart(2, '0')}</span>
-                <span className="text-[10px] font-serif italic text-white/60 text-white/40">s</span>
-              </div>
+            <div className="w-px h-3 bg-[#FADED7]" />
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-mono font-bold text-[#D97757] animate-pulse">{String(timeLeft.s).padStart(2, '0')}</span>
+              <span className="text-[9px] font-serif italic text-[#D97757]/60">s</span>
             </div>
           </div>
-          
-          {/* Ticket Edge Detail */}
-          <div className="absolute top-1/2 -translate-y-1/2 -left-2 w-4 h-8 bg-white/10 rounded-full blur-sm" />
         </div>
       </motion.div>
     </AnimatePresence>
