@@ -132,14 +132,36 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
           </div>
         </div>
 
-        <div className="bg-[#FFF5F2]/50 border border-[#FCE8E2] rounded-[2rem] p-6 overflow-hidden relative group">
-          <div className="flex items-center gap-6 animate-pulse">
-            <Zap size={14} className="text-[#D97757] shrink-0" />
-            <span className="text-sm font-serif italic font-black tracking-tighter lowercase text-[#D97757] whitespace-nowrap">
-              {message || "PREVIEW CONTENT"} — 00d : 00h : 00m : 00s
-            </span>
+        <div className="bg-slate-50 border border-slate-100 rounded-[2.5rem] p-10 flex justify-center">
+          <div className="bg-[#3730A3] text-white w-full max-w-sm p-8 shadow-2xl rounded-3xl border-l-8 border-white flex flex-col gap-6 relative overflow-hidden">
+            <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
+            
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Zap size={14} className="animate-pulse fill-white" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Studio Preview</span>
+              </div>
+              <h2 className="text-2xl font-serif italic font-black tracking-tighter lowercase leading-tight">
+                {message || "creative protocol message"}
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-6 border-t border-white/10 pt-6">
+              <div className="flex flex-col">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-mono font-bold leading-none">00</span>
+                  <span className="text-[10px] font-serif italic text-white/40">d</span>
+                </div>
+              </div>
+              <div className="w-px h-8 bg-white/10" />
+              <div className="flex flex-col">
+                <div className="flex items-baseline gap-1 text-yellow-300">
+                  <span className="text-2xl font-mono font-bold leading-none">00</span>
+                  <span className="text-[10px] font-serif italic text-white/20">s</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="absolute right-6 top-1/2 -translate-y-1/2 bg-[#D97757] text-[8px] text-white px-3 py-1 rounded-full font-black uppercase tracking-widest opacity-40">STICKER PREVIEW</div>
         </div>
       </div>
 
