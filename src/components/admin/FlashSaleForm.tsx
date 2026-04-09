@@ -14,7 +14,6 @@ interface FlashSaleFormProps {
     welcomeTitle: string;
     welcomeSubtitle: string;
     welcomeDescription: string;
-    welcomeDelay: number;
   } | null;
 }
 
@@ -28,7 +27,6 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
   const [welcomeTitle, setWelcomeTitle] = useState(initialData?.welcomeTitle || "10%");
   const [welcomeSubtitle, setWelcomeSubtitle] = useState(initialData?.welcomeSubtitle || "OFF YOUR FIRST ORDER");
   const [welcomeDescription, setWelcomeDescription] = useState(initialData?.welcomeDescription || "JOIN THE CLUB FOR EXCLUSIVE ACCESS.");
-  const [welcomeDelay, setWelcomeDelay] = useState(initialData?.welcomeDelay || 5000);
 
   // Format dates for html input type="datetime-local" (YYYY-MM-DDThh:mm)
   const formatForInput = (date: Date | null) => {
@@ -59,7 +57,6 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
         welcomeTitle,
         welcomeSubtitle,
         welcomeDescription,
-        welcomeDelay: Number(welcomeDelay),
       });
 
       setFeedback({ message: "Marketing Protocol synchronized successfully.", type: "success" });
@@ -76,39 +73,39 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
     <form onSubmit={handleSubmit} className="space-y-12 text-slate-900">
       
       {/* SECTION 1: FLASH SALE */}
-      <div className="space-y-6 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3 mb-2">
-          <Zap className="text-indigo-600" size={20} />
-          <h2 className="text-xs font-black tracking-[0.2em] uppercase text-slate-900">Flash Sale Protocol</h2>
+      <div className="space-y-8 bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div className="flex items-center gap-4 mb-2">
+          <Zap className="text-[#D97757]" size={24} />
+          <h2 className="text-2xl font-serif italic font-black tracking-tighter lowercase text-slate-900">Flash Sale Protocol</h2>
         </div>
 
-        <div className="flex items-center justify-between border border-slate-200 p-6 bg-slate-50 rounded-2xl">
+        <div className="flex items-center justify-between border border-slate-100 p-8 bg-slate-50/50 rounded-3xl">
           <div className="space-y-1">
-            <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-900">
+            <label className="text-sm font-serif italic font-bold tracking-tighter lowercase text-slate-900">
               Enable Flash Sale
             </label>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-              Activates the global countdown ticker
+            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+              Activates the vertical "Creative Sticker" on storefront
             </p>
           </div>
           <button
             type="button"
             onClick={() => setActive(!active)}
-            className={`relative w-12 h-6 rounded-full transition-colors duration-200 border-2 ${
-              active ? "bg-indigo-600 border-indigo-600" : "bg-slate-200 border-slate-300"
+            className={`relative w-14 h-7 rounded-full transition-colors duration-300 border-2 ${
+              active ? "bg-[#D97757] border-[#D97757]" : "bg-slate-200 border-slate-300"
             }`}
           >
             <span
-              className={`absolute top-[2px] left-[2px] bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200 ${
-                active ? "translate-x-6" : "translate-x-0"
+              className={`absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full shadow-md transition-transform duration-300 ${
+                active ? "translate-x-7" : "translate-x-0"
               }`}
             />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 block">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-3">
+            <label className="text-[11px] font-serif italic font-bold tracking-tighter lowercase text-slate-500 block ml-2">
               Announcement Message
             </label>
             <input
@@ -116,13 +113,13 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
               required
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 text-xs font-bold px-4 py-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all rounded-2xl"
+              className="w-full bg-slate-50/50 border border-slate-100 text-sm font-medium px-6 py-5 text-slate-900 focus:outline-none focus:ring-4 focus:ring-[#D97757]/5 focus:border-[#D97757] focus:bg-white transition-all rounded-3xl"
               placeholder="e.g. SUMMER VAULT UNLOCKED"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 block">
+          <div className="space-y-3">
+            <label className="text-[11px] font-serif italic font-bold tracking-tighter lowercase text-slate-500 block ml-2">
               End Date & Time
             </label>
             <input
@@ -130,120 +127,110 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
               required={active}
               value={endsAt}
               onChange={(e) => setEndsAt(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 text-xs font-bold px-4 py-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all rounded-2xl"
+              className="w-full bg-slate-50/50 border border-slate-100 text-sm font-medium px-6 py-5 text-slate-900 focus:outline-none focus:ring-4 focus:ring-[#D97757]/5 focus:border-[#D97757] focus:bg-white transition-all rounded-3xl"
             />
           </div>
         </div>
 
-        {/* Flash Preview */}
-        <div className="bg-[#FFF5F2] border border-[#FCE8E2] rounded-xl p-4 overflow-hidden relative">
-          <div className="flex items-center gap-4 animate-pulse">
-            <Zap size={12} className="text-[#D97757] shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D97757] whitespace-nowrap">
-              {message || "PREVIEW CONTENT"} — 00D : 00H : 00M : 00S
+        <div className="bg-[#FFF5F2]/50 border border-[#FCE8E2] rounded-[2rem] p-6 overflow-hidden relative group">
+          <div className="flex items-center gap-6 animate-pulse">
+            <Zap size={14} className="text-[#D97757] shrink-0" />
+            <span className="text-sm font-serif italic font-black tracking-tighter lowercase text-[#D97757] whitespace-nowrap">
+              {message || "PREVIEW CONTENT"} — 00d : 00h : 00m : 00s
             </span>
           </div>
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 bg-[#D97757] text-[8px] text-white px-3 py-1 rounded-full font-black uppercase tracking-widest opacity-40">STICKER PREVIEW</div>
         </div>
       </div>
 
       {/* SECTION 2: WELCOME PROTOCOL */}
-      <div className="space-y-6 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3 mb-2">
-          <BellRing className="text-indigo-600" size={20} />
-          <h2 className="text-xs font-black tracking-[0.2em] uppercase text-slate-900">Welcome Protocol (Newsletter)</h2>
+      <div className="space-y-8 bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div className="flex items-center gap-4 mb-2">
+          <BellRing className="text-indigo-600" size={24} />
+          <h2 className="text-2xl font-serif italic font-black tracking-tighter lowercase text-slate-900">Welcome Protocol (Newsletter)</h2>
         </div>
 
-        <div className="flex items-center justify-between border border-slate-200 p-6 bg-slate-50 rounded-2xl">
+        <div className="flex items-center justify-between border border-slate-100 p-8 bg-slate-50/50 rounded-3xl">
           <div className="space-y-1">
-            <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-900">
+            <label className="text-sm font-serif italic font-bold tracking-tighter lowercase text-slate-900">
               Active Status
             </label>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-              Toggle the visibility of the welcome modal
+            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+              Toggle visibility of the "Peach & Indigo" welcome modal
             </p>
           </div>
           <button
             type="button"
             onClick={() => setWelcomeActive(!welcomeActive)}
-            className={`relative w-12 h-6 rounded-full transition-colors duration-200 border-2 ${
+            className={`relative w-14 h-7 rounded-full transition-colors duration-300 border-2 ${
               welcomeActive ? "bg-indigo-600 border-indigo-600" : "bg-slate-200 border-slate-300"
             }`}
           >
             <span
-              className={`absolute top-[2px] left-[2px] bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200 ${
-                welcomeActive ? "translate-x-6" : "translate-x-0"
+              className={`absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full shadow-md transition-transform duration-300 ${
+                welcomeActive ? "translate-x-7" : "translate-x-0"
               }`}
             />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 block">Main Title</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-3">
+            <label className="text-[11px] font-serif italic font-bold tracking-tighter lowercase text-slate-500 block ml-2">Main Title</label>
             <input
               type="text"
               required
               value={welcomeTitle}
               onChange={(e) => setWelcomeTitle(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 text-xs font-bold px-4 py-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all rounded-2xl"
+              className="w-full bg-slate-50/50 border border-slate-100 text-sm font-medium px-6 py-5 text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-600 focus:bg-white transition-all rounded-3xl"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 block">Subtitle</label>
+          <div className="space-y-3">
+            <label className="text-[11px] font-serif italic font-bold tracking-tighter lowercase text-slate-500 block ml-2">Subtitle</label>
             <input
               type="text"
               required
               value={welcomeSubtitle}
               onChange={(e) => setWelcomeSubtitle(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 text-xs font-bold px-4 py-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all rounded-2xl"
+              className="w-full bg-slate-50/50 border border-slate-100 text-sm font-medium px-6 py-5 text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-600 focus:bg-white transition-all rounded-3xl"
             />
           </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 block">Description</label>
+          <div className="space-y-3 md:col-span-2">
+            <label className="text-[11px] font-serif italic font-bold tracking-tighter lowercase text-slate-500 block ml-2">Description</label>
             <input
               type="text"
               required
               value={welcomeDescription}
               onChange={(e) => setWelcomeDescription(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 text-xs font-bold px-4 py-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all rounded-2xl"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 block">Display Delay (ms)</label>
-            <input
-              type="number"
-              required
-              value={welcomeDelay}
-              onChange={(e) => setWelcomeDelay(Number(e.target.value))}
-              className="w-full bg-slate-50 border border-slate-200 text-xs font-bold px-4 py-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all rounded-2xl"
+              className="w-full bg-slate-50/50 border border-slate-100 text-sm font-medium px-6 py-5 text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-600 focus:bg-white transition-all rounded-3xl"
             />
           </div>
         </div>
       </div>
 
-      <div className="pt-4 sticky bottom-8">
+      <div className="pt-6 sticky bottom-10 px-4">
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center gap-2 py-5 text-[10px] font-black uppercase tracking-[0.3em] transition-all rounded-2xl shadow-xl shadow-indigo-600/20 disabled:opacity-50"
+          className="w-full bg-slate-900 text-white hover:bg-black rounded-full flex items-center justify-center gap-3 py-6 text-[10px] font-black uppercase tracking-[0.4em] transition-all shadow-2xl shadow-slate-900/20 active:scale-[0.98] disabled:opacity-50"
         >
           {isLoading ? (
             <>
-              <Loader2 className="animate-spin" size={14} />
-              Synchronizing Engine...
+              <Loader2 className="animate-spin" size={16} />
+              Synchronizing Creative Engine...
             </>
           ) : (
-            "Save All Protocol Settings"
+            "Save Creative Protocol"
           )}
         </button>
       </div>
 
       {feedback && (
         <div
-          className={`p-4 text-[10px] font-bold tracking-widest uppercase border text-center rounded-xl animate-in fade-in slide-in-from-bottom-2 ${
+          className={`p-6 text-[10px] font-black tracking-widest uppercase border text-center rounded-[2rem] animate-in fade-in slide-in-from-bottom-4 shadow-xl ${
             feedback.type === 'success'
-              ? 'bg-green-50 text-green-700 border-green-200'
-              : 'bg-red-50 text-red-700 border-red-200'
+              ? 'bg-green-50 text-green-700 border-green-100 shadow-green-600/5'
+              : 'bg-red-50 text-red-700 border-red-100 shadow-red-600/5'
           }`}
         >
           {feedback.message}

@@ -42,28 +42,18 @@ const GlobalCountdown = ({ endsAt, message, isActive }: GlobalCountdownProps) =>
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ height: 0, opacity: 0 }}
-        animate={{ height: 'auto', opacity: 1 }}
-        exit={{ height: 0, opacity: 0 }}
-        className="bg-red-600 text-white overflow-hidden relative z-[70]"
+        initial={{ x: '100%', opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: '100%', opacity: 0 }}
+        transition={{ delay: 1, duration: 0.8, ease: "circOut" }}
+        className="fixed right-0 top-1/2 -translate-y-1/2 z-[40] rotate-[-2deg] origin-right"
       >
-        <div className="max-w-[1440px] mx-auto px-6 py-2 flex items-center justify-between">
-          {/* Left: Message */}
-          <div className="flex items-center gap-3">
-            <Zap size={12} className="animate-pulse fill-white" />
-            <span className="text-[10px] font-black tracking-[0.3em] uppercase leading-none">
+        <div className="bg-[#D97757] text-white py-10 px-4 flex flex-col items-center gap-8 shadow-2xl rounded-l-[2rem] border-l border-white/20 backdrop-blur-sm">
+          {/* Brand/Message Icon */}
+          <div className="flex flex-col items-center gap-4">
+            <Zap size={16} className="animate-pulse fill-white" />
+            <div className="[writing-mode:vertical-lr] text-[11px] font-serif italic font-bold tracking-tighter lowercase rotate-180 mb-2">
               {message}
-            </span>
-          </div>
-
-          {/* Right: The Ticking Clock */}
-          <div className="flex items-center gap-4 font-mono text-[11px] font-bold">
-            <div className="flex items-center gap-1">
-              <span>{String(timeLeft.d).padStart(2, '0')}</span>
-              <span className="text-white/50 text-[8px] font-sans">D</span>
-            </div>
-            <span className="text-white/30">:</span>
-            <div className="flex items-center gap-1">
               <span>{String(timeLeft.h).padStart(2, '0')}</span>
               <span className="text-white/50 text-[8px] font-sans">H</span>
             </div>

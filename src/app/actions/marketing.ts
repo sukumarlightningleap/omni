@@ -11,8 +11,7 @@ export async function updateMarketingSettings(data: {
   welcomeActive?: boolean,
   welcomeTitle?: string,
   welcomeSubtitle?: string,
-  welcomeDescription?: string,
-  welcomeDelay?: number
+  welcomeDescription?: string
 }) {
   const session = await auth()
   
@@ -30,7 +29,6 @@ export async function updateMarketingSettings(data: {
       welcomeTitle: data.welcomeTitle,
       welcomeSubtitle: data.welcomeSubtitle,
       welcomeDescription: data.welcomeDescription,
-      welcomeDelay: data.welcomeDelay,
     },
     create: {
       id: "global",
@@ -41,7 +39,6 @@ export async function updateMarketingSettings(data: {
       welcomeTitle: data.welcomeTitle ?? "10%",
       welcomeSubtitle: data.welcomeSubtitle ?? "OFF YOUR FIRST ORDER",
       welcomeDescription: data.welcomeDescription ?? "JOIN THE CLUB FOR EXCLUSIVE ACCESS.",
-      welcomeDelay: data.welcomeDelay ?? 5000,
     }
   })
 

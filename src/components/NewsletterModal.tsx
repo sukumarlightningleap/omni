@@ -18,12 +18,10 @@ const NewsletterModal = ({ config }: { config: any }) => {
     const hasSeen = localStorage.getItem("unrwly_newsletter_seen");
     
     if (!hasSeen) {
-      const delay = config?.welcomeDelay || 5000;
       const timer = setTimeout(() => {
         setIsOpen(true);
         setIsVisible(true);
-      }, delay); 
-
+      }, 10000); // Hardcoded 10 seconds delay
       return () => clearTimeout(timer);
     }
   }, [config]);

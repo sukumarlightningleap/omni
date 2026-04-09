@@ -21,7 +21,6 @@ model StoreConfig {
   welcomeTitle      String    @default("10%")
   welcomeSubtitle   String    @default("OFF YOUR FIRST ORDER")
   welcomeDescription String   @default("JOIN THE CLUB FOR EXCLUSIVE ACCESS.")
-  welcomeDelay      Int       @default(5000)
 }
 
 model DiscoveryItem {
