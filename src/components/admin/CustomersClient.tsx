@@ -56,9 +56,6 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">Customers</h1>
         <div className="flex gap-3">
-          <button className="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
-            Export Current Registry
-          </button>
         </div>
       </div>
 
