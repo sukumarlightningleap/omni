@@ -16,7 +16,7 @@ export default async function AdminRootLayout({
   // }
 
   return (
-    <div className="min-h-screen bg-[#F6F6F7] text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
       <AdminSidebar />
       {/* Structural enforcement: Sidebar isolation to prevent overlapping */}
       <main className="ml-64 min-h-screen">

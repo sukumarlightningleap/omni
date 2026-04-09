@@ -53,6 +53,30 @@ export default function OrdersClient({ initialOrders }: { initialOrders: OrderDa
     setSelectedIds(newSet);
   };
 
+  const exportToCSV = () => {
+    const headers = ["Order ID", "Date", "Customer", "Email", "Status", "Total Amount", "Items"];
+    const rows = filteredOrders.map(o => [
+      o.id,
+      new Date(o.createdAt).toLocaleDateString(),
+      o.user?.name || "Guest",
+      o.user?.email || "N/A",
+      o.status,
+      (o.totalPaid || o.totalAmount).toFixed(2),
+      o.items.map(i => `${i.name} (x${i.quantity})`).join("; ")
+    ]);
+
+    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `UNRWLY_Orders_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       {/* POLARIS PAGE HEADER */}
@@ -68,14 +92,14 @@ export default function OrdersClient({ initialOrders }: { initialOrders: OrderDa
             }}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm group"
           >
-            <Zap size={14} className="text-amber-500 group-hover:scale-125 transition-transform" />
+            <Zap size={14} className="text-amber-500" />
             Logistics Setup
           </button>
-          <button className="px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
-            Export
-          </button>
-          <button className="px-4 py-2 bg-slate-900 border border-slate-900 rounded-md text-sm font-semibold text-white hover:bg-slate-800 transition-colors shadow-sm">
-             Create order
+          <button 
+            onClick={exportToCSV}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+          >
+            Export CSV
           </button>
         </div>
       </div>

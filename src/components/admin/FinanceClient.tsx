@@ -47,13 +47,54 @@ export default function FinanceClient({
 
   const formatUSD = (val: number) => `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
+  const downloadReport = () => {
+    const headers = ["Product Name", "Retail Price", "Base Cost", "Profit/Unit", "Margin %", "Units Sold", "Yield"];
+    const rows = filtered.map(i => [
+      i.name,
+      i.price.toFixed(2),
+      i.cost.toFixed(2),
+      (i.price - i.cost).toFixed(2),
+      i.marginPercent.toFixed(1) + "%",
+      i.unitsSold,
+      i.totalProfitGenerated.toFixed(2)
+    ]);
+
+    const summaryContent = [
+      ["FINANCIAL REPORT - UNRWLY STUDIO"],
+      [`Generated: ${new Date().toLocaleString()}`],
+      [""],
+      ["KPI SUMMARY"],
+      ["Gross Revenue", formatUSD(summary.grossRevenue)],
+      ["Net Profit", formatUSD(summary.netProfit)],
+      ["Gross COGS", formatUSD(summary.productionCost)],
+      ["Stripe Fees (Est)", formatUSD(summary.stripeFeeEstimate)],
+      [""],
+      ["UNIT ECONOMICS"],
+      headers,
+      ...rows
+    ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+
+    const blob = new Blob([summaryContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `UNRWLY_Finance_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-8 font-sans bg-[#F6F6F7] min-h-screen p-8">
       {/* PAGE HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">Finance & Analytics</h1>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
+          <button 
+            onClick={downloadReport}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+          >
             Download Report
           </button>
         </div>

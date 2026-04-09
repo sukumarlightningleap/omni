@@ -229,7 +229,7 @@ export default function MerchClient({
           <button 
             onClick={handleSaveConfig}
             disabled={isSavingConfig}
-            className="w-full md:w-auto px-8 py-3.5 bg-indigo-600 text-white text-sm font-bold rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-indigo-100"
+            className="w-full md:w-auto px-8 py-3.5 bg-indigo-600 text-white text-sm font-bold rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3"
           >
             {isSavingConfig ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />} 
             Save Global Assets
@@ -246,7 +246,7 @@ export default function MerchClient({
               }}
               className={`relative overflow-hidden group p-8 rounded-3xl border-2 transition-all text-left ${
                 activeSection === section.id 
-                ? 'bg-white border-indigo-600 ring-8 ring-indigo-50 shadow-xl shadow-indigo-100/50' 
+                ? 'bg-white border-indigo-600 ring-4 ring-indigo-50 shadow-sm' 
                 : 'bg-white border-slate-200 hover:border-slate-300'
               }`}
             >
@@ -278,7 +278,7 @@ export default function MerchClient({
             </div>
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+              className="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all"
             >
               <Plus size={20} /> Select Collection from Menu
             </button>
@@ -421,7 +421,7 @@ export default function MerchClient({
                         <div className="flex gap-4 pt-4">
                           <button 
                             onClick={() => handleSaveItemEdit(item.id, item.collectionId)}
-                            className="flex-1 bg-indigo-600 text-white text-sm font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-3"
+                            className="flex-1 bg-indigo-600 text-white text-sm font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3"
                           >
                             <Check size={20} /> Finalize and Ingest Curation
                           </button>
@@ -519,7 +519,7 @@ export default function MerchClient({
               <button
                 type="submit"
                 disabled={isSavingConfig}
-                className="w-full bg-[#121212] text-white py-4 rounded-xl text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-[#3730A3] transition-all shadow-lg"
+                className="w-full bg-[#121212] text-white py-4 rounded-xl text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-indigo-900 transition-all"
               >
                 {isSavingConfig ? <Loader2 className="animate-spin" size={16} /> : "Finalize Global Hierarchy"}
               </button>

@@ -266,9 +266,9 @@ export default function ProductsClient({
                        </Link>
                     </td>
                     <td className="px-4 py-4">
-                       <Link href={`/admin/products/${product.id}`} className="flex flex-col">
+                        <Link href={`/admin/products/${product.id}`} className="flex flex-col">
                           <span className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors capitalize">{product.name}</span>
-                          <span className="text-[10px] text-slate-400 font-medium font-mono uppercase tracking-widest">{product.id.substring(0, 8)}</span>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.15em]">{product.id.substring(0, 8)}</span>
                        </Link>
                     </td>
                     <td className="px-4 py-4">

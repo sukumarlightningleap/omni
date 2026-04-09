@@ -69,17 +69,6 @@ export default function AdminDashboardPage() {
 
       </div>
 
-      {/* Security Check Panel */}
-      <div className="p-6 bg-white border border-neutral-200/60 rounded-3xl flex items-center gap-6 shadow-sm">
-        <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-          <ShieldAlert size={24} />
-        </div>
-        <div className="text-xs font-medium text-neutral-500 leading-relaxed">
-          <strong className="text-neutral-900 block text-sm font-bold mb-1 tracking-tight">Security Clearance: Enterprise Root</strong>
-          You are authenticated against the production database framework. Access to financial records and user PII is restricted to your session.
-        </div>
-      </div>
-
     </div>
   )
 }

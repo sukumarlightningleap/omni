@@ -94,16 +94,16 @@ export default function CollectionsClient({ initialCollections }: { initialColle
             <button 
               type="submit"
               disabled={isCreating || !newColName.trim()}
-              className="w-full bg-indigo-600 text-white font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50"
+              className="w-full bg-indigo-600 text-white font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50"
             >
               {isCreating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
               Initialize Collection
             </button>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">SEO Description</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Description</label>
             <textarea 
-              placeholder="Provide context for search engines and customers..." 
+              placeholder="Provide a brief summary for this collection..." 
               value={newColDesc}
               onChange={e => setNewColDesc(e.target.value)}
               disabled={isCreating}
