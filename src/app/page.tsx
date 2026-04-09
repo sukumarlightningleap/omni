@@ -122,12 +122,12 @@ export default async function Home() {
           {/* Peach-Tinted Cinematic Overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/90 via-[#FFF5F2]/10 to-transparent pointer-events-none" />
           
-          <div className="absolute inset-0 flex items-end pb-20 px-6 md:px-16 lg:px-24">
+          <div className="absolute inset-0 flex items-end pb-20 px-4 md:px-12 lg:px-24">
             <div className="max-w-2xl space-y-6">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-[#D97757] text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full">
                 New Season Drop
               </div>
-              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-[#1A1A1A] tracking-tighter uppercase leading-[0.85]">
+              <h1 className="text-4xl md:text-8xl lg:text-9xl font-black text-[#1A1A1A] tracking-tighter uppercase leading-[0.85] break-words">
                 UNRWLY<br />
                 <span className="text-slate-400">2026</span>
               </h1>
@@ -145,12 +145,12 @@ export default async function Home() {
           <HeroSequencer urls={config.heroVideoUrls} poster={config.heroImageUrl} />
           
           {!config.heroImageUrl && (
-            <div className="absolute inset-0 flex items-end pb-20 px-6 md:px-16 lg:px-24">
+            <div className="absolute inset-0 flex items-end pb-20 px-4 md:px-12 lg:px-24">
               <div className="max-w-2xl space-y-6">
                 <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-[#D97757] text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full">
                   Motion Edit
                 </div>
-                <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-[#1A1A1A] tracking-tighter uppercase leading-[0.85]">
+                <h1 className="text-4xl md:text-8xl lg:text-9xl font-black text-[#1A1A1A] tracking-tighter uppercase leading-[0.85] break-words">
                   UNRWLY<br />
                   <span className="text-slate-400">2026</span>
                 </h1>
@@ -163,15 +163,15 @@ export default async function Home() {
 
       {/* ── BUDGET-FRIENDLY PICKS ( DEAL-CAROUSEL) ── */}
       <section className="bg-brand-peach overflow-hidden pb-16 border-y border-[#FCE8E2]">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-12">
           {/* Tri-color Vertical Header - Width aligned to carousel */}
           <div
-            className="h-32 flex items-center justify-center"
+            className="h-24 md:h-32 flex items-center justify-center text-center"
             style={{
               background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
             }}
           >
-            <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Budget-Friendly Picks</h2>
+            <h2 className="text-3xl md:text-7xl font-light text-[#7dd3fc] tracking-tighter px-4">Budget-Friendly Picks</h2>
           </div>
 
           {/* Sleek Space */}
@@ -184,12 +184,12 @@ export default async function Home() {
 
           {/* OMG! Deals Header - Lower Section */}
           <div
-            className="h-32 flex items-center justify-center"
+            className="h-24 md:h-32 flex items-center justify-center text-center"
             style={{
               background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
             }}
           >
-            <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">OMG! Deals</h2>
+            <h2 className="text-3xl md:text-7xl font-light text-[#7dd3fc] tracking-tighter px-4">OMG! Deals</h2>
           </div>
 
           {/* Sleek Gap */}
@@ -207,15 +207,15 @@ export default async function Home() {
       {/* ── SHOP BY CATEGORY (FINAL SECTION) ── */}
       {allCollections.length > 0 && (
         <section className="bg-white overflow-hidden pb-16">
-          <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-7xl mx-auto px-4 md:px-12">
             {/* Tri-color Vertical Header */}
             <div
-              className="h-32 flex items-center justify-center"
+              className="h-24 md:h-32 flex items-center justify-center text-center"
               style={{
                 background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
               }}
             >
-              <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Shop By Category</h2>
+              <h2 className="text-3xl md:text-7xl font-light text-[#7dd3fc] tracking-tighter px-4">Shop By Category</h2>
             </div>
 
             {/* Sleek White Space */}
@@ -230,15 +230,15 @@ export default async function Home() {
       {/* ── TRENDING NOW (DENSE GRID) ─────────────────────── */}
       {bestSellers.length > 0 && (
         <section className="bg-brand-peach overflow-hidden pb-16 border-y border-[#FCE8E2]">
-          <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-7xl mx-auto px-4 md:px-12">
             {/* Tri-color Vertical Header */}
             <div
-              className="h-32 flex items-center justify-center"
+              className="h-24 md:h-32 flex items-center justify-center text-center"
               style={{
                 background: 'linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,1) 40%, rgba(255,223,0,0.3) 75%, rgba(255,165,0,0.4) 100%)'
               }}
             >
-              <h2 className="text-6xl font-light text-[#7dd3fc] tracking-tighter">Trending Now</h2>
+              <h2 className="text-3xl md:text-7xl font-light text-[#7dd3fc] tracking-tighter px-4">Trending Now</h2>
             </div>
 
             {/* Space */}

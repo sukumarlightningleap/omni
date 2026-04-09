@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Search, Menu, ChevronDown, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Search, Menu, ChevronDown, User, ArrowRight, ShieldCheck, X } from 'lucide-react';
 import CartDrawer from './CartDrawer';
 import SearchModal from './SearchModal';
 import { useSession, signOut } from 'next-auth/react';
@@ -227,60 +227,77 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
         </div>
       </motion.nav>
 
-      {/* MOBILE DRAWER */}
+      {/* MOBILE OVERLAY MENU */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] lg:hidden"
-            />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[80%] max-w-sm bg-white z-[70] lg:hidden shadow-2xl p-8 flex flex-col"
-            >
-              <div className="flex justify-between items-center mb-12">
-                <span className="text-sm font-black tracking-tighter uppercase italic">Menu</span>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-neutral-400">
-                  <ArrowRight size={20} />
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-[100] bg-[#FFF5F2] flex flex-col p-6 lg:hidden"
+          >
+            <div className="flex justify-between items-center h-20 mb-12">
+              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-black tracking-tighter uppercase italic font-display text-[#1A1A1A]">
+                Unrwly
+              </Link>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-100 shadow-sm text-[#1A1A1A]"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-6 overflow-y-auto pb-12">
+              <span className="text-[10px] font-bold tracking-[0.3em] text-slate-400 uppercase">Registry</span>
+              {collections.map((col) => (
+                <Link 
+                  key={col.id} 
+                  href={`/collections/${col.handle}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-4xl font-black tracking-tighter text-[#1A1A1A] hover:text-[#4F46E5] transition-all uppercase italic"
+                >
+                  {col.title || col.name}
+                </Link>
+              ))}
+              <Link 
+                href="/collections/all" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-4xl font-black tracking-tighter text-[#1A1A1A] hover:text-[#4F46E5] transition-all uppercase italic"
+              >
+                New Drops
+              </Link>
+            </div>
+
+            <div className="mt-auto pt-8 border-t border-slate-100 grid grid-cols-2 gap-4">
+              <Link 
+                href={session ? (isAdmin ? '/admin/products' : '/account') : '/auth'} 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center h-14 bg-white border border-slate-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-[#1A1A1A]"
+              >
+                {session ? 'Profile' : 'Login'}
+              </Link>
+              <Link 
+                href="/wishlist" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center h-14 bg-white border border-slate-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-[#1A1A1A]"
+              >
+                Wishlist ({wishlistCount})
+              </Link>
+              {session && (
+                <button 
+                  onClick={() => {
+                    signOut();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="col-span-2 h-12 text-[10px] font-bold text-rose-500 uppercase tracking-widest"
+                >
+                  Terminate Session
                 </button>
-              </div>
-
-              <div className="flex flex-col gap-6">
-                <span className="text-[10px] font-black tracking-[0.3em] text-neutral-300 uppercase">Collections</span>
-                {collections.map((col) => (
-                  <Link 
-                    key={col.id} 
-                    href={`/collections/${col.handle}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-lg font-black tracking-tighter text-[#0F172A] hover:text-[#4F46E5] transition-colors uppercase italic"
-                  >
-                    {col.title}
-                  </Link>
-                ))}
-                {collections.length === 0 && (
-                  <Link href="/collections/all" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-black tracking-tighter text-black uppercase italic">
-                    New Arrivals
-                  </Link>
-                )}
-              </div>
-
-              <div className="mt-auto pt-10 border-t border-neutral-100 flex flex-col gap-4">
-                <Link href="/lookbook" className="text-[10px] font-black tracking-[0.3em] text-neutral-400 uppercase">Lookbook</Link>
-                {session ? (
-                   <button onClick={() => signOut()} className="text-[10px] font-black tracking-[0.3em] text-red-500 uppercase text-left underline underline-offset-4">Logout</button>
-                ) : (
-                   <Link href="/auth" className="text-[10px] font-black tracking-[0.3em] text-black uppercase">Login</Link>
-                )}
-              </div>
-            </motion.div>
-          </>
+              )}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 

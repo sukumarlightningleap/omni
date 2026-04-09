@@ -189,9 +189,9 @@ const ProductCard = ({
             {/* Mobile Only Quick Add Circle */}
             <button
               onClick={handleQuickAdd}
-              className="md:hidden w-10 h-10 rounded-full bg-[#121212] flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
+              className="md:hidden w-12 h-12 rounded-full bg-[#121212] flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
             >
-              <ShoppingBag size={16} />
+              <ShoppingBag size={18} />
             </button>
           </div>
         </div>
