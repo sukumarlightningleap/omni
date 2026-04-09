@@ -7,17 +7,20 @@ export default async function MarketingPage() {
   })
 
   return (
-    <div className="space-y-8 font-mono max-w-[1400px] mx-auto w-full text-white">
-      <header className="flex justify-between items-center mb-8 border-b border-[#1A1A1A] pb-4 bg-black">
-        <h1 className="text-sm font-black tracking-[0.2em] uppercase">Marketing Campaigns</h1>
-        <button className="text-[10px] bg-white text-black font-black uppercase tracking-widest px-6 py-2 hover:bg-neutral-200 transition-colors">
-          Create Campaign
-        </button>
+    <div className="space-y-8 max-w-6xl mx-auto py-12 px-6">
+      <header className="flex justify-between items-end mb-10">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-black tracking-tighter uppercase italic text-slate-900">Marketing Protocol</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Campaign Management & Global Triggers</p>
+        </div>
+        <div className="bg-white border border-slate-200 px-4 py-2 rounded-full flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">Engine Online</span>
+        </div>
       </header>
       
-      <div className="bg-black border border-[#1A1A1A] p-6">
-        <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500 mb-6">Active Flash Sale</h2>
-        <FlashSaleForm initialData={config} />
+      <div className="bg-slate-50 border border-slate-100 rounded-3xl p-2">
+        <FlashSaleForm initialData={config as any} />
       </div>
     </div>
   )

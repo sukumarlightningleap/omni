@@ -5,25 +5,28 @@ import { X, Send, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { subscribeToNewsletter } from "@/app/actions/subscribe";
 
-const NewsletterModal = () => {
+const NewsletterModal = ({ config }: { config: any }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if the user has already seen the modal
+    // Kill switch: if protocol is not active, don't even mount timer
+    if (!config?.welcomeActive) return;
+
     const hasSeen = localStorage.getItem("unrwly_newsletter_seen");
     
     if (!hasSeen) {
+      const delay = config?.welcomeDelay || 5000;
       const timer = setTimeout(() => {
         setIsOpen(true);
         setIsVisible(true);
-      }, 60000); // 60 seconds delay
+      }, delay); 
 
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [config]);
 
   const closeModal = () => {
     setIsOpen(false);
@@ -35,15 +38,13 @@ const NewsletterModal = () => {
       const result = await subscribeToNewsletter(formData);
       if (result.success) {
         setIsSuccess(true);
-        // Persist seen state
         localStorage.setItem("unrwly_newsletter_seen", "true");
-        // Close after a delay
         setTimeout(() => closeModal(), 3000);
       }
     });
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || !config?.welcomeActive) return null;
 
   return (
     <AnimatePresence>
@@ -55,7 +56,7 @@ const NewsletterModal = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeModal}
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
           />
 
           {/* Modal Content */}
@@ -64,63 +65,63 @@ const NewsletterModal = () => {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-2xl bg-[#0A0A0A] border border-white/10 overflow-hidden rounded-sm"
+            className="relative w-full max-w-2xl bg-white border border-slate-200 overflow-hidden rounded-[2.5rem] shadow-2xl"
           >
             {/* Close Button */}
             <button 
               onClick={closeModal}
-              className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors z-10"
+              className="absolute top-6 right-6 text-slate-300 hover:text-indigo-600 transition-colors z-10 p-2"
             >
               <X size={20} />
             </button>
 
             <div className="grid grid-cols-1 md:grid-cols-2">
-              {/* Left Side: Visual/Offer */}
-              <div className="relative h-64 md:h-full bg-neutral-900 flex flex-col items-center justify-center p-8 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
+              {/* Left Side: Visual/Offer - Soft Peach Theme */}
+              <div className="relative h-64 md:h-auto bg-[#FFF5F2] flex flex-col items-center justify-center p-8 overflow-hidden min-h-[300px]">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
                 <motion.div 
-                  initial={{ rotate: -10, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
+                  initial={{ rotate: -5, opacity: 0, scale: 0.8 }}
+                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 }}
                   className="relative z-10 text-center"
                 >
-                  <span className="text-[10px] font-syne font-black tracking-[0.5em] text-white/40 uppercase mb-4 block">
-                    Exclusive Access
+                  <span className="text-[10px] font-black tracking-[0.5em] text-indigo-600/60 uppercase mb-4 block">
+                    Welcome Protocol
                   </span>
-                  <h2 className="text-6xl md:text-7xl font-syne font-black text-white italic tracking-tighter leading-none mb-2">
-                    10%
+                  <h2 className="text-7xl md:text-8xl font-black text-indigo-600 italic tracking-tighter leading-none mb-2">
+                    {config?.welcomeTitle || "10%"}
                   </h2>
-                  <p className="text-xl font-syne font-bold text-white uppercase tracking-widest italic">
-                    Off Your First Order
+                  <p className="text-xl font-bold text-indigo-600 uppercase tracking-widest italic">
+                    {config?.welcomeSubtitle || "Off Your Order"}
                   </p>
                 </motion.div>
                 {/* Decorative Elements */}
-                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl" />
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl" />
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFF5F2] border border-indigo-100 rounded-full blur-2xl" />
               </div>
 
-              {/* Right Side: Form */}
-              <div className="p-8 md:p-12 flex flex-col justify-center">
+              {/* Right Side: Form - Polaris Light */}
+              <div className="p-8 md:p-12 flex flex-col justify-center bg-white">
                 {isSuccess ? (
                   <div className="text-center space-y-4 animate-in fade-in zoom-in duration-500">
-                    <div className="bg-white/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle2 size={24} className="text-white" />
+                    <div className="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle2 size={32} className="text-green-500" />
                     </div>
-                    <h3 className="text-xl font-syne font-bold text-white uppercase tracking-widest">
-                      Welcome to the fold
+                    <h3 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter">
+                      Access Granted
                     </h3>
-                    <p className="text-xs text-gray-500 font-inter uppercase tracking-widest leading-relaxed">
-                      Your discount code is on its way to your inbox.
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+                      Check your inbox for the protocol unlock code.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-8">
-                    <div className="space-y-2">
-                      <h3 className="text-xs font-syne font-black text-white uppercase tracking-[0.3em]">
-                        Join the Rebellion
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-black text-indigo-600 uppercase tracking-[0.3em]">
+                        Join the Inner Circle
                       </h3>
-                      <p className="text-xs text-gray-500 font-inter uppercase tracking-widest leading-relaxed">
-                        GET EARLY ACCESS TO DROPS AND EXCLUSIVE REWARDS.
+                      <p className="text-xs text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
+                        {config?.welcomeDescription || "GET EARLY ACCESS TO DROPS AND EXCLUSIVE REWARDS."}
                       </p>
                     </div>
 
@@ -131,25 +132,25 @@ const NewsletterModal = () => {
                           name="email"
                           placeholder="EMAIL ADDRESS"
                           required
-                          className="w-full bg-white/5 border border-white/10 px-4 py-4 text-white font-inter text-xs placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-colors uppercase tracking-widest"
+                          className="w-full bg-slate-50 border border-slate-200 px-6 py-5 text-slate-900 font-bold text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-600 focus:bg-white transition-all rounded-2xl uppercase tracking-widest"
                         />
                       </div>
                       <button 
                         disabled={isPending}
-                        className="w-full h-14 bg-white text-black font-syne font-black text-[10px] uppercase tracking-[0.3em] transition-all hover:bg-neutral-200 flex items-center justify-center gap-2 group"
+                        className="w-full h-16 bg-indigo-600 text-white font-black text-[10px] uppercase tracking-[0.3em] transition-all hover:bg-indigo-700 rounded-2xl flex items-center justify-center gap-2 group shadow-lg shadow-indigo-600/20 active:scale-[0.98]"
                       >
                         {isPending ? (
-                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         ) : (
                           <>
-                            SIGN UP NOW
+                            ACTIVATE OFFER
                             <Send size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                           </>
                         )}
                       </button>
                     </form>
 
-                    <p className="text-[9px] text-zinc-600 font-inter uppercase tracking-widest text-center leading-relaxed">
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest text-center leading-relaxed">
                       BY SIGNING UP, YOU AGREE TO OUR TERMS & PRIVACY POLICY.
                     </p>
                   </div>

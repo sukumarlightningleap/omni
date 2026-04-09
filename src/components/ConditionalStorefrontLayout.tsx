@@ -37,7 +37,7 @@ export default function ConditionalStorefrontLayout({ children, config, navbar, 
       </main>
 
       {footer}
-      <NewsletterModal />
+      <NewsletterModal config={config} />
     </>
   )
 }
