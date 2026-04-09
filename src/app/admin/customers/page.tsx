@@ -27,7 +27,7 @@ export default async function CustomersPage() {
   }))
 
   return (
-    <div className="space-y-8 font-mono max-w-[1400px] mx-auto w-full">
+    <div className="space-y-8 font-sans max-w-[1400px] mx-auto w-full">
       <CustomersClient initialCustomers={safeCustomers} />
     </div>
   )

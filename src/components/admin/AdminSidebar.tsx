@@ -47,7 +47,7 @@ export default function AdminSidebar() {
 
       {/* Navigation Links */}
       <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] px-4 mb-6">Management</div>
+        <div className="text-[10px] font-black text-slate-400 uppercase tracking-tight px-4 mb-6 font-sans">Management</div>
         {menuItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           const isActuallyActive = item.href === '/admin' ? pathname === '/admin' : isActive;
@@ -56,7 +56,7 @@ export default function AdminSidebar() {
             <Link
               key={item.label}
               href={item.href}
-              className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl text-[12px] font-semibold transition-all duration-300 relative ${
+              className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300 relative ${
                 isActuallyActive 
                   ? 'text-[#4f46e5] bg-[#FFF5F2]' 
                   : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/50'
@@ -65,11 +65,11 @@ export default function AdminSidebar() {
               {isActuallyActive && (
                 <motion.div
                   layoutId="activePill"
-                  className="absolute left-0 w-1 h-6 bg-[#4f46e5] rounded-full"
+                  className="absolute left-0 w-1 h-5 bg-[#4f46e5] rounded-full"
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
-              <item.icon size={18} className={`${isActuallyActive ? 'text-[#4f46e5]' : 'text-slate-400 group-hover:text-slate-600'}`} />
+              <item.icon size={16} className={`${isActuallyActive ? 'text-[#4f46e5]' : 'text-slate-400 group-hover:text-slate-600'}`} />
               <span>{item.label}</span>
             </Link>
           );
