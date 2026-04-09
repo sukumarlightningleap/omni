@@ -57,26 +57,26 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 text-black">
+    <form onSubmit={handleSubmit} className="space-y-6 text-slate-900 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
       {/* Toggle */}
-      <div className="flex items-center justify-between border border-black/10 p-4 bg-white shadow-sm">
+      <div className="flex items-center justify-between border border-slate-200 p-6 bg-slate-50 rounded-2xl">
         <div className="space-y-1">
-          <label className="text-xs font-black tracking-[0.2em] uppercase text-black">
+          <label className="text-xs font-black tracking-[0.2em] uppercase text-slate-900">
             Enable Flash Sale
           </label>
-          <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold">
+          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
             Activates the global countdown ticker
           </p>
         </div>
         <button
           type="button"
           onClick={() => setActive(!active)}
-          className={`relative w-12 h-6 rounded-none transition-colors duration-200 border-2 ${
-            active ? "bg-black border-black" : "bg-neutral-200 border-neutral-300"
+          className={`relative w-12 h-6 rounded-full transition-colors duration-200 border-2 ${
+            active ? "bg-indigo-600 border-indigo-600" : "bg-slate-200 border-slate-300"
           }`}
         >
           <span
-            className={`absolute top-[2px] left-[2px] bg-white w-4 h-4 transition-transform duration-200 ${
+            className={`absolute top-[2px] left-[2px] bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200 ${
               active ? "translate-x-6" : "translate-x-0"
             }`}
           />
@@ -86,25 +86,25 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Message Input */}
         <div className="space-y-2">
-          <label className="text-[10px] font-black tracking-[0.2em] uppercase text-black block">
+          <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 block">
             Announcement Message
           </label>
           <div className="relative">
-            <Zap className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" size={14} />
+            <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-600 pointer-events-none" size={14} />
             <input
               type="text"
               required
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="e.g. SUMMER VAULT UNLOCKED"
-              className="w-full bg-white border border-black/20 text-xs font-bold px-10 py-4 text-black focus:outline-none focus:border-black transition-colors rounded-none placeholder:text-neutral-400"
+              className="w-full bg-slate-50 border border-slate-200 text-xs font-bold px-12 py-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all rounded-2xl placeholder:text-slate-400"
             />
           </div>
         </div>
 
         {/* Date Input */}
         <div className="space-y-2">
-          <label className="text-[10px] font-black tracking-[0.2em] uppercase text-black block">
+          <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 block">
             End Date & Time
           </label>
           <input
@@ -112,16 +112,29 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
             required={active} // Only required if active
             value={endsAt}
             onChange={(e) => setEndsAt(e.target.value)}
-            className="w-full bg-white border border-black/20 text-xs font-bold px-4 py-4 text-black focus:outline-none focus:border-black transition-colors rounded-none"
+            className="w-full bg-slate-50 border border-slate-200 text-xs font-bold px-4 py-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all rounded-2xl"
           />
         </div>
       </div>
 
-      <div className="pt-2">
+      {/* Visual Preview */}
+      <div className="space-y-3">
+        <label className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 block">Visual Preview</label>
+        <div className="bg-[#FFF5F2] border border-[#FCE8E2] rounded-xl p-4 overflow-hidden relative">
+          <div className="flex items-center gap-4 animate-pulse">
+            <Zap size={12} className="text-[#D97757] shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D97757] whitespace-nowrap">
+              {message || "PREVIEW CONTENT"} — 00D : 00H : 00M : 00S
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-4">
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-black text-white hover:bg-neutral-800 flex items-center justify-center gap-2 py-4 text-[10px] font-black uppercase tracking-[0.3em] transition-colors disabled:opacity-50"
+          className="w-full bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center gap-2 py-5 text-[10px] font-black uppercase tracking-[0.3em] transition-all rounded-2xl shadow-lg shadow-indigo-600/10 disabled:opacity-50 active:scale-[0.98]"
         >
           {isLoading ? (
             <>
@@ -136,7 +149,7 @@ export default function FlashSaleForm({ initialData }: FlashSaleFormProps) {
 
       {feedback && (
         <div
-          className={`p-4 text-[10px] font-bold tracking-widest uppercase border text-center ${
+          className={`p-4 text-[10px] font-bold tracking-widest uppercase border text-center rounded-xl ${
             feedback.type === 'success'
               ? 'bg-green-50 text-green-700 border-green-200'
               : 'bg-red-50 text-red-700 border-red-200'
