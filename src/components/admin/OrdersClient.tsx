@@ -27,12 +27,40 @@ type OrderData = {
 };
 
 export default function OrdersClient({ initialOrders }: { initialOrders: OrderData[] }) {
+  const [orders, setOrders] = useState<OrderData[]>(initialOrders);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
 
-  const filteredOrders = initialOrders.filter((o) =>
+  // REAL-TIME SYNC LOGIC
+  React.useEffect(() => {
+    const syncOrders = async () => {
+      setIsSyncing(true);
+      try {
+        const response = await fetch("/api/orders");
+        if (response.ok) {
+          const newData: OrderData[] = await response.json();
+          // Smart Update: Check if we have new orders or status changes
+          if (JSON.stringify(newData) !== JSON.stringify(orders)) {
+            setOrders(newData);
+            setLastSyncTime(new Date());
+          }
+        }
+      } catch (error) {
+        console.error("Background sync failed");
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    const interval = setInterval(syncOrders, 10000);
+    return () => clearInterval(interval);
+  }, [orders]);
+
+  const filteredOrders = orders.filter((o) =>
     o.id.toLowerCase().includes(search.toLowerCase()) ||
     (o.user?.email && o.user.email.toLowerCase().includes(search.toLowerCase()))
   );
@@ -81,7 +109,22 @@ export default function OrdersClient({ initialOrders }: { initialOrders: OrderDa
     <div className="space-y-6">
       {/* POLARIS PAGE HEADER */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">Orders</h1>
+        <div className="flex items-center gap-4">
+           <h1 className="text-2xl font-bold text-slate-900">Orders</h1>
+           <div className="flex items-center gap-2 px-3 py-1 bg-[#FFF5F2] border border-[#fbd3b1]/30 rounded-full">
+              <span className="relative flex h-2 w-2">
+                {isSyncing ? (
+                  <span className="animate-spin absolute inline-flex h-full w-full rounded-full border-t border-indigo-500 opacity-100"></span>
+                ) : (
+                  <>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </>
+                )}
+              </span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Active Sync {isSyncing ? '...' : `(as of ${lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`}</span>
+           </div>
+        </div>
         <div className="flex gap-3">
           <button 
             onClick={async () => {
