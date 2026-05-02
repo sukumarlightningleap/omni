@@ -14,6 +14,9 @@
   --color-brand-peach: #FFF5F2;
   --color-brand-terracotta: #D97757;
   --color-brand-indigo: #4F46E5;
+
+  /* Typography — Stylish Serif */
+  --font-serif: var(--font-playfair), "Georgia", ui-serif, serif;
 }
 
 :root {

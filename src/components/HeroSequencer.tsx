@@ -51,6 +51,9 @@ export default function HeroSequencer({ urls, poster }: HeroSequencerProps) {
             autoPlay
             muted
             playsInline
+            preload={currentIndex === 0 ? "auto" : "metadata"}
+            // @ts-expect-error — fetchPriority is valid on <video> in modern browsers
+            fetchPriority={currentIndex === 0 ? "high" : "auto"}
             onEnded={handleEnded}
             className="w-full h-full object-cover opacity-80"
           />
