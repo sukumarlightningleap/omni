@@ -1,30 +1,25 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-// @ts-ignore - pg is needed for driver adapter but frequently has resolution issues in Vercel build environments
+// @ts-ignore - pg is needed for driver adapter but frequently has resolution issues
 import { Pool } from 'pg'
 
 const connectionString = `${process.env.DATABASE_URL}`
 
-// Prisma 7 Connection Pool Configuration
 const pool = new Pool({
   connectionString,
   max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000, // 10s timeout to avoid Vercel build hangs
+  connectionTimeoutMillis: 10000, // 10s timeout to avoid getting stuck
 })
 
 const adapter = new PrismaPg(pool)
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
 
 // --- THE IMMORTALITY PROTOCOL ---
-// Initialize the base client with the driver adapter for Prisma 7
-const basePrisma = globalForPrisma.prisma ?? new PrismaClient({
-  adapter,
-  // Ensure the datasourceUrl is explicitly passed for Prisma 7 compatibility
-  datasourceUrl: connectionString
-})
+// For Prisma 7, when using an adapter, the connection is managed by the Pool.
+// We remove the explicit datasourceUrl here to fix the "not assignable to type never" error.
+const basePrisma = globalForPrisma.prisma ?? new PrismaClient({ adapter })
 
-// Extend the client with production guardrails (The Immortality Protocol)
 export const prisma = basePrisma.$extends({
   query: {
     product: {
@@ -52,6 +47,6 @@ export const prisma = basePrisma.$extends({
       }
     }
   }
-}) as unknown as PrismaClient // Type-cast for standard usage across the app
+}) as unknown as PrismaClient
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = basePrisma
