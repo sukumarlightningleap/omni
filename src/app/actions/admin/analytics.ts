@@ -75,10 +75,13 @@ export async function getUnitEconomics() {
       id: product.id,
       name: product.name,
       imageUrl: product.imageUrl,
-      price, cost,
+      price,
+      cost,
       marginPercent: price > 0 ? (marginAmount / price) * 100 : 0,
       unitsSold,
       totalProfitGenerated: unitsSold * marginAmount,
+      // FIX: Added isAssigned as required by UnitData type in FinanceClient
+      isAssigned: !!product.collectionId,
       status: product.collectionId ? "ACTIVE" : "DRAFT"
     }
   }).sort((a, b) => b.totalProfitGenerated - a.totalProfitGenerated)
