@@ -1,5 +1,6 @@
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export default async function AdminRootLayout({
@@ -7,22 +8,26 @@ export default async function AdminRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
 
-  // Root Server Level Security Enforcement
-  // Temporarily disabled for development preview
-  // if (session?.user?.role !== "ADMIN") {
-  //   redirect("/");
-  // }
+  // Validate session with Supabase
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+  const currentUserEmail = user?.email?.toLowerCase().trim();
+
+  // STAGE 6: Silent Gate Protocol
+  // If no user exists or email doesn't match the Vercel Master Admin, block access.
+  if (!user || currentUserEmail !== masterEmail) {
+    redirect("/auth");
+  }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="flex min-h-screen bg-black">
       <AdminSidebar />
-      {/* Structural enforcement: Sidebar isolation to prevent overlapping */}
-      <main className="ml-64 min-h-screen">
-        <div className="max-w-[1600px] mx-auto p-12 min-h-screen">
-          {children}
-        </div>
+      <main className="flex-1 p-8">
+        {children}
       </main>
     </div>
   );

@@ -1,14 +1,22 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createClient } from "@/utils/supabase/server"
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { syncStorefrontWithPrintify } from "@/lib/printify"
 
 const requireAdmin = async () => {
-  const session = await auth()
-  if (session?.user?.role !== "ADMIN") {
-    throw new Error("Unauthorized. Gatekeeper clearance required.")
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+
+  if (!user || user.email?.toLowerCase().trim() !== masterEmail) {
+    throw new Error("Unauthorized. Gatekeeper clearance required.");
   }
+  return user;
 }
 
 export async function updateProductGatekeeper(
@@ -18,7 +26,6 @@ export async function updateProductGatekeeper(
   status: "LIVE" | "DRAFT" = "DRAFT"
 ) {
   await requireAdmin()
-
   const product = await prisma.product.findUnique({
     where: { id: productId },
     select: { cost: true }
@@ -49,13 +56,11 @@ export async function updateProductGatekeeper(
 
 export async function toggleProductStatus(productId: string, isLive: boolean) {
   await requireAdmin()
-
   const product = await prisma.product.findUnique({
     where: { id: productId },
     select: { collectionId: true }
   })
 
-  // Enforce the rule: LIVE requires a collection
   if (isLive && !product?.collectionId) {
     throw new Error("Gatekeeper: Cannot publish. Choose a collection first.")
   }
@@ -71,20 +76,12 @@ export async function toggleProductStatus(productId: string, isLive: boolean) {
   return { success: true }
 }
 
-export async function bulkPublishToCollection(
-  productIds: string[],
-  collectionId: string | null
-) {
+export async function bulkPublishToCollection(productIds: string[], collectionId: string | null) {
   await requireAdmin()
-
   for (const id of productIds) {
     await prisma.product.update({
       where: { id },
-      data: {
-        collectionId: collectionId && collectionId !== "none" 
-          ? collectionId 
-          : null
-      }
+      data: { collectionId: collectionId && collectionId !== "none" ? collectionId : null }
     })
   }
 
@@ -94,78 +91,38 @@ export async function bulkPublishToCollection(
   return { success: true }
 }
 
-import { syncStorefrontWithPrintify } from "@/lib/printify"
-
 export async function syncPrintifyManual() {
   await requireAdmin()
-
   try {
     const result = await syncStorefrontWithPrintify();
-    
-    if (!result.success) {
-      return { success: false, message: result.error || "Sync Failed." }
-    }
-
-    revalidatePath("/admin/products")
-    revalidatePath("/")
-    revalidatePath("/", "layout")
-    
-    if (result.isFullRestore) {
-      return { success: true, message: `Full Restore Active: ${result.count} products recovered.` }
-    }
+    if (!result.success) return { success: false, message: result.error || "Sync Failed." }
+    revalidatePath("/admin/products");
+    revalidatePath("/");
     return { success: true, message: `Manual Sync: ${result.count} products processed.` }
   } catch (err) {
-    console.error("Printify Sync Failed:", err)
     return { success: false, message: "Internal Server Error during sync." }
   }
 }
 
 export async function createCollection(name: string, description: string) {
   await requireAdmin()
-
   const handle = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-  
-  await prisma.collection.create({
-    data: {
-      name,
-      description,
-      handle,
-    }
-  })
-
+  await prisma.collection.create({ data: { name, description, handle } })
   revalidatePath("/admin/products/collections")
   revalidatePath("/collections")
-  revalidatePath("/")
-  revalidatePath("/", "layout")
   return { success: true }
 }
 
 export async function deleteCollection(id: string) {
   await requireAdmin()
-
-  await prisma.collection.delete({
-    where: { id }
-  })
-
+  await prisma.collection.delete({ where: { id } })
   revalidatePath("/admin/products/collections")
-  revalidatePath("/collections")
-  revalidatePath("/")
-  revalidatePath("/", "layout")
   return { success: true }
 }
 
 export async function deleteManyProducts(productIds: string[]) {
   await requireAdmin()
-
-  await prisma.product.deleteMany({
-    where: {
-      id: { in: productIds }
-    }
-  })
-
+  await prisma.product.deleteMany({ where: { id: { in: productIds } } })
   revalidatePath("/admin/products")
-  revalidatePath("/collections")
-  revalidatePath("/")
-  revalidatePath("/", "layout")
   return { success: true }
 }
