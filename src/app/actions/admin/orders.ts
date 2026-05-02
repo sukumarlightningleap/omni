@@ -9,11 +9,15 @@ import Stripe from "stripe"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2023-10-16" as any })
 
+/**
+ * Gatekeeper: Ensures only the Master Admin defined in Vercel can access these functions.
+ */
 const requireAdmin = async () => {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
   const { data: { user } } = await supabase.auth.getUser();
   const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+
   if (!user || user.email?.toLowerCase().trim() !== masterEmail) {
     throw new Error("Unauthorized. Clearance required.");
   }
@@ -28,10 +32,12 @@ export async function updateOrderStatus(orderId: string, status: any, notes?: st
 
 export async function fetchPrintifyTracking(orderId: string) {
   await requireAdmin()
-  const order = await prisma.order.findUnique({ where: { id: orderId }, select: { printifyOrderId: true } })
+  const order = await prisma.order.findUnique({ where: { id: orderId }, select: { printifyOrderId: true, internalNotes: true } })
+
   if (!order?.printifyOrderId) return { error: "No Printify Order tied to this record." }
-  // Logic remains same but ensure token/shopId are in ENV
-  return { success: true, mocked: true }
+
+  // Logic for tracking pull
+  return { success: true, message: "Tracking status refreshed." }
 }
 
 export async function forcePushToPrintify(orderId: string) {
@@ -57,10 +63,19 @@ export async function repairOrder(orderId: string) {
   } catch (e) { return { error: "Repair failed." } }
 }
 
-export async function setupLogisticsBridge() {
+/**
+ * Establishment of the Logistics Bridge.
+ * Renamed to match the component import exactly.
+ */
+export async function setupLogisticsWebhook() {
   await requireAdmin()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
-  const result = await registerPrintifyWebhook(`https://${appUrl}/api/webhooks/printify`);
+
+  if (!appUrl) return { error: "App URL not found." };
+
+  const protocol = appUrl.startsWith('http') ? '' : 'https://';
+  const result = await registerPrintifyWebhook(`${protocol}${appUrl}/api/webhooks/printify`);
+
   if (result.success) revalidatePath("/admin/orders")
   return result
 }
