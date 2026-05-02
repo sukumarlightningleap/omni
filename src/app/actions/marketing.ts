@@ -1,23 +1,32 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createClient } from "@/utils/supabase/server"
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 
-export async function updateMarketingSettings(data: { 
-  flashSaleActive?: boolean, 
-  flashSaleEndsAt?: Date, 
+const requireAdmin = async () => {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+
+  if (!user || user.email?.toLowerCase().trim() !== masterEmail) {
+    throw new Error("Unauthorized. Gatekeeper clearance required.");
+  }
+}
+
+export async function updateMarketingSettings(data: {
+  flashSaleActive?: boolean,
+  flashSaleEndsAt?: Date,
   flashSaleMessage?: string,
   welcomeActive?: boolean,
   welcomeTitle?: string,
   welcomeSubtitle?: string,
   welcomeDescription?: string
 }) {
-  const session = await auth()
-  
-  if (session?.user?.role !== "ADMIN") {
-    throw new Error("Unauthorized. Only admins can modify the engine protocol.")
-  }
+  await requireAdmin();
 
   await prisma.storeConfig.upsert({
     where: { id: "global" },
@@ -46,7 +55,6 @@ export async function updateMarketingSettings(data: {
   return { success: true }
 }
 
-// Keep a wrapper for compatibility if needed, but we'll update the components
 export async function updateFlashSale(data: { active: boolean, endsAt: Date, message: string }) {
   return updateMarketingSettings({
     flashSaleActive: data.active,

@@ -1,9 +1,14 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createClient } from "@/utils/supabase/server"
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 
+/**
+ * Robust Network Resilience Wrapper
+ * Retries database calls if there are temporary connection hiccups
+ */
 async function withRetry<T>(fn: () => Promise<T>, retries = 2, delay = 1000): Promise<T> {
   try {
     return await fn();
@@ -16,14 +21,25 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 2, delay = 1000): Pr
   }
 }
 
+/**
+ * Supabase Admin Gatekeeper
+ * Verifies the user against the MASTER_ADMIN_EMAIL set in Vercel
+ */
 const requireAdmin = async () => {
-  const session = await auth()
-  if (session?.user?.role !== "ADMIN") {
-    throw new Error("Unauthorized. Missing priority clearance.")
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+  const userEmail = user?.email?.toLowerCase().trim();
+
+  if (!user || userEmail !== masterEmail) {
+    throw new Error("Unauthorized. Missing priority clearance.");
   }
+  return user;
 }
 
-export async function updateMerchSettings(data: { 
+export async function updateMerchSettings(data: {
   heroVideoUrls?: string[],
   heroImageUrl?: string | null,
   promoAnnouncement?: string | null
@@ -57,14 +73,14 @@ export async function getDiscoveryItems(section: string) {
   }))
 }
 
-export async function upsertDiscoveryItem(data: { 
-  section: string, 
-  collectionId: string, 
-  customImageUrl?: string | null, 
-  customDescription?: string 
+export async function upsertDiscoveryItem(data: {
+  section: string,
+  collectionId: string,
+  customImageUrl?: string | null,
+  customDescription?: string
 }) {
   await requireAdmin()
-  
+
   await withRetry(() => prisma.discoveryItem.upsert({
     where: {
       section_collectionId: {
