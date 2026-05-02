@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Search, Menu, ChevronDown, User, ArrowRight, ShieldCheck, X } from 'lucide-react';
 import CartDrawer from './CartDrawer';
 import SearchModal from './SearchModal';
-import { signOutAction } from '@/lib/auth-actions';
+import { signOutAction } from '@/app/auth/auth-actions';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { getVisibleCollections } from '@/app/actions/storefront';

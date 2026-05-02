@@ -7,7 +7,7 @@ import { User, Package, Heart, LogOut, Loader2, ShoppingBag, ExternalLink, Chevr
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { useWishlistStore } from '@/store/useWishlistStore';
-import { signOutAction } from '@/lib/auth-actions';
+import { signOutAction } from '@/app/auth/auth-actions';
 
 interface AccountClientProps {
   user: any; // Data passed from the Server Component via Prisma

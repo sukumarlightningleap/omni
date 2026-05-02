@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 // Import the new Supabase actions we created
-import { signInAction, signUpAction } from '@/lib/auth-actions';
+import { signInAction, signUpAction } from '@/app/auth/auth-actions';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, User, Loader2, AlertCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';

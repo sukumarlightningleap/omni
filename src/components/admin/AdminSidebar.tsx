@@ -16,7 +16,7 @@ import {
   Image as ImageIcon,
   FolderTree
 } from 'lucide-react';
-import { signOutAction } from '@/lib/auth-actions';
+import { signOutAction } from '@/app/auth/auth-actions';
 import { motion } from 'framer-motion';
 
 const menuItems = [

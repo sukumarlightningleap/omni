@@ -4,21 +4,20 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // URLs are now managed in prisma.config.ts for Prisma 7+
+  // URLs are now managed in prisma.config.ts
 }
 
 model StoreConfig {
-  id                String    @id @default("global")
-  flashSaleActive   Boolean   @default(false)
-  flashSaleEndsAt   DateTime?
-  flashSaleMessage  String    @default("LIMITED DROP ENDING SOON")
-  heroVideoUrls     String[]  @default([])
-  heroImageUrl      String?
-  promoAnnouncement String?
-
-  welcomeActive       Boolean   @default(true)
-  welcomeTitle        String    @default("10%")
-  welcomeSubtitle     String    @default("OFF YOUR FIRST ORDER")
+  id                 String    @id @default("global")
+  flashSaleActive    Boolean   @default(false)
+  flashSaleEndsAt    DateTime?
+  flashSaleMessage   String    @default("LIMITED DROP ENDING SOON")
+  heroVideoUrls      String[]  @default([])
+  heroImageUrl       String?
+  promoAnnouncement  String?
+  welcomeActive      Boolean   @default(true)
+  welcomeTitle       String    @default("10%")
+  welcomeSubtitle    String    @default("OFF YOUR FIRST ORDER")
   welcomeDescription String    @default("JOIN THE CLUB FOR EXCLUSIVE ACCESS.")
 }
 
@@ -29,7 +28,7 @@ model DiscoveryItem {
   collection        Collection  @relation(fields: [collectionId], references: [id])
   customImageUrl    String?     @db.Text
   customDescription String?     @db.Text
-  order              Int         @default(0)
+  order             Int         @default(0)
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
@@ -53,23 +52,23 @@ model User {
 
 model Order {
   id              String      @id @default(cuid())
-  orderNumber      String?     @unique
+  orderNumber     String?     @unique
   userId          String?
   stripeSessionId String?     @unique
   printifyOrderId String?     @unique
   status          OrderStatus @default(PENDING)
-  totalAmount      Float
-  totalPaid        Float?      @default(0)
+  totalAmount     Float
+  totalPaid       Float?      @default(0)
   profit          Float?      @default(0)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
   internalNotes   String?
   shippingAddress String?
   trackingNumber  String?
-  carrier          String?
-  trackingUrl      String?
-  user            User?        @relation(fields: [userId], references: [id])
-  items            OrderItem[]
+  carrier         String?
+  trackingUrl     String?
+  user            User?       @relation(fields: [userId], references: [id])
+  items           OrderItem[]
 }
 
 model OrderItem {
@@ -110,35 +109,32 @@ model LookbookImage {
 }
 
 model Collection {
-  id            String    @id @default(cuid())
-  name          String
-  handle        String    @unique // e.g., "spring-2026-drop"
-  description   String?   @db.Text
-  imageUrl      String?
-  products      Product[] // 1-to-many relation
+  id             String          @id @default(cuid())
+  name           String
+  handle         String          @unique
+  description    String?         @db.Text
+  imageUrl       String?
+  products       Product[]
   discoveryItems DiscoveryItem[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model Product {
-  id            String      @id @default(cuid())
-  printifyId    String      @unique
-  name          String
-  description   String?     @db.Text
-  metaDescription String?    @db.Text
-  price         Float       // Retail price
-  cost          Float?      // Printify base cost
-  imageUrl      String
-
-  // 1-to-many Relation
-  collectionId  String?
-  collection    Collection? @relation(fields: [collectionId], references: [id])
-
-  orderItems    OrderItem[]
-  status        ProductStatus @default(DRAFT)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              String        @id @default(cuid())
+  printifyId      String        @unique
+  name            String
+  description     String?       @db.Text
+  metaDescription String?       @db.Text
+  price           Float
+  cost            Float?
+  imageUrl        String
+  collectionId    String?
+  collection      Collection?   @relation(fields: [collectionId], references: [id])
+  orderItems      OrderItem[]
+  status          ProductStatus @default(DRAFT)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 enum Role {
