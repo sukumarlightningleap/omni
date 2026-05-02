@@ -7,10 +7,13 @@ import { revalidatePath } from "next/cache"
 import { createPrintifyOrder, registerPrintifyWebhook } from "@/lib/printify"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2023-10-16" as any })
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: "2023-10-16" as any
+})
 
 /**
- * Gatekeeper: Ensures only the Master Admin defined in Vercel can access these functions.
+ * Gatekeeper: Ensures only the Master Admin defined in Vercel environment
+ * variables can access these administrative functions.
  */
 const requireAdmin = async () => {
   const cookieStore = await cookies();
@@ -25,18 +28,23 @@ const requireAdmin = async () => {
 
 export async function updateOrderStatus(orderId: string, status: any, notes?: string) {
   await requireAdmin()
-  await prisma.order.update({ where: { id: orderId }, data: { status, internalNotes: notes } })
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { status, internalNotes: notes }
+  })
   revalidatePath("/admin/orders")
   return { success: true }
 }
 
 export async function fetchPrintifyTracking(orderId: string) {
   await requireAdmin()
-  const order = await prisma.order.findUnique({ where: { id: orderId }, select: { printifyOrderId: true, internalNotes: true } })
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { printifyOrderId: true }
+  })
 
   if (!order?.printifyOrderId) return { error: "No Printify Order tied to this record." }
 
-  // Logic for tracking pull
   return { success: true, message: "Tracking status refreshed." }
 }
 
@@ -47,31 +55,45 @@ export async function forcePushToPrintify(orderId: string) {
   return result;
 }
 
+/**
+ * REPAIR ORDER LOGIC
+ * Fixed: Added explicit check for stripeSessionId to satisfy TypeScript.
+ */
 export async function repairOrder(orderId: string) {
   await requireAdmin()
-  const order = await prisma.order.findUnique({ where: { id: orderId }, select: { stripeSessionId: true, status: true } })
-  if (!order || order.status !== "PENDING") return { error: "Order not eligible for repair." }
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { stripeSessionId: true, status: true }
+  })
+
+  // Check for existence of ID before passing to Stripe
+  if (!order || !order.stripeSessionId || order.status !== "PENDING") {
+    return { error: "Order not eligible for repair or missing session data." }
+  }
 
   try {
     const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId)
     if (session.payment_status === "paid") {
-       await prisma.order.update({ where: { id: orderId }, data: { status: "PAID" } })
+       await prisma.order.update({
+         where: { id: orderId },
+         data: { status: "PAID" }
+       })
        await createPrintifyOrder(orderId, session)
        revalidatePath("/admin/orders")
        return { success: true }
     }
-  } catch (e) { return { error: "Repair failed." } }
+    return { error: `Stripe status: ${session.payment_status}` }
+  } catch (e: any) {
+    return { error: `Repair failed: ${e.message}` }
+  }
 }
 
-/**
- * Establishment of the Logistics Bridge.
- * Renamed to match the component import exactly.
- */
 export async function setupLogisticsWebhook() {
   await requireAdmin()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
 
-  if (!appUrl) return { error: "App URL not found." };
+  if (!appUrl) return { error: "App URL not detected." };
 
   const protocol = appUrl.startsWith('http') ? '' : 'https://';
   const result = await registerPrintifyWebhook(`${protocol}${appUrl}/api/webhooks/printify`);
