@@ -43,18 +43,27 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Fetch Global Marketing Config from Prisma
-  const config = await prisma.storeConfig.findUnique({
-    where: { id: "global" },
-  });
+  // 1. Initialize config as null to provide a fallback if the DB is unreachable
+  let config = null;
 
-  // Access the Environment Variable
+  try {
+    // 2. Fetch Global Marketing Config with a safety net
+    config = await prisma.storeConfig.findUnique({
+      where: { id: "global" },
+    });
+  } catch (error) {
+    // 3. Log the error to Vercel console without crashing the site
+    console.error("PRODUCTION_DATABASE_ERROR: Check if Supabase is paused or credentials are correct.", error);
+  }
+
+  // Access the Environment Variable for Analytics
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} antialiased selection:bg-blue-100 selection:text-blue-900 flex flex-col min-h-screen font-sans`}>
         <Providers>
+          {/* 4. ConditionalStorefrontLayout will now receive null instead of crashing if DB fails */}
           <ConditionalStorefrontLayout
             config={config}
             navbar={
