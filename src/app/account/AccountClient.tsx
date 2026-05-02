@@ -3,39 +3,34 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Package, Heart, LogOut, Settings, Loader2, ShoppingBag, ExternalLink } from 'lucide-react';
+import { User, Package, Heart, LogOut, Loader2, ShoppingBag, ExternalLink, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useSession, signOut } from 'next-auth/react';
 import ProductCard from '@/components/ProductCard';
 import { useWishlistStore } from '@/store/useWishlistStore';
 
 interface AccountClientProps {
-  orders: any[];
+  user: any; // Data passed from the Server Component via Prisma
 }
 
-const AccountClient = ({ orders }: AccountClientProps) => {
-  const { data: session, status } = useSession();
+const AccountClient = ({ user }: AccountClientProps) => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'orders' | 'wishlist' | 'settings'>('orders');
-  
   const wishlistItems = useWishlistStore((state) => state.items);
-  const isLoading = status === 'loading';
-  const user = session?.user;
 
-  // STRICT ADMIN REDIRECT
+  // 🛡️ STRICT ADMIN REDIRECT
+  // If the user's role in the database is ADMIN, move them to the dashboard
   useEffect(() => {
-    if (status === 'authenticated' && user?.role === 'ADMIN') {
-      router.push('/admin');
+    if (user?.role === 'ADMIN') {
+      router.push('/admin/products');
     }
-  }, [user, status, router]);
+  }, [user, router]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#F6F6F7] flex items-center justify-center">
-        <Loader2 className="animate-spin text-neutral-300" size={32} />
-      </div>
-    );
-  }
+  // Handle Log Out via a standard redirect to a server action or auth page
+  const handleSignOut = () => {
+    // Since we're using Supabase SSR, we redirect to the auth page
+    // where the middleware/client handles session termination
+    window.location.href = '/auth';
+  };
 
   if (!user) {
     return (
@@ -45,10 +40,10 @@ const AccountClient = ({ orders }: AccountClientProps) => {
             Access Denied
           </h2>
           <p className="text-neutral-400 text-[10px] tracking-[0.3em] uppercase font-black">
-            Session Expired or Identity Not Verified
+            Identity Not Verified
           </p>
         </div>
-        <Link 
+        <Link
           href="/auth"
           className="px-12 py-4 bg-black text-white text-[10px] uppercase tracking-[0.4em] font-black hover:bg-neutral-800 transition-all rounded-2xl shadow-lg"
         >
@@ -73,7 +68,7 @@ const AccountClient = ({ orders }: AccountClientProps) => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-6"
@@ -82,8 +77,8 @@ const AccountClient = ({ orders }: AccountClientProps) => {
                 <User size={32} />
               </div>
               <div className="space-y-1">
-                <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic text-black">
-                  {userFirstName} {userLastName}
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic text-black leading-none">
+                  {userFirstName} <br className="md:hidden" /> {userLastName}
                 </h1>
                 <p className="text-neutral-400 text-[10px] tracking-[0.4em] uppercase font-bold">
                   Member Profile • {user.email}
@@ -92,8 +87,8 @@ const AccountClient = ({ orders }: AccountClientProps) => {
             </motion.div>
           </div>
 
-          <button 
-            onClick={() => signOut({ callbackUrl: '/' })}
+          <button
+            onClick={handleSignOut}
             className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] bg-white border border-neutral-200 px-8 py-4 rounded-2xl hover:bg-neutral-50 transition-all shadow-sm group text-black"
           >
             <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" />
@@ -102,14 +97,14 @@ const AccountClient = ({ orders }: AccountClientProps) => {
         </div>
 
         {/* Custom Tabs */}
-        <div className="flex gap-10 border-b border-neutral-200 mb-12">
+        <div className="flex gap-10 border-b border-neutral-200 mb-12 overflow-x-auto no-scrollbar">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`pb-4 text-[11px] uppercase tracking-[0.3em] font-black flex items-center gap-2 transition-all border-b-2 ${
-                activeTab === tab.id 
-                  ? "text-black border-black" 
+              className={`pb-4 text-[11px] uppercase tracking-[0.3em] font-black flex items-center gap-2 transition-all border-b-2 whitespace-nowrap ${
+                activeTab === tab.id
+                  ? "text-black border-black"
                   : "text-neutral-400 border-transparent hover:text-black"
               }`}
             >
@@ -130,7 +125,7 @@ const AccountClient = ({ orders }: AccountClientProps) => {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-6"
               >
-                {orders.length > 0 ? (
+                {user.orders?.length > 0 ? (
                   <div className="bg-white border border-neutral-200 rounded-[40px] p-8 md:p-10 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
@@ -138,35 +133,31 @@ const AccountClient = ({ orders }: AccountClientProps) => {
                           <tr>
                             <th className="pb-6 font-black italic text-black">Order Identity</th>
                             <th className="pb-6 font-black italic">Timestamp</th>
-                            <th className="pb-6 font-black italic">Logistics Status</th>
-                            <th className="pb-6 font-black italic text-right">Clearance</th>
+                            <th className="pb-6 font-black italic">Financials</th>
+                            <th className="pb-6 font-black italic text-right">Logistics</th>
                           </tr>
                         </thead>
                         <tbody className="text-sm">
-                          {orders.map((order) => (
+                          {user.orders.map((order: any) => (
                             <tr key={order.id} className="border-b border-neutral-50 hover:bg-neutral-50/50 transition-colors last:border-0 font-bold uppercase italic tracking-widest text-[11px]">
                               <td className="py-8 font-black text-black">
                                 <div className="space-y-1">
-                                  <p>{order.orderNumber || 'UNR-XXXX'}</p>
+                                  <p>{order.orderNumber || `UNR-${order.id.substring(0, 5)}`}</p>
                                   <p className="text-[8px] text-neutral-400 not-italic uppercase font-bold tracking-widest">
                                     {order.items?.length || 0} Units Assigned
                                   </p>
                                 </div>
                               </td>
-                              <td className="py-8 text-neutral-400">{new Date(order.createdAt).toLocaleDateString()}</td>
+                              <td className="py-8 text-neutral-400">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </td>
                               <td className="py-8">
                                 <div className="flex flex-col gap-2">
-                                  <span className="text-black">${order.totalAmount.toFixed(2)}</span>
-                                  {order.trackingUrl && (
-                                    <a 
-                                      href={order.trackingUrl} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition-colors"
-                                    >
-                                      <span className="text-[8px] font-black underline underline-offset-4">Track Shipment</span>
-                                      <ExternalLink size={10} />
-                                    </a>
+                                  <span className="text-black">${Number(order.totalAmount).toFixed(2)}</span>
+                                  {order.trackingNumber && (
+                                    <div className="flex items-center gap-2 text-indigo-600">
+                                      <span className="text-[8px] font-black underline underline-offset-4 uppercase tracking-widest">Tracking Active</span>
+                                    </div>
                                   )}
                                 </div>
                               </td>
@@ -247,12 +238,17 @@ const AccountClient = ({ orders }: AccountClientProps) => {
                     <div className="space-y-6">
                       <Detail label="Verified Name" value={user.name || 'Anonymous'} />
                       <Detail label="Access Email" value={user.email || ''} />
-                      <Detail label="Identity Clearance" value={user.role || 'GUEST'} />
+                      <Detail label="Identity Clearance" value={user.role || 'CUSTOMER'} />
                     </div>
                   </div>
                   <div className="space-y-8">
-                    <h3 className="text-xl font-black italic uppercase text-black border-b border-neutral-100 pb-4 tracking-tighter">Primary Node</h3>
-                    <p className="text-neutral-400 text-[10px] uppercase tracking-widest font-bold italic pt-2">No physical coordinates stored.</p>
+                    <h3 className="text-xl font-black italic uppercase text-black border-b border-neutral-100 pb-4 tracking-tighter">Node Activity</h3>
+                    <div className="space-y-2">
+                      <p className="text-neutral-400 text-[10px] uppercase tracking-widest font-bold italic">Total Spent</p>
+                      <p className="text-xl font-black italic text-black tracking-tighter">
+                        ${Number(user.totalSpent || 0).toFixed(2)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -261,7 +257,7 @@ const AccountClient = ({ orders }: AccountClientProps) => {
         </div>
 
         {/* Support Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
@@ -270,9 +266,9 @@ const AccountClient = ({ orders }: AccountClientProps) => {
           <p className="text-[10px] text-neutral-400 uppercase tracking-[0.5em] font-black">
             Logistical Resolution Center
           </p>
-          <a href="/faq" className="inline-block text-sm font-black border-b-2 border-black pb-1 hover:text-neutral-500 hover:border-neutral-200 transition-all uppercase tracking-[0.2em] italic">
+          <Link href="/faq" className="inline-block text-sm font-black border-b-2 border-black pb-1 hover:text-neutral-500 hover:border-neutral-200 transition-all uppercase tracking-[0.2em] italic">
             Access Support Handshake
-          </a>
+          </Link>
         </motion.div>
       </div>
     </div>
@@ -282,7 +278,7 @@ const AccountClient = ({ orders }: AccountClientProps) => {
 const Detail = ({ label, value }: { label: string; value: string }) => (
   <div className="space-y-2">
     <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-black">{label}</p>
-    <p className="text-sm text-black font-black uppercase italic tracking-widest">{value || 'Not provided'}</p>
+    <p className="text-sm text-black font-black uppercase italic tracking-widest leading-none">{value || 'Not provided'}</p>
   </div>
 );
 
