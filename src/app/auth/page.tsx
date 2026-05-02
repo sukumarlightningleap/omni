@@ -1,19 +1,45 @@
 "use client";
 
-import React, { useState } from 'react';
-// Import the new Supabase actions we created
+import React, { useState, useEffect } from 'react';
 import { signInAction, signUpAction } from '@/app/auth/auth-actions';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, User, Loader2, AlertCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import { useFormStatus } from 'react-dom';
+
+/**
+ * SubmitButton uses React 19's useFormStatus to track the pending state
+ * of the parent <form>. This automatically resets when the server action
+ * completes or redirects — no manual state management needed.
+ */
+function SubmitButton({ isLogin }: { isLogin: boolean }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full bg-black text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-neutral-800 transition-all shadow-lg shadow-neutral-200 active:scale-[0.98] uppercase tracking-widest text-[11px] disabled:opacity-50"
+    >
+      {pending ? (
+        <>
+          <Loader2 size={16} className="animate-spin" /> Handshaking...
+        </>
+      ) : (
+        <>
+          {isLogin ? 'Access Dashboard' : 'Initialize Identity'} <ArrowRight size={16} />
+        </>
+      )}
+    </button>
+  );
+}
 
 function AuthContent() {
   const [isLogin, setIsLogin] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
 
-  // These will now come from the URL redirected by the Server Action
+  // These come from the URL redirected by the Server Action
   const error = searchParams.get('error');
   const message = searchParams.get('message');
 
@@ -71,8 +97,8 @@ function AuthContent() {
             </motion.div>
           )}
 
-          {/* Form now uses action instead of onSubmit */}
-          <form className="space-y-8">
+          {/* Form uses formAction on the button for server action binding */}
+          <form action={isLogin ? signInAction : signUpAction} className="space-y-8">
             <div className="space-y-6">
               {!isLogin && (
                 <div className="space-y-2">
@@ -119,31 +145,12 @@ function AuthContent() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              formAction={isLogin ? signInAction : signUpAction}
-              onClick={() => setIsLoading(true)}
-              disabled={isLoading}
-              className="w-full bg-black text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-neutral-800 transition-all shadow-lg shadow-neutral-200 active:scale-[0.98] uppercase tracking-widest text-[11px] disabled:opacity-50"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" /> Handshaking...
-                </>
-              ) : (
-                <>
-                  {isLogin ? 'Access Dashboard' : 'Initialize Identity'} <ArrowRight size={16} />
-                </>
-              )}
-            </button>
+            <SubmitButton isLogin={isLogin} />
           </form>
 
           <div className="mt-10 pt-8 border-t border-neutral-100 flex flex-col items-center gap-4">
             <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                // The error is now in searchParams, so we navigate to clear it
-              }}
+              onClick={() => setIsLogin(!isLogin)}
               className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:text-black transition-colors"
             >
               {isLogin ? "Need a new identity? Initialize" : "Already verified? Access Center"}

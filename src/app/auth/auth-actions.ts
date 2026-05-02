@@ -7,6 +7,11 @@ import { redirect } from 'next/navigation';
 export async function signInAction(formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
+
+  if (!email || !password) {
+    return redirect('/auth?error=Email and password are required.');
+  }
+
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
@@ -38,6 +43,11 @@ export async function signUpAction(formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
   const name = formData.get('name') as string;
+
+  if (!email || !password) {
+    return redirect('/auth?error=Email and password are required.');
+  }
+
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
