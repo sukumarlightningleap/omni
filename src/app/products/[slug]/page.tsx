@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import ProductClient from '@/components/ProductClient';
 import { fetchPrintifyProductById, fetchPrintifyProducts } from '@/lib/printify';
 import { prisma } from '@/lib/prisma';
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -53,6 +55,19 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
  */
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Determine if user is admin based on environment variable
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+  const isAdmin = user?.email?.toLowerCase().trim() === masterEmail;
+
+  const safeUser = user ? {
+    id: user.id,
+    email: user.email,
+    role: isAdmin ? 'ADMIN' : 'CUSTOMER'
+  } : null;
   
   // 1. Verify existence and visibility in Database
   const dbProduct = await prisma.product.findUnique({
@@ -97,6 +112,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <ProductClient 
       product={normalizedProduct} 
       recommendations={recommendations} 
+      user={safeUser}
     />
   );
 }

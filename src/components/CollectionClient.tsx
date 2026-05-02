@@ -11,12 +11,13 @@ import FilterSidebar from './FilterSidebar';
 // --- Updated Interface to match Page props ---
 interface CollectionClientProps {
   initialProducts: any[];
-  categories?: string[]; // Added to fix build error
-  title?: string;        // Added to fix build error
+  categories?: string[]; 
+  title?: string;
+  user?: any;
 }
 
 /* ── Inner component that uses useSearchParams ─────── */
-const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
+const CollectionInner = ({ initialProducts, title, user }: CollectionClientProps) => {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
 
@@ -57,7 +58,7 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-16 mt-12">
           <AnimatePresence>
             {filteredProducts.map((product, index) => (
-              <ProductCard key={product._id || product.slug} product={product} index={index} />
+              <ProductCard key={product._id || product.slug} product={product} index={index} user={user} />
             ))}
           </AnimatePresence>
         </div>
@@ -75,7 +76,7 @@ const CollectionInner = ({ initialProducts, title }: CollectionClientProps) => {
 };
 
 /* ── Wrapper with Suspense boundary ───────────────── */
-const CollectionClient = ({ initialProducts, categories, title }: CollectionClientProps) => {
+const CollectionClient = ({ initialProducts, categories, title, user }: CollectionClientProps) => {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-white flex items-center justify-center pt-40">
@@ -84,7 +85,7 @@ const CollectionClient = ({ initialProducts, categories, title }: CollectionClie
         </div>
       </div>
     }>
-      <CollectionInner initialProducts={initialProducts} categories={categories} title={title} />
+      <CollectionInner initialProducts={initialProducts} categories={categories} title={title} user={user} />
     </Suspense>
   );
 };

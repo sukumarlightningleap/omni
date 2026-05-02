@@ -95,7 +95,7 @@ export default function OrdersClient({ initialOrders }: { initialOrders: OrderDa
             onClick={async () => {
               if (confirm("Establish permanent Logistics Bridge?")) {
                 const res = await setupLogisticsWebhook();
-                alert(res.success ? "Success" : res.error);
+                alert((res as any).success ? "Success" : (res as any).error);
               }
             }}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-semibold hover:bg-slate-50 shadow-sm"
@@ -177,7 +177,7 @@ export default function OrdersClient({ initialOrders }: { initialOrders: OrderDa
                 <button
                   onClick={async () => {
                     const res = await forcePushToPrintify(selectedOrder.id);
-                    alert(res.success ? "Order Pushed" : res.error);
+                    alert((res as any).success ? "Order Pushed" : (res as any).error);
                   }}
                   className="w-full py-4 bg-indigo-600 text-white font-bold rounded-lg"
                 >

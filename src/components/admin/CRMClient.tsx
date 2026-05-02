@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Search, Save, User as UserIcon, Loader2, DollarSign } from "lucide-react";
-import { updateUserCRM } from "@/app/actions/crm";
+import { updateUserRole, saveInternalNotes } from "@/app/actions/crm";
 
 type UserData = {
   id: string;
@@ -32,7 +32,11 @@ export default function CRMClient({ initialUsers }: { initialUsers: UserData[] }
     );
 
     try {
-      await updateUserCRM(userId, { [field]: value as any });
+      if (field === "role") {
+        await updateUserRole(userId, value as any);
+      } else {
+        await saveInternalNotes(userId, value);
+      }
     } catch (error) {
       alert("Failed to synchronize user protocol.");
       // Rollback logic would go here in production

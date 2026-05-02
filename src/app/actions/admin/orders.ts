@@ -89,6 +89,11 @@ export async function repairOrder(orderId: string) {
   }
 }
 
+export async function syncPrintifyOrder(orderId: string) {
+  // Alias for fetchPrintifyTracking to maintain backward compatibility with component expectations
+  return fetchPrintifyTracking(orderId);
+}
+
 export async function setupLogisticsWebhook() {
   await requireAdmin()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;

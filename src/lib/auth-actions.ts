@@ -55,3 +55,10 @@ export async function signUpAction(formData: FormData) {
 
   return redirect('/auth?message=Verification email sent. Please check your inbox.');
 }
+
+export async function signOutAction() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  await supabase.auth.signOut();
+  return redirect('/auth');
+}

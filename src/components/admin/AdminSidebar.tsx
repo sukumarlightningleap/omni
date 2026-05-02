@@ -16,7 +16,7 @@ import {
   Image as ImageIcon,
   FolderTree
 } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
+import { signOutAction } from '@/lib/auth-actions';
 import { motion } from 'framer-motion';
 
 const menuItems = [
@@ -31,9 +31,8 @@ const menuItems = [
   { icon: Megaphone, label: 'Marketing', href: '/admin/marketing' },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ user }: { user?: any }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
 
   return (
     <aside className="w-64 border-r border-slate-200 bg-[#FAF9F6] flex flex-col h-screen fixed left-0 top-0 z-[60]">
@@ -86,7 +85,7 @@ export default function AdminSidebar() {
             <TrendingUp size={14} /> View Store
           </Link>
           <button
-            onClick={() => signOut({ callbackUrl: '/' })}
+            onClick={() => signOutAction()}
             className="flex items-center gap-2 w-full px-4 py-2 text-[11px] font-bold text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
           >
             <LogOut size={14} /> Log Out

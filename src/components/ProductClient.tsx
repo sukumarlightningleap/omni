@@ -8,7 +8,7 @@ import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
-import { useSession } from 'next-auth/react';
+// useSession removed to favor Server-Prop pattern
 import { useRouter } from 'next/navigation';
 
 const COLOR_MAP: Record<string, string> = {
@@ -18,7 +18,7 @@ const COLOR_MAP: Record<string, string> = {
   Purple: '#7C3AED',
 };
 
-const CrossSellCarousel = ({ products }: { products: any[] }) => {
+const CrossSellCarousel = ({ products, user }: { products: any[], user?: any }) => {
   if (!products || products.length === 0) return null;
   return (
     <section className="bg-white px-4 md:px-12 py-16" style={{ borderTop: '1px solid #eaeaec' }}>
@@ -26,7 +26,7 @@ const CrossSellCarousel = ({ products }: { products: any[] }) => {
         <h2 className="text-[16px] font-bold text-[#282C3F] mb-6 uppercase tracking-wide">Similar Products</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {products.map((product, index) => (
-            <ProductCard key={product._id || product.slug} product={product} index={index} />
+            <ProductCard key={product._id || product.slug} product={product} index={index} user={user} />
           ))}
         </div>
       </div>
@@ -34,7 +34,7 @@ const CrossSellCarousel = ({ products }: { products: any[] }) => {
   );
 };
 
-export default function ProductClient({ product, recommendations = [] }: ProductClientProps) {
+export default function ProductClient({ product, recommendations = [], user }: ProductClientProps) {
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [pincode, setPincode] = useState('');
@@ -46,11 +46,11 @@ export default function ProductClient({ product, recommendations = [] }: Product
 
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
   const isInWishlist = useWishlistStore((state) => state.items.some(i => i.id === product._id));
-  const { data: session } = useSession();
+  // useSession hook replaced by user prop
   const router = useRouter();
 
   const handleGatekeep = () => {
-    if (!session) {
+    if (!user) {
       router.push('/auth?message=Unrwly Membership Required. Please sign in to shop.');
       return true;
     }
@@ -416,7 +416,7 @@ export default function ProductClient({ product, recommendations = [] }: Product
         </div>
       </section>
 
-      <CrossSellCarousel products={recommendations} />
+      <CrossSellCarousel products={recommendations} user={user} />
       
 
     </div>
@@ -426,4 +426,5 @@ export default function ProductClient({ product, recommendations = [] }: Product
 interface ProductClientProps {
   product: any;
   recommendations?: any[];
+  user?: any;
 }

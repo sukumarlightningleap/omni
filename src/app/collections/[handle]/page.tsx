@@ -4,6 +4,8 @@ import CollectionClient from '@/components/CollectionClient';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { ArrowLeft, Sparkles } from 'lucide-react';
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 
 export const revalidate = 3600; // ISR: 1 hour
 
@@ -13,6 +15,19 @@ interface CollectionPageProps {
 
 export default async function IndividualCollectionPage({ params }: CollectionPageProps) {
   const { handle } = await params;
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Determine if user is admin based on environment variable
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+  const isAdmin = user?.email?.toLowerCase().trim() === masterEmail;
+
+  const safeUser = user ? {
+    id: user.id,
+    email: user.email,
+    role: isAdmin ? 'ADMIN' : 'CUSTOMER'
+  } : null;
 
   // Fetch the collection by handle with visibility check
   const collection = await prisma.collection.findUnique({
@@ -70,6 +85,7 @@ export default async function IndividualCollectionPage({ params }: CollectionPag
       initialProducts={formattedProducts} 
       categories={categories}
       title={collection?.name || "New Arrivals"}
+      user={safeUser}
     />
   );
 }

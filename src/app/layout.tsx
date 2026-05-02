@@ -8,6 +8,8 @@ import Footer from "@/components/Footer";
 import { Providers } from "@/components/Providers";
 import ConditionalStorefrontLayout from "@/components/ConditionalStorefrontLayout";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 
 // Prevent static prerendering — Prisma requires a live DB connection
 export const dynamic = "force-dynamic";
@@ -56,6 +58,21 @@ export default async function RootLayout({
     console.error("PRODUCTION_DATABASE_ERROR: Check if Supabase is paused or credentials are correct.", error);
   }
 
+  // 4. Fetch Supabase Session for the Navbar
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Determine if user is admin based on environment variable for consistent prop passing
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+  const isAdmin = user?.email?.toLowerCase().trim() === masterEmail;
+
+  const safeUser = user ? {
+    id: user.id,
+    email: user.email,
+    role: isAdmin ? 'ADMIN' : 'CUSTOMER'
+  } : null;
+
   // Access the Environment Variable for Analytics
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
@@ -68,7 +85,7 @@ export default async function RootLayout({
             config={config}
             navbar={
               <Suspense fallback={<div className="h-20 bg-white border-b border-neutral-100" />}>
-                <Navbar />
+                <Navbar user={safeUser} />
               </Suspense>
             }
             footer={<Footer />}

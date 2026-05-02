@@ -7,7 +7,7 @@ import { Heart, ShoppingBag, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
-import { useSession } from 'next-auth/react';
+// useSession removed to favor Server-Prop pattern
 import { useRouter } from 'next/navigation';
 
 interface Product {
@@ -27,12 +27,14 @@ const ProductCard = ({
   product, 
   index = 0,
   showRemove = false,
-  onRemove
+  onRemove,
+  user
 }: { 
   product: Product; 
   index?: number;
   showRemove?: boolean;
   onRemove?: (id: string) => void;
+  user?: any;
 }) => {
   const toggleWishlist = useWishlistStore((s) => s.toggleItem);
   const isInWishlist = useWishlistStore((s) => s.items.some((i) => i.id === product._id));
@@ -45,11 +47,11 @@ const ProductCard = ({
   // Find if item is already in cart
   const cartItem = cartItems.find(i => i.productId === product._id);
   const inCartCount = cartItem?.quantity || 0;
-  const { data: session } = useSession();
+  // useSession hook replaced by user prop
   const router = useRouter();
 
   const handleGatekeep = () => {
-    if (!session) {
+    if (!user) {
       router.push('/auth?message=Unrwly Membership Required. Please sign in to shop.');
       return true;
     }

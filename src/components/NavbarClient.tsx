@@ -7,13 +7,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Search, Menu, ChevronDown, User, ArrowRight, ShieldCheck, X } from 'lucide-react';
 import CartDrawer from './CartDrawer';
 import SearchModal from './SearchModal';
-import { useSession, signOut } from 'next-auth/react';
+import { signOutAction } from '@/lib/auth-actions';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { getVisibleCollections } from '@/app/actions/storefront';
 
-const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] }) => {
-  const { data: session } = useSession();
+const NavbarClient = ({ initialCollections = [], user }: { initialCollections?: any[], user?: any }) => {
   const items = useCartStore((state) => state.items);
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
   const setDrawerOpen = useCartStore((state) => state.setDrawerOpen);
@@ -32,7 +31,7 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
     setCollections(initialCollections);
   }, [initialCollections]);
 
-  const isAdmin = session?.user?.role === 'ADMIN';
+  const isAdmin = user?.role === 'ADMIN';
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -170,7 +169,7 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
           <div className="flex items-center gap-2 md:gap-10 ml-auto shrink-0">
             {/* Profile */}
             <button
-              onClick={() => session ? router.push(isAdmin ? '/admin/products' : '/account') : router.push('/auth')}
+              onClick={() => user ? router.push(isAdmin ? '/admin/products' : '/account') : router.push('/auth')}
               className="hidden sm:flex flex-col items-center gap-1 group"
             >
               <User size={20} className="text-[#334155] group-hover:text-[#4F46E5] transition-colors" />
@@ -272,11 +271,11 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
 
             <div className="mt-auto pt-8 border-t border-slate-100 grid grid-cols-2 gap-4">
               <Link 
-                href={session ? (isAdmin ? '/admin/products' : '/account') : '/auth'} 
+                href={user ? (isAdmin ? '/admin/products' : '/account') : '/auth'} 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="flex items-center justify-center h-14 bg-white border border-slate-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-[#1A1A1A]"
               >
-                {session ? 'Profile' : 'Login'}
+                {user ? 'Profile' : 'Login'}
               </Link>
               <Link 
                 href="/wishlist" 
@@ -285,10 +284,10 @@ const NavbarClient = ({ initialCollections = [] }: { initialCollections?: any[] 
               >
                 Wishlist ({wishlistCount})
               </Link>
-              {session && (
+              {user && (
                 <button 
-                  onClick={() => {
-                    signOut();
+                  onClick={async () => {
+                    await signOutAction();
                     setIsMobileMenuOpen(false);
                   }}
                   className="col-span-2 h-12 text-[10px] font-bold text-rose-500 uppercase tracking-widest"

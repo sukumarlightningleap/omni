@@ -7,6 +7,7 @@ import { User, Package, Heart, LogOut, Loader2, ShoppingBag, ExternalLink, Chevr
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { useWishlistStore } from '@/store/useWishlistStore';
+import { signOutAction } from '@/lib/auth-actions';
 
 interface AccountClientProps {
   user: any; // Data passed from the Server Component via Prisma
@@ -26,10 +27,8 @@ const AccountClient = ({ user }: AccountClientProps) => {
   }, [user, router]);
 
   // Handle Log Out via a standard redirect to a server action or auth page
-  const handleSignOut = () => {
-    // Since we're using Supabase SSR, we redirect to the auth page
-    // where the middleware/client handles session termination
-    window.location.href = '/auth';
+  const handleSignOut = async () => {
+    await signOutAction();
   };
 
   if (!user) {
@@ -204,7 +203,7 @@ const AccountClient = ({ user }: AccountClientProps) => {
                 {wishlistItems.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {wishlistItems.map((product: any, idx) => (
-                      <ProductCard key={product.id} product={{ ...product, _id: product.id }} index={idx} />
+                      <ProductCard key={product.id} product={{ ...product, _id: product.id }} index={idx} user={user} />
                     ))}
                   </div>
                 ) : (
