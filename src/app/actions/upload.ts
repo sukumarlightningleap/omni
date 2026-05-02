@@ -1,34 +1,49 @@
 "use server"
 
 import { put } from "@vercel/blob"
-import { auth } from "@/lib/auth"
+import { createClient } from "@/utils/supabase/server"
+import { cookies } from "next/headers"
+
+/**
+ * Gatekeeper: Ensures only the Master Admin defined in Vercel environment
+ * variables can access the file upload engine.
+ */
+const requireAdmin = async () => {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+  const userEmail = user?.email?.toLowerCase().trim();
+
+  if (!user || userEmail !== masterEmail) {
+    throw new Error("Unauthorized. Administrative clearance required for asset upload.");
+  }
+}
 
 export async function uploadFile(formData: FormData) {
-  const session = await auth()
-  
-  if (session?.user?.role !== "ADMIN") {
-    throw new Error("Unauthorized. Missing administrative clearance.")
-  }
+  // 1. Verify Identity
+  await requireAdmin();
 
-  const file = formData.get("file") as File
+  const file = formData.get("file") as File;
   if (!file) {
-    throw new Error("No file payload detected.")
+    throw new Error("No file payload detected.");
   }
 
-  // Validate file type
+  // 2. Validate Media Constraints
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm'];
   if (!allowedTypes.includes(file.type)) {
     throw new Error(`Forbidden file format: ${file.type}`);
   }
 
-  // Enforce size limit for Vercel Blob Free tier (typically 4.5MB for serverless functions)
+  // Enforce size limit (4.5MB for Vercel Serverless Functions)
   const MAX_SIZE = 4.5 * 1024 * 1024;
   if (file.size > MAX_SIZE) {
     throw new Error("File size exceeds 4.5MB limit.");
   }
 
   try {
-    // Sanitize filename and add timestamp to avoid collisions
+    // 3. Persistent Storage Handshake
     const timestamp = Date.now();
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
     const uniqueName = `${timestamp}-${sanitizedName}`;
@@ -36,13 +51,13 @@ export async function uploadFile(formData: FormData) {
     // Upload to Vercel Blob
     const blob = await put(uniqueName, file, {
       access: 'public',
-      addRandomSuffix: true, // Double safety against collisions
+      addRandomSuffix: true,
     });
 
-    return { 
+    return {
       url: blob.url,
       name: sanitizedName
-    }
+    };
   } catch (error) {
     console.error("Vercel Blob Upload Failed:", error);
     throw new Error("Cloud synchronization failure. Persistent storage rejected the payload.");
