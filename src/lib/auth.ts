@@ -12,16 +12,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const masterAdminEmail = process.env.MASTER_ADMIN_EMAIL;
-        const isMasterAdmin = masterAdminEmail && user.email?.toLowerCase() === masterAdminEmail.toLowerCase();
+        // Normalize emails to avoid case-sensitivity or spacing issues
+        const masterAdminEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+        const currentUserEmail = user.email?.toLowerCase().trim();
 
-        // Strict Enforcement: Only the Master Admin can have the ADMIN role in the session
-        if ((user as any).role === 'ADMIN' && !isMasterAdmin) {
-          token.role = 'CUSTOMER';
+        // 1. Identify if this user is the "Chosen One" defined in Vercel
+        const isMasterAdmin = masterAdminEmail && currentUserEmail === masterAdminEmail;
+
+        if (isMasterAdmin) {
+          // 2. AUTO-PROMOTION: If they match the ENV, force their DB role to ADMIN
+          // This fulfills your plan: just change the ENV, and the user becomes Admin on login.
+          await prisma.user.update({
+            where: { email: currentUserEmail },
+            data: { role: 'ADMIN' }
+          });
+          token.role = 'ADMIN';
         } else {
-          token.role = (user as any).role;
+          // 3. SECURITY GUARD: If someone else was previously an Admin,
+          // but the ENV changed, demote them to CUSTOMER immediately.
+          token.role = (user as any).role === 'ADMIN' ? 'CUSTOMER' : (user as any).role;
         }
-        
+
         token.id = user.id;
         token.email = user.email;
       }
@@ -29,16 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token && session.user) {
-        const masterAdminEmail = process.env.MASTER_ADMIN_EMAIL;
-        const isMasterAdmin = masterAdminEmail && token.email?.toLowerCase() === masterAdminEmail.toLowerCase();
-
-        // Final Security Gate: Ensure role consistency in the session object
-        if (token.role === 'ADMIN' && !isMasterAdmin) {
-          session.user.role = 'CUSTOMER';
-        } else {
-          session.user.role = token.role as any;
-        }
-        
+        session.user.role = token.role as any;
         session.user.id = token.id as string;
       }
       return session;
@@ -48,8 +50,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Credentials({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        const user = await prisma.user.findUnique({ where: { email: credentials.email as string } });
+
+        const user = await prisma.user.findUnique({
+          where: { email: (credentials.email as string).toLowerCase().trim() }
+        });
+
         if (!user || !user.password) return null;
+
         const isValid = await compare(credentials.password as string, user.password);
         return isValid ? user : null;
       }
