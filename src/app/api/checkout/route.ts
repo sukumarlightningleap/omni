@@ -20,18 +20,24 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
 
     // ==========================================
-    // GA4 CLIENT ID EXTRACTION
-    // Google stores the ID in a cookie named '_ga'.
-    // Format is usually "GA1.1.123456789.1600000000"
-    // We slice the last two parts to get the true client_id.
+    // ADVANCED GA4 COOKIE EXTRACTION
     // ==========================================
+    const measurementId = process.env.NEXT_PUBLIC_GA_ID?.replace('G-', '');
     const gaCookie = cookieStore.get('_ga')?.value;
+    const sessionCookie = measurementId ? cookieStore.get(`_ga_${measurementId}`)?.value : null;
+
     let gaClientId = '';
+    let gaSessionId = '';
+
     if (gaCookie) {
-      const parts = gaCookie.split('.');
-      if (parts.length >= 2) {
-        gaClientId = parts.slice(-2).join('.');
-      }
+      // Extracts XXXXXX.YYYYYY from GA1.1.XXXXXX.YYYYYY
+      gaClientId = gaCookie.split('.').slice(-2).join('.');
+    }
+
+    if (sessionCookie) {
+      // Extracts the 3rd part of the session cookie (the actual Session ID)
+      const parts = sessionCookie.split('.');
+      gaSessionId = parts[2];
     }
     // ==========================================
 
@@ -48,9 +54,7 @@ export async function POST(req: Request) {
       quantity: item.quantity,
     }));
 
-    // Find the user ID in Prisma based on Supabase email
     const dbUser = user ? await prisma.user.findUnique({ where: { email: user.email } }) : null;
-
     const totalAmount = items.reduce((total: number, item: any) => total + ((item.price || 0) * item.quantity), 0);
     const orderNumber = `UNR-${Math.random().toString(36).toUpperCase().substring(2, 10)}`;
 
@@ -83,7 +87,8 @@ export async function POST(req: Request) {
       shipping_address_collection: { allowed_countries: ['US', 'CA', 'IN', 'GB'] },
       metadata: {
         orderId: order.id,
-        ga_client_id: gaClientId // Send the GA4 ID to Stripe!
+        ga_client_id: gaClientId,
+        ga_session_id: gaSessionId
       },
     });
 
