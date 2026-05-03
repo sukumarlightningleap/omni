@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import Stripe from "stripe"
 import { createPrintifyOrder } from "@/lib/printify"
+import crypto from "crypto" // Added for generating fallback client_ids
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2023-10-16" as any // Safe fallback for types
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature")
 
   let event;
-  
+
   if (endpointSecret && signature) {
     try {
       event = stripe.webhooks.constructEvent(payloadStr, signature, endpointSecret)
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
   // --- SHARED ORDER FULFILLMENT LOGIC ---
   async function fulfillOrder(orderId: string, stripeObject: any) {
     console.log(`[FULFILLMENT] Starting order fulfillment for: ${orderId} (Session: ${stripeObject.id})`);
-    
+
     // DOUBLE-GATE CHECK: Ensure we don't process the same payment twice
     const existingOrder = await prisma.order.findUnique({
       where: { stripeSessionId: stripeObject.id }
@@ -45,9 +46,9 @@ export async function POST(req: Request) {
     const addressDetails = stripeObject.shipping_details?.address || stripeObject.shipping?.address;
     const customerName = stripeObject.shipping_details?.name || stripeObject.shipping?.name || stripeObject.customer_details?.name;
     const customerEmail = stripeObject.customer_details?.email || stripeObject.receipt_email;
-    
-    const formattedAddress = addressDetails ? 
-      `${addressDetails.line1}, ${addressDetails.line2 ? addressDetails.line2 + ', ' : ''}${addressDetails.city}, ${addressDetails.state} ${addressDetails.postal_code}, ${addressDetails.country}` 
+
+    const formattedAddress = addressDetails ?
+      `${addressDetails.line1}, ${addressDetails.line2 ? addressDetails.line2 + ', ' : ''}${addressDetails.city}, ${addressDetails.state} ${addressDetails.postal_code}, ${addressDetails.country}`
       : "No address provided";
 
     const orderWithItems = await prisma.order.findUnique({
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
     // Profit = Total - Total Cost
     const totalCost = orderWithItems.items.reduce((sum, item) => sum + (item.product.cost || 0) * item.quantity, 0);
     const profit = orderWithItems.totalAmount - totalCost;
-    
+
     // PRECISION LTV: Use amount_total from Stripe divided by 100
     const amountPaid = (stripeObject.amount_total || stripeObject.amount_received || 0) / 100;
 
@@ -92,8 +93,64 @@ export async function POST(req: Request) {
 
     console.log(`[FULFILLMENT] Order ${orderId} marked as PAID. Triggering Printify handoff...`);
 
-    // 3. Printify Automation Bridge (Enhanced with direct stripeObject sync)
+    // 3. Printify Automation Bridge
     await createPrintifyOrder(orderId, stripeObject);
+
+    // ==========================================
+    // 4. GA4 MEASUREMENT PROTOCOL (SERVER-SIDE)
+    // ==========================================
+    try {
+      const measurementId = process.env.NEXT_PUBLIC_GA_ID;
+      const apiSecret = process.env.GA_API_SECRET;
+
+      if (measurementId && apiSecret) {
+        // Construct the item array for Google Analytics
+        const gaItems = orderWithItems.items.map(item => ({
+          item_id: item.productId,
+          item_name: item.product?.name || "Unknown Product",
+          price: item.price,
+          quantity: item.quantity
+        }));
+
+        // GA4 REQUIRES a client_id. We try to grab it from Stripe metadata,
+        // fallback to the logged-in user ID, or generate a random one to prevent the API call from failing.
+        const clientId = stripeObject.metadata?.ga_client_id ||
+                         orderWithItems.userId ||
+                         crypto.randomUUID();
+
+        const payload = {
+          client_id: clientId,
+          ...(orderWithItems.userId && { user_id: orderWithItems.userId }), // Cross-device tracking
+          events: [{
+            name: 'purchase',
+            params: {
+              currency: stripeObject.currency ? stripeObject.currency.toUpperCase() : "USD",
+              value: amountPaid,
+              transaction_id: orderId,
+              items: gaItems
+            }
+          }]
+        };
+
+        // Fire the server-to-server POST request to Google
+        const gaResponse = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}&api_secret=${apiSecret}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (gaResponse.ok) {
+          console.log(`[GA4] Measurement Protocol purchase event sent for Order ${orderId}`);
+        } else {
+          console.warn(`[GA4] Measurement Protocol failed with status: ${gaResponse.status}`);
+        }
+      } else {
+        console.warn(`[GA4] Missing NEXT_PUBLIC_GA_ID or GA_API_SECRET. Server tracking skipped.`);
+      }
+    } catch (gaError) {
+      console.error(`[GA4] Failed to execute Measurement Protocol block:`, gaError);
+    }
+    // ==========================================
   }
 
   // --- EVENT HANDLERS ---

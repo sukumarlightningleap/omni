@@ -19,6 +19,22 @@ export async function POST(req: Request) {
     const supabase = createClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
 
+    // ==========================================
+    // GA4 CLIENT ID EXTRACTION
+    // Google stores the ID in a cookie named '_ga'.
+    // Format is usually "GA1.1.123456789.1600000000"
+    // We slice the last two parts to get the true client_id.
+    // ==========================================
+    const gaCookie = cookieStore.get('_ga')?.value;
+    let gaClientId = '';
+    if (gaCookie) {
+      const parts = gaCookie.split('.');
+      if (parts.length >= 2) {
+        gaClientId = parts.slice(-2).join('.');
+      }
+    }
+    // ==========================================
+
     const lineItems = items.map((item: any) => ({
       price_data: {
         currency: 'usd',
@@ -65,7 +81,10 @@ export async function POST(req: Request) {
       cancel_url: `${origin}/checkout?canceled=1`,
       customer_email: user?.email || undefined,
       shipping_address_collection: { allowed_countries: ['US', 'CA', 'IN', 'GB'] },
-      metadata: { orderId: order.id },
+      metadata: {
+        orderId: order.id,
+        ga_client_id: gaClientId // Send the GA4 ID to Stripe!
+      },
     });
 
     await prisma.order.update({
@@ -76,7 +95,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: stripeSession.url });
 
   } catch (error) {
-    console.error("STRIIPE ERROR:", error);
+    console.error("STRIPE ERROR:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

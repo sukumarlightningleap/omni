@@ -96,8 +96,27 @@ export default async function RootLayout({
 
         <div id="adk-agent-root"></div>
 
-        {/* Google Analytics Integration */}
-        {gaId && <GoogleAnalytics gaId={gaId} />}
+        {/* Google Analytics Integration with Global User Parameters & User-ID */}
+        {gaId && (
+          <>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+
+                  // Set global parameters BEFORE Google Analytics fully initializes
+                  gtag('set', {
+                    'user_role': '${safeUser ? safeUser.role : 'GUEST'}',
+                    'login_status': '${safeUser ? 'logged_in' : 'logged_out'}',
+                    'user_id': ${safeUser ? `'${safeUser.id}'` : 'null'}
+                  });
+                `,
+              }}
+            />
+            <GoogleAnalytics gaId={gaId} />
+          </>
+        )}
       </body>
     </html>
   );
