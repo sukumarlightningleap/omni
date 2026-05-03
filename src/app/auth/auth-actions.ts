@@ -66,7 +66,14 @@ export async function signUpAction(formData: FormData) {
     return redirect(`/auth?error=${encodeURIComponent(error.message)}`);
   }
 
-  return redirect('/auth?message=Verification email sent. Please check your inbox.');
+  // With email confirmation disabled, the user is auto-signed in.
+  // Route admin to dashboard, customers to their account.
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.toLowerCase().trim();
+  if (email.toLowerCase().trim() === masterEmail) {
+    return redirect('/admin/products');
+  }
+
+  return redirect('/account');
 }
 
 export async function signOutAction() {
