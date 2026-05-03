@@ -14,9 +14,17 @@ export default async function AccountPage() {
     redirect("/auth");
   }
 
-  // Fetch the user data from Prisma to maintain consistency with your existing UI
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
+  // Ensure a Prisma User record exists for this Supabase auth user.
+  // On first sign-up, the user only exists in Supabase Auth — this creates
+  // the corresponding row in our database automatically.
+  const dbUser = await prisma.user.upsert({
+    where: { email: user.email! },
+    create: {
+      email: user.email!,
+      name: user.user_metadata?.full_name || null,
+      role: user.user_metadata?.role === 'ADMIN' ? 'ADMIN' : 'CUSTOMER',
+    },
+    update: {},
     include: {
       orders: {
         orderBy: { createdAt: "desc" },
