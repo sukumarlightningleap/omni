@@ -51,7 +51,7 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
   };
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-8 font-sans max-w-[1400px] mx-auto">
       {/* PAGE HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">Customers</h1>

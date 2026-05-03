@@ -61,7 +61,7 @@ export default function CollectionsClient({ initialCollections }: { initialColle
   }
 
   return (
-    <div className="space-y-8 font-sans text-neutral-900 max-w-6xl pb-24">
+    <div className="space-y-8 font-sans text-neutral-900 max-w-[1400px] pb-24">
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>

@@ -18,7 +18,7 @@ export default function AnalyticsClient({ data }: { data: AnalyticsData }) {
   const formatUSD = (val: number) => `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   return (
-    <div className="space-y-12 font-sans text-neutral-900">
+    <div className="space-y-12 font-sans text-neutral-900 max-w-[1400px] mx-auto">
       {/* Header - Integrated */}
       <div className="flex justify-between items-end mb-8">
         <div className="space-y-1">

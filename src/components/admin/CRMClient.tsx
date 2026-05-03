@@ -46,7 +46,7 @@ export default function CRMClient({ initialUsers }: { initialUsers: UserData[] }
   };
 
   return (
-    <div className="space-y-12 font-sans text-neutral-900">
+    <div className="space-y-12 font-sans text-neutral-900 max-w-[1400px] mx-auto">
       {/* Header - Integrated */}
       <div className="flex justify-between items-end mb-8">
         <div className="space-y-1">

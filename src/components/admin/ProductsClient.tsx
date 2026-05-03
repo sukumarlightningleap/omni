@@ -157,7 +157,7 @@ export default function ProductsClient({
   };
 
   return (
-    <div className="space-y-8 font-sans bg-[#F8F9FA] min-h-screen p-8">
+    <div className="space-y-10 font-sans">
       {/* PAGE HEADER */}
       <div className="flex justify-between items-center px-4">
         <div className="flex flex-col">

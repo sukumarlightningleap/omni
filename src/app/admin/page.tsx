@@ -4,7 +4,7 @@ import Link from "next/link"
 
 export default function AdminDashboardPage() {
   return (
-    <div className="font-sans text-neutral-900 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 w-full max-w-6xl">
+    <div className="font-sans text-neutral-900 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 w-full max-w-[1400px] mx-auto">
       
       {/* Hero Greeting */}
       <div className="space-y-4">
