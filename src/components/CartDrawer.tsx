@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, ArrowRight, Minus, Plus, Trash2, Loader2, Lock } from 'lucide-react';
+import { X, ShoppingBag, ArrowRight, Minus, Plus, Trash2, Lock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
-import { sendGAEvent } from '@next/third-parties/google'; // Added import
+import { sendGAEvent } from '@next/third-parties/google';
 
 const CartDrawer: React.FC = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -22,7 +22,8 @@ const CartDrawer: React.FC = () => {
 
   // --- GA4 EVENT TRACKING: view_cart ---
   React.useEffect(() => {
-    if (isDrawerOpen && items.length > 0) {
+    // We check for 'mounted' to ensure this only runs in the browser
+    if (mounted && isDrawerOpen && items.length > 0) {
       const cartTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
 
       sendGAEvent('event', 'view_cart', {
@@ -36,8 +37,23 @@ const CartDrawer: React.FC = () => {
         }))
       });
     }
-  }, [isDrawerOpen, items]);
-  // -------------------------------------
+  }, [isDrawerOpen, items, mounted]);
+
+  // Handle Item Removal with GA4 Tracking
+  const handleRemoveItem = (itemId: string, item: any) => {
+    // Track removal BEFORE removing from state
+    sendGAEvent('event', 'remove_from_cart', {
+      currency: 'USD',
+      value: item.price * item.quantity,
+      items: [{
+        item_id: item.productId || item.id,
+        item_name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      }]
+    });
+    removeItem(itemId);
+  };
 
   if (!mounted) return null;
 
@@ -130,7 +146,7 @@ const CartDrawer: React.FC = () => {
                           <div className="flex justify-between items-start gap-2">
                             <h4 className="text-sm font-bold text-black leading-tight line-clamp-2 uppercase tracking-tight">{item.name}</h4>
                             <button
-                              onClick={() => removeItem(item.id)}
+                              onClick={() => handleRemoveItem(item.id, item)}
                               className="text-neutral-300 hover:text-red-500 transition-colors p-1"
                             >
                               <Trash2 size={16} />
@@ -174,8 +190,7 @@ const CartDrawer: React.FC = () => {
 
               <Link
                 href="/checkout"
-                onClick={(e) => {
-                  // --- GA4 EVENT TRACKING: begin_checkout ---
+                onClick={() => {
                   sendGAEvent('event', 'begin_checkout', {
                     currency: 'USD',
                     value: subtotal,
@@ -186,7 +201,6 @@ const CartDrawer: React.FC = () => {
                       quantity: item.quantity
                     }))
                   });
-                  // ------------------------------------------
                   setDrawerOpen(false);
                 }}
                 className={`w-full py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-neutral-800 transition-colors flex justify-center items-center gap-3 rounded-none shadow-xl ${items.length === 0 ? 'pointer-events-none opacity-50' : ''}`}
@@ -203,4 +217,3 @@ const CartDrawer: React.FC = () => {
 };
 
 export default CartDrawer;
-```</Link>
