@@ -7,8 +7,8 @@ import { Heart, ShoppingBag, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
-// useSession removed to favor Server-Prop pattern
 import { useRouter } from 'next/navigation';
+import { sendGAEvent } from '@next/third-parties/google'; // Added import
 
 interface Product {
   _id: string;
@@ -23,14 +23,14 @@ interface Product {
   sizes?: string[];
 }
 
-const ProductCard = ({ 
-  product, 
+const ProductCard = ({
+  product,
   index = 0,
   showRemove = false,
   onRemove,
   user
-}: { 
-  product: Product; 
+}: {
+  product: Product;
   index?: number;
   showRemove?: boolean;
   onRemove?: (id: string) => void;
@@ -38,16 +38,14 @@ const ProductCard = ({
 }) => {
   const toggleWishlist = useWishlistStore((s) => s.toggleItem);
   const isInWishlist = useWishlistStore((s) => s.items.some((i) => i.id === product._id));
-  
+
   const [isHovered, setIsHovered] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const setDrawerOpen = useCartStore((s) => s.setDrawerOpen);
   const cartItems = useCartStore((s) => s.items);
 
-  // Find if item is already in cart
   const cartItem = cartItems.find(i => i.productId === product._id);
   const inCartCount = cartItem?.quantity || 0;
-  // useSession hook replaced by user prop
   const router = useRouter();
 
   const handleGatekeep = () => {
@@ -69,6 +67,21 @@ const ProductCard = ({
     e.preventDefault();
     e.stopPropagation();
     if (handleGatekeep()) return;
+
+    // --- GA4 EVENT TRACKING: Quick Add ---
+    sendGAEvent('event', 'add_to_cart', {
+      currency: 'USD',
+      value: activeRawPrice,
+      items: [{
+        item_id: product._id,
+        item_name: product.name,
+        price: activeRawPrice,
+        quantity: 1,
+        item_category: product.category || 'Uncategorized'
+      }]
+    });
+    // -------------------------------------
+
     addItem({
       id: `${product._id}-default`,
       productId: product._id,
@@ -91,7 +104,7 @@ const ProductCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ 
+      whileHover={{
         y: -8,
         scale: 1.02,
         transition: { duration: 0.3, ease: "easeOut" }
@@ -102,7 +115,6 @@ const ProductCard = ({
       className="group relative bg-white rounded-xl transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:border-[#FCE8E2] border border-transparent overflow-hidden"
     >
       <Link href={`/products/${product.slug}`} className="block">
-        {/* ── IMAGE CONTAINER ────────────────────────────── */}
         <div className="relative w-full overflow-hidden aspect-[3/4] bg-neutral-100">
           <AnimatePresence mode="wait">
             <motion.div
@@ -123,7 +135,6 @@ const ProductCard = ({
             </motion.div>
           </AnimatePresence>
 
-          {/* Action Button — Top Right */}
           {showRemove ? (
             <motion.button
               whileTap={{ scale: 0.9 }}
@@ -157,7 +168,6 @@ const ProductCard = ({
             </motion.button>
           )}
 
-          {/* Quick Add Overlay (Desktop) */}
           <div className="absolute inset-x-4 bottom-4 z-20 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 hidden md:block">
             <button
               onClick={handleQuickAdd}
@@ -169,7 +179,6 @@ const ProductCard = ({
           </div>
         </div>
 
-        {/* ── PRODUCT METADATA ─────────────────────────── */}
         <div className="pt-5 pb-4 px-4 bg-white">
           <div className="flex justify-between items-start gap-4">
             <div className="space-y-1">
@@ -187,8 +196,7 @@ const ProductCard = ({
                 )}
               </div>
             </div>
-            
-            {/* Mobile Only Quick Add Circle */}
+
             <button
               onClick={handleQuickAdd}
               className="md:hidden w-12 h-12 rounded-full bg-[#121212] flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"

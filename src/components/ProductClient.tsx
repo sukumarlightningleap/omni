@@ -8,8 +8,8 @@ import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
-// useSession removed to favor Server-Prop pattern
 import { useRouter } from 'next/navigation';
+import { sendGAEvent } from '@next/third-parties/google'; // Added import
 
 const COLOR_MAP: Record<string, string> = {
   Black: '#000000', White: '#FFFFFF', Red: '#DC2626', Blue: '#2563EB',
@@ -46,7 +46,6 @@ export default function ProductClient({ product, recommendations = [], user }: P
 
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
   const isInWishlist = useWishlistStore((state) => state.items.some(i => i.id === product._id));
-  // useSession hook replaced by user prop
   const router = useRouter();
 
   const handleGatekeep = () => {
@@ -57,8 +56,46 @@ export default function ProductClient({ product, recommendations = [], user }: P
     return false;
   };
 
+  const activePriceDisplay = product.price;
+  const activePriceNumber = useMemo(() => {
+    if (typeof activePriceDisplay === 'number') return activePriceDisplay;
+    return parseFloat(activePriceDisplay.replace(/[^0-9.-]+/g, ""));
+  }, [activePriceDisplay]);
+
+  // --- GA4 EVENT TRACKING: view_item ---
+  useEffect(() => {
+    if (product) {
+      sendGAEvent('event', 'view_item', {
+        currency: 'USD',
+        value: activePriceNumber,
+        items: [{
+          item_id: product._id,
+          item_name: product.name,
+          price: activePriceNumber,
+          item_category: product.category || 'Uncategorized'
+        }]
+      });
+    }
+  }, [product, activePriceNumber]);
+  // -------------------------------------
+
   const handleToggleWishlist = () => {
     if (handleGatekeep()) return;
+
+    // --- GA4 EVENT TRACKING: add_to_wishlist ---
+    if (!isInWishlist) {
+      sendGAEvent('event', 'add_to_wishlist', {
+        currency: 'USD',
+        value: activePriceNumber,
+        items: [{
+          item_id: product._id,
+          item_name: product.name,
+          price: activePriceNumber
+        }]
+      });
+    }
+    // -------------------------------------------
+
     toggleWishlist({
       id: `${product._id}`,
       name: product.name,
@@ -76,7 +113,7 @@ export default function ProductClient({ product, recommendations = [], user }: P
       raw = product.images.map((img: any) => typeof img === 'string' ? img : img.src);
     }
     else if (product.image) raw = [product.image];
-    
+
     const filtered = raw.filter((img: any) => typeof img === 'string' && img.trim() !== '');
     return filtered.length > 0 ? filtered : ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80"];
   }, [product.allImages, product.images, product.image]);
@@ -94,17 +131,26 @@ export default function ProductClient({ product, recommendations = [], user }: P
     return Array.from(set);
   }, [variants]);
 
-  const activePriceDisplay = product.price;
-  const activePriceNumber = useMemo(() => {
-    if (typeof activePriceDisplay === 'number') return activePriceDisplay;
-    return parseFloat(activePriceDisplay.replace(/[^0-9.-]+/g, ""));
-  }, [activePriceDisplay]);
-
   const strikethroughPrice = (activePriceNumber * 1.5).toFixed(2);
   const discountPercent = 33;
 
   const handleAddToCart = () => {
     if (handleGatekeep()) return;
+
+    // --- GA4 EVENT TRACKING: Detailed add_to_cart ---
+    sendGAEvent('event', 'add_to_cart', {
+      currency: 'USD',
+      value: activePriceNumber,
+      items: [{
+        item_id: product._id,
+        item_name: product.name,
+        price: activePriceNumber,
+        quantity: 1,
+        item_variant: `${selectedColor} ${selectedSize}`.trim() || 'Default'
+      }]
+    });
+    // ------------------------------------------------
+
     addItem({
       id: `${product._id}`,
       productId: product._id,
@@ -171,7 +217,6 @@ export default function ProductClient({ product, recommendations = [], user }: P
 
   return (
     <div className="min-h-screen bg-white text-[#334155] font-sans selection:bg-[#0F172A] selection:text-white">
-      {/* Breadcrumb */}
       <div className="hidden md:block max-w-7xl mx-auto px-12 pt-32 pb-4" style={{paddingTop: '128px'}}>
         <nav className="flex items-center gap-2 text-xs text-neutral-500 font-medium">
           <Link href="/" className="hover:text-black">Home</Link>
@@ -183,18 +228,16 @@ export default function ProductClient({ product, recommendations = [], user }: P
       </div>
 
       <div className="max-w-7xl mx-auto md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-12 pb-24">
-        
-        {/* LEFT: Image Architecture (Quad-View) */}
+
         <div className="lg:col-span-7">
-          {/* Desktop Quad Grid */}
           <div className="hidden lg:grid grid-cols-2" style={{ gap: '2px' }}>
             {images.map((img: string, idx: number) => (
               <div key={idx} className="relative overflow-hidden bg-[#f5f5f6]" style={{ aspectRatio: '3/4', border: '1px solid #eaeaec' }}>
-                <Image 
-                  src={img} 
-                  alt={`${product.name} ${idx + 1}`} 
-                  fill 
-                  className="object-cover" 
+                <Image
+                  src={img}
+                  alt={`${product.name} ${idx + 1}`}
+                  fill
+                  className="object-cover"
                   priority={idx < 2}
                   sizes="400px"
                 />
@@ -202,9 +245,8 @@ export default function ProductClient({ product, recommendations = [], user }: P
             ))}
           </div>
 
-          {/* Mobile Snap Slider */}
           <div className="lg:hidden relative">
-            <div 
+            <div
               ref={scrollRef}
               onScroll={(e) => {
                 const target = e.target as HTMLDivElement;
@@ -223,13 +265,13 @@ export default function ProductClient({ product, recommendations = [], user }: P
               {currentSlide} / {images.length}
             </div>
             <div className="absolute top-4 right-4 flex flex-col gap-3">
-              <button 
+              <button
                 onClick={handleToggleWishlist}
                 className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center transition-colors overflow-hidden group/heart"
               >
-                <Heart 
-                  size={20} 
-                  className={`transition-all ${isInWishlist ? 'text-rose-500 fill-rose-500 scale-110' : 'text-neutral-400 group-hover/heart:text-rose-500'}`} 
+                <Heart
+                  size={20}
+                  className={`transition-all ${isInWishlist ? 'text-rose-500 fill-rose-500 scale-110' : 'text-neutral-400 group-hover/heart:text-rose-500'}`}
                 />
               </button>
               <button className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-neutral-400 hover:text-black transition-colors">
@@ -239,7 +281,6 @@ export default function ProductClient({ product, recommendations = [], user }: P
           </div>
         </div>
 
-        {/* RIGHT: High-Density Marketplace Details */}
         <div className="lg:col-span-5 px-6 md:px-0 lg:sticky lg:top-28 lg:self-start" style={{maxHeight: 'calc(100vh - 128px)', overflowY: 'auto'}}>
           <div className="flex flex-col gap-6">
             <div className="space-y-2">
@@ -249,7 +290,6 @@ export default function ProductClient({ product, recommendations = [], user }: P
 
             <hr className="border-neutral-100" />
 
-            {/* Pricing Engine */}
             <div className="space-y-1">
               <div className="flex items-baseline gap-3">
                 <span className="text-4xl font-black text-[#0F172A] tracking-tighter">{activePriceDisplay}</span>
@@ -259,7 +299,6 @@ export default function ProductClient({ product, recommendations = [], user }: P
               <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">inclusive of all taxes</p>
             </div>
 
-            {/* Selection Grid */}
             <div className="space-y-6 pt-4">
               {availableSizes.length > 0 && (
                 <div className="space-y-4">
@@ -270,9 +309,9 @@ export default function ProductClient({ product, recommendations = [], user }: P
                   <div className="flex flex-wrap gap-3">
                     {availableSizes.map(size => {
                       const isActive = selectedSize.toUpperCase() === size.toUpperCase();
-                      const isOutOfStock = size.toLowerCase() === 'xs' || size.toLowerCase() === 'xxl'; // Logic placeholder
+                      const isOutOfStock = size.toLowerCase() === 'xs' || size.toLowerCase() === 'xxl';
                       return (
-                        <button 
+                        <button
                           key={size}
                           disabled={isOutOfStock}
                           onClick={() => setSelectedSize(isActive ? '' : size)}
@@ -300,7 +339,7 @@ export default function ProductClient({ product, recommendations = [], user }: P
                       const isActive = selectedColor.toLowerCase() === color.toLowerCase();
                       const hex = COLOR_MAP[color] || '#888';
                       return (
-                        <button 
+                        <button
                           key={color}
                           onClick={() => setSelectedColor(isActive ? '' : color)}
                           className={`w-8 h-8 rounded-full border-2 transition-all p-0.5 ${isActive ? 'border-neutral-900 scale-110' : 'border-transparent hover:scale-110'}`}
@@ -314,8 +353,6 @@ export default function ProductClient({ product, recommendations = [], user }: P
               )}
             </div>
 
-
-            {/* Desktop Action Stack */}
             <div className="hidden md:grid grid-cols-2 gap-3 mt-8">
               <button
                 onClick={handleAddToCart}
@@ -323,17 +360,16 @@ export default function ProductClient({ product, recommendations = [], user }: P
               >
                 <ShoppingBag size={16} /> Add to Bag
               </button>
-              <button 
+              <button
                 onClick={handleToggleWishlist}
-                className="py-4 font-black uppercase tracking-[0.15em] text-sm flex items-center justify-center gap-3 transition-all active:scale-95 group/wish border border-slate-200 hover:border-[#D97757]" 
+                className="py-4 font-black uppercase tracking-[0.15em] text-sm flex items-center justify-center gap-3 transition-all active:scale-95 group/wish border border-slate-200 hover:border-[#D97757]"
                 style={{ color: isInWishlist ? '#D97757' : '#334155' }}
               >
-                <Heart size={16} className={isInWishlist ? 'fill-[#D97757]' : 'group-hover/wish:text-[#D97757] transition-colors'} /> 
+                <Heart size={16} className={isInWishlist ? 'fill-[#D97757]' : 'group-hover/wish:text-[#D97757] transition-colors'} />
                 {isInWishlist ? 'In Wishlist' : 'Wishlist'}
               </button>
             </div>
 
-            {/* Trust Bullet Points */}
             <div className="py-6 mt-4 space-y-3" style={{ borderTop: '1px solid #eaeaec' }}>
               <div className="flex items-center gap-3">
                 <ShieldCheck size={18} className="text-[#282C3F] shrink-0" />
@@ -356,11 +392,10 @@ export default function ProductClient({ product, recommendations = [], user }: P
         </div>
       </div>
 
-      {/* Mobile Sticky Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white flex p-3 gap-3 border-t border-slate-100 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
-        <button 
+        <button
           onClick={handleToggleWishlist}
-          className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-black uppercase tracking-widest border border-slate-200" 
+          className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-black uppercase tracking-widest border border-slate-200"
           style={{ color: isInWishlist ? '#D97757' : '#334155' }}
         >
           <Heart size={18} className={isInWishlist ? 'fill-[#D97757]' : ''} /> {isInWishlist ? 'Wishlisted' : 'Wishlist'}
@@ -373,41 +408,35 @@ export default function ProductClient({ product, recommendations = [], user }: P
         </button>
       </div>
 
-      {/* ── EXPANDED PRODUCT SPECIFICATIONS ────────────────────────────── */}
       <section className="bg-white px-6 md:px-12 py-24 border-t border-neutral-100">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-            {/* 1. Product Features */}
             <div className="space-y-6">
               <h3 className="text-xs font-black uppercase tracking-[0.3em] text-black flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-black" />
                 Product Features
               </h3>
-              <div 
+              <div
                 className="text-sm text-neutral-500 leading-relaxed font-medium space-y-4 prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: parsedFeatures || '<ul className="list-disc pl-4 space-y-2"><li>Premium Build Quality</li><li>Ethically Sourced Materials</li><li>High-Definition Print Technology</li><li>Limited Edition "Unrwly" Original</li></ul>' }}
               />
             </div>
-
-            {/* 2. Care Instructions */}
             <div className="space-y-6">
               <h3 className="text-xs font-black uppercase tracking-[0.3em] text-black flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-black" />
                 Care Instructions
               </h3>
-              <div 
+              <div
                 className="text-sm text-neutral-500 leading-relaxed font-medium prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: parsedCare || '<ul className="list-disc pl-4 space-y-2"><li>Machine wash cold, inside out</li><li>Tumble dry on low or hang dry</li><li>Do not iron directly on graphics</li><li>Avoid bleach and harsh detergents</li></ul>' }}
               />
             </div>
-
-            {/* 3. The Details */}
             <div className="space-y-6">
               <h3 className="text-xs font-black uppercase tracking-[0.3em] text-black flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-black" />
                 The Details
               </h3>
-              <div 
+              <div
                 className="text-sm text-neutral-500 leading-relaxed font-medium prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: parsedDetails || 'No additional details provided.' }}
               />
@@ -417,8 +446,6 @@ export default function ProductClient({ product, recommendations = [], user }: P
       </section>
 
       <CrossSellCarousel products={recommendations} user={user} />
-      
-
     </div>
   );
 }
